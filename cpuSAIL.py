@@ -6,13 +6,18 @@ def activities(X,Q,W,theta):
     batch_size, N = X.shape
     sz = int(np.sqrt(N))
 
-    M = Q.shape[1]
+    M = Q.shape[1] 
+    
+    """
+    Q is the matrix of connection strengths from each input to each neuron. it is a inputs X number of neurons
+    """
 
     num_iterations = 50
 
     eta = .1
-
+    
     B = X.dot(Q)
+    #weighting the input activity by the feed-forward weights
 
     T = np.tile(theta,(batch_size,1))
 
@@ -24,14 +29,24 @@ def activities(X,Q,W,theta):
     aas determines who spikes. Subtracting aas.dot(W) creates inhibition based on the weight.
     aas is either 1 or 0, either fired or not.
     
+    (1 - eta)*Ys is a decay term.
+    
+    eta*(B) is a term that increases the activity based on the strength of the input
+    weighted by the feed forward weights.
+    
+    eta*aas.dot(W) term is the inhibitory term.    
     """
     for tt in xrange(num_iterations):
         Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
         aas = np.zeros((batch_size,M))
+        #This resets the current activity of the time step to 0's        
         aas[Ys > T] = 1.
+        #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
         Y += aas
+        #update total activity
         Ys[Ys > T] = 0.
-
+        #after firing set back to zero for activity calculations in next time step
+        
     return Y
 
 rng = np.random.RandomState(0)
