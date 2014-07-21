@@ -67,14 +67,15 @@ BUFF = 20
 N = 256
 sz = np.sqrt(N).astype(np.int)
 OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
-M = OC*N
+M = OC*N #M is the number of neurons
 
 # Network Parameters
-p = .05
+p = .05 #Sparcity
 
 # Initialize Weights
 Q = rng.randn(N,M)
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
+#1./np.sqrt(np.diag(Q.T.dot(Q))) normalizes the Q matrix
 W = np.zeros((M,M))
 theta = 2.*np.ones(M)
 
@@ -102,9 +103,12 @@ for tt in xrange(num_trials):
         r = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
         c = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
         myimage = images[int(num_images*rng.rand()),r:r+sz,c:c+sz].ravel()
+        #takes a chunck from a random image, size of 16X16 patch at a random location       
         myimage = myimage-np.mean(myimage)
         myimage = myimage/np.std(myimage)
+        #Forces mean to be 0
         X[ii] = myimage
+        #creating a list of image patches to work with
         
     dt = time.time()-dt
     data_time += dt/60.
