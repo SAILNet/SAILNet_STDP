@@ -119,7 +119,11 @@ for tt in xrange(num_trials):
     Y = activities(X,Q,W,theta)
     muy = np.mean(Y,axis=1)
     Cyy = Y.T.dot(Y)/batch_size
-
+    """
+    The following code is the learning rules
+    """    
+        
+    
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
     W += dW
