@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul 21 14:51:13 2014
@@ -6,8 +5,6 @@ Created on Mon Jul 21 14:51:13 2014
 @author: Greg Martin
 """
 
-=======
->>>>>>> 463e8041f43a7b764ab39c2be56398ee258b6131
 """ This file contains different utility functions that are not connected
 in anyway to the networks presented in the tutorials, but rather help in
 processing the outputs into a more understandable way.
@@ -142,8 +139,5 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
                         tile_row * (H + Hs): tile_row * (H + Hs) + H,
                         tile_col * (W + Ws): tile_col * (W + Ws) + W
                         ] = this_img * c
-<<<<<<< HEAD
+
         return out_array
-=======
-        return out_array
->>>>>>> 463e8041f43a7b764ab39c2be56398ee258b6131
