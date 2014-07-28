@@ -24,6 +24,7 @@ def activities(X,Q,W,theta):
     Ys = np.zeros((batch_size,M))
     aas = np.zeros((batch_size,M))
     Y = np.zeros((batch_size,M))
+    STDP = np.zeros(W.shape)
     
     """    
     aas determines who spikes. Subtracting aas.dot(W) creates inhibition based on the weight.
@@ -42,12 +43,51 @@ def activities(X,Q,W,theta):
         #This resets the current activity of the time step to 0's        
         aas[Ys > T] = 1.
         #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
+        
+        """
+        The following is Greg's first attempt at implementing STDP. The idea behind the if statements, is I need to
+        keep the knowledge of who fired for the previous step. To do this I determined which neurons are firing
+        using the nonzero function on aas. b and d are the neuron indicies that alternate between being the most
+        recent to fire and being one time step behind.
+        
+        The second set of if statements were made because I needed both b and d to be defined before I started using
+        them. In these if statements I iterate through all the neuron indicies that had fired and, depending on
+        whether this was the current time step or the previous time step, add or subtract a constant. The opposite
+        constant will be added to the the other direction of synaptic connection. For example, if neuron 1 fired then
+        neuron 2 the index STDP[1][2] will be strengthened but STDP[2][1] will be weakened.
+        
+        This model does not however use the exact dependance of time, just the time steps of the iteration. I figured
+        this would be acceptable because our activity is currently calculated by these time steps. If the time-
+        dependance needs to be exact then more might need to be changed.
+        
+        The matrix STDP will eventually be used to alter, probably by addition, W. STDP has dimensions of W.
+        """        
+        
+        if tt % 2 == 0:
+            a, b = np.nonzero(aas)        
+            
+        if tt % 2 == 1:
+            c, d = np.nonzero(aas)
+            
+        if tt % 2 == 0 and tt != 0 and b != [] and d !=[]:
+            
+            for i in b:
+                for j in d:                        
+                    STDP[i][j] += .1 
+                    STDP[j][i] -= .1
+        if tt % 2 == 1 and b !=[] and d != []:
+          
+            for i in b:
+                for j in d:                        
+                    STDP[i][j] -= .1 
+                    STDP[j][i] += .1
+        
         Y += aas
         #update total activity
         Ys[Ys > T] = 0.
         #after firing set back to zero for activity calculations in next time step
-
-    return Y
+        
+    return [Y,STDP]
 
 rng = np.random.RandomState(0)
 
@@ -93,6 +133,9 @@ Cyy_ave = p**2
 data_time = 0.
 algo_time = 0.
 
+# Initialize the STDP matrix
+stdp= np.zeros((M,M))
+
 # Begin Learning
 X = np.zeros((batch_size,N))
 
@@ -116,13 +159,12 @@ for tt in xrange(num_trials):
 
     dt = time.time()
     # Calcuate network activities
-    Y = activities(X,Q,W,theta)
+    Y, stdp = activities(X,Q,W,theta)
     muy = np.mean(Y,axis=1)
     Cyy = Y.T.dot(Y)/batch_size
     """
     The following code is the learning rules
     """    
-        
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
@@ -144,7 +186,7 @@ for tt in xrange(num_trials):
 
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
-    if tt%100 == 0:
+    if tt%24 == 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
