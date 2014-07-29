@@ -26,6 +26,8 @@ def activities(X,Q,W,theta):
     Y = np.zeros((batch_size,M))
     STDP = np.zeros(W.shape)
     
+    stdp_change=.1
+    
     """    
     aas determines who spikes. Subtracting aas.dot(W) creates inhibition based on the weight.
     aas is either 1 or 0, either fired or not.
@@ -64,23 +66,23 @@ def activities(X,Q,W,theta):
         """        
         
         if tt % 2 == 0:
-            a, b = np.nonzero(aas)        
+            a, neuron_number1 = np.nonzero(aas)        
             
         if tt % 2 == 1:
-            c, d = np.nonzero(aas)
+            c, neuron_number2 = np.nonzero(aas)
             
-        if tt % 2 == 0 and tt != 0 and b != [] and d !=[]:
+        if tt % 2 == 0 and tt != 0 and neuron_number1 != [] and neuron_number2 !=[]:
             
-            for i in b:
-                for j in d:                        
-                    STDP[i][j] += .1 
-                    STDP[j][i] -= .1
-        if tt % 2 == 1 and b !=[] and d != []:
+            for i in neuron_number1:
+                for j in neuron_number2:                        
+                    STDP[i][j] += stdp_change
+                    STDP[j][i] -= stdp_change
+        if tt % 2 == 1 and neuron_number1 !=[] and neuron_number2 != []:
           
-            for i in b:
-                for j in d:                        
-                    STDP[i][j] -= .1 
-                    STDP[j][i] += .1
+            for i in neuron_number1:
+                for j in neuron_number2:                        
+                    STDP[i][j] -= stdp_change 
+                    STDP[j][i] += stdp_change
         
         Y += aas
         #update total activity
