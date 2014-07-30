@@ -28,6 +28,7 @@ def activities(X,Q,W,theta):
     
     stdp_change=.1
     
+    
     """    
     aas determines who spikes. Subtracting aas.dot(W) creates inhibition based on the weight.
     aas is either 1 or 0, either fired or not.
@@ -47,10 +48,10 @@ def activities(X,Q,W,theta):
         #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
         
         """
-        The following is Greg's first attempt at implementing STDP. The idea behind the if statements, is I need to
+        The following is the first attempt at implementing STDP. The idea behind the if statements, is I need to
         keep the knowledge of who fired for the previous step. To do this I determined which neurons are firing
-        using the nonzero function on aas. b and d are the neuron indicies that alternate between being the most
-        recent to fire and being one time step behind.
+        using the nonzero function on aas. neuron_number1 and neuron_number2 are the neuron indicies that alternate
+        between being the most recent to fire and being one time step behind.
         
         The second set of if statements were made because I needed both b and d to be defined before I started using
         them. In these if statements I iterate through all the neuron indicies that had fired and, depending on
@@ -58,12 +59,13 @@ def activities(X,Q,W,theta):
         constant will be added to the the other direction of synaptic connection. For example, if neuron 1 fired then
         neuron 2 the index STDP[1][2] will be strengthened but STDP[2][1] will be weakened.
         
-        This model does not however use the exact dependance of time, just the time steps of the iteration. I figured
-        this would be acceptable because our activity is currently calculated by these time steps. If the time-
-        dependance needs to be exact then more might need to be changed.
-        
-        The matrix STDP will eventually be used to alter, probably by addition, W. STDP has dimensions of W.
+        As of the version created on the 29th of July, this STDP calculation takes approximately 15-20% of the total
+        time spent in SAILNet. 15% was determined by recording the time spent in before and after the if statements.
+        20% was determined by commenting out the section then looking at the time differences. This calculation was
+        done on a 2009 macbook. Time without this section was ~3.5 minutes with overcompleteness=2, with the section
+        the total time is ~4.28 min.
         """        
+                
         
         if tt % 2 == 0:
             a, neuron_number1 = np.nonzero(aas)        
@@ -84,10 +86,14 @@ def activities(X,Q,W,theta):
                     STDP[i][j] -= stdp_change 
                     STDP[j][i] += stdp_change
         
+        
+        
+        
         Y += aas
         #update total activity
         Ys[Ys > T] = 0.
         #after firing set back to zero for activity calculations in next time step
+    
         
     return [Y,STDP]
 
@@ -140,7 +146,7 @@ stdp= np.zeros((M,M))
 
 # Begin Learning
 X = np.zeros((batch_size,N))
-
+totaltime=0
 for tt in xrange(num_trials):
     # Extract image patches from images
     dt = time.time()
@@ -164,13 +170,14 @@ for tt in xrange(num_trials):
     Y, stdp = activities(X,Q,W,theta)
     muy = np.mean(Y,axis=1)
     Cyy = Y.T.dot(Y)/batch_size
+    
     """
     The following code is the learning rules
     """    
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW
+    W += dW + stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
 
@@ -196,7 +203,8 @@ for tt in xrange(num_trials):
     total_time = data_time+algo_time
 print 'Percent time spent gathering data: '+str(data_time/total_time)+' %'
 print 'Percent time spent in SAILnet: '+str(algo_time/total_time)+' %'
-print ''    
+print '' 
+ 
 
 with open('output.pkl','wb') as f:
     cPickle.dump((W,Q,theta),f)
