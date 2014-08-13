@@ -24,9 +24,7 @@ def activities(X,Q,W,theta):
     Ys = np.zeros((batch_size,M))
     aas = np.zeros((batch_size,M))
     Y = np.zeros((batch_size,M))
-    STDP = np.zeros(W.shape)
-    
-    stdp_change=.1
+    stdp=np.zeros((batch_size,M,num_iterations))
     
     
     """    
@@ -47,44 +45,11 @@ def activities(X,Q,W,theta):
         aas[Ys > T] = 1.
         #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
         
-        """
-        The following is the first attempt at implementing STDP. The idea behind the if statements, is I need to
-        keep the knowledge of who fired for the previous step. To do this I determined which neurons are firing
-        using the nonzero function on aas. neuron_number1 and neuron_number2 are the neuron indicies that alternate
-        between being the most recent to fire and being one time step behind.
         
-        The second set of if statements were made because I needed both b and d to be defined before I started using
-        them. In these if statements I iterate through all the neuron indicies that had fired and, depending on
-        whether this was the current time step or the previous time step, add or subtract a constant. The opposite
-        constant will be added to the the other direction of synaptic connection. For example, if neuron 1 fired then
-        neuron 2 the index STDP[1][2] will be strengthened but STDP[2][1] will be weakened.
-        
-        As of the version created on the 29th of July, this STDP calculation takes approximately 15-20% of the total
-        time spent in SAILNet. 15% was determined by recording the time spent in before and after the if statements.
-        20% was determined by commenting out the section then looking at the time differences. This calculation was
-        done on a 2009 macbook. Time without this section was ~3.5 minutes with overcompleteness=2, with the section
-        the total time is ~4.28 min.
         """        
-                
-        
-        if tt % 2 == 0:
-            a, neuron_number1 = np.nonzero(aas)        
-            
-        if tt % 2 == 1:
-            c, neuron_number2 = np.nonzero(aas)
-            
-        if tt % 2 == 0 and tt != 0 and neuron_number1 != [] and neuron_number2 !=[]:
-            
-            for i in neuron_number1:
-                for j in neuron_number2:                        
-                    STDP[i][j] += stdp_change
-                    STDP[j][i] -= stdp_change
-        if tt % 2 == 1 and neuron_number1 !=[] and neuron_number2 != []:
-          
-            for i in neuron_number1:
-                for j in neuron_number2:                        
-                    STDP[i][j] -= stdp_change 
-                    STDP[j][i] += stdp_change
+        Second attempt at STDP, using more matricies     
+        """
+        stdp[:,:,tt]=aas
         
         
         
@@ -95,12 +60,12 @@ def activities(X,Q,W,theta):
         #after firing set back to zero for activity calculations in next time step
     
         
-    return [Y,STDP]
+    return [Y,stdp]
 
 rng = np.random.RandomState(0)
 
 # Parameters
-batch_size = 100
+batch_size = 50
 num_trials = 25
 
 # Load Images
@@ -141,12 +106,34 @@ Cyy_ave = p**2
 data_time = 0.
 algo_time = 0.
 
-# Initialize the STDP matrix
-stdp= np.zeros((M,M))
+
+"""
+This will create a matrix of weights for various positions in time.
+The iterations variable needs to be the same as in the activity function. Plan
+to pass this variable into the activity function later.
+
+The weights are determined by a 1/dt^3. This might later be replaced by an
+exponential decay function.
+"""
+time_for_stdp=time.time()
+stdp=np.zeros((M,M))
+iterations=50
+time_dep= np.zeros((iterations,iterations))
+for i in xrange(iterations):
+    for j in xrange(iterations):
+        if i !=j:
+            time_dep[i][j]+= 2/float(i-j)**3
+        else:
+            time_dep[i][j]=0
+
+time_for_stdp= time.time()-time_for_stdp
+"""
+End of first STDP part
+"""
 
 # Begin Learning
 X = np.zeros((batch_size,N))
-totaltime=0
+
 for tt in xrange(num_trials):
     # Extract image patches from images
     dt = time.time()
@@ -167,10 +154,21 @@ for tt in xrange(num_trials):
 
     dt = time.time()
     # Calcuate network activities
-    Y, stdp = activities(X,Q,W,theta)
+    Y, activity_log = activities(X,Q,W,theta)
     muy = np.mean(Y,axis=1)
     Cyy = Y.T.dot(Y)/batch_size
     
+    """
+    using stdp matrix to update W
+    """
+    
+    time_stdp=time.time()
+    
+    for batch in xrange(batch_size):
+        stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))/batch_size
+    
+    time_stdp= time.time()-time_stdp
+    time_for_stdp+= time_stdp
     """
     The following code is the learning rules
     """    
@@ -192,17 +190,20 @@ for tt in xrange(num_trials):
     theta += dtheta
     dt = time.time()-dt
     algo_time += dt/60.
+    time_for_stdp= time_for_stdp/60
 
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
-    if tt%24 == 0:
+    if tt%24 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
+        print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp)+' min'
         print ''
-    total_time = data_time+algo_time
+    total_time = data_time+algo_time+time_for_stdp
 print 'Percent time spent gathering data: '+str(data_time/total_time)+' %'
 print 'Percent time spent in SAILnet: '+str(algo_time/total_time)+' %'
+print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 

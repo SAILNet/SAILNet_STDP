@@ -5,12 +5,13 @@ Created on Sun Aug  3 20:15:53 2014
 @author: Greg Martin
 """
 import numpy as np
+import time
 
 
 
-batch_size=10
-neurons=16
-iterations=5
+batch_size=100
+neurons=2048
+iterations=50
 
 
 
@@ -34,13 +35,20 @@ The results are as expected.
 
 
 
-a=np.array([[[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
-            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
-            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
-            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
-            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]]])
+a=np.random.randint(2,size=(batch_size,neurons,iterations))
+print a.itemsize
 
-stdp=np.dot(a,np.dot(time_dep,a.transpose(1,2,0)).transpose(2,0,1)).sum(0).sum(1)
+
+stdp=np.zeros((neurons,neurons))
+temp_time=time.time()
+
+for i in xrange(batch_size):
+    
+    stdp+=np.dot(a[i],np.dot(time_dep,a[i].T))
+
+
+dt=(time.time()-temp_time)/60
+print "Done"
 
 
 
