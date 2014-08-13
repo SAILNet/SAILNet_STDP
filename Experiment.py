@@ -13,12 +13,12 @@ result= np.dot(y.T,np.transpose(x,(1,0,2)))
 print result
 print np.shape(result)
 """
-batch_size=100
-neurons=256
-iterations=50
+batch_size=10
+neurons=16
+iterations=5
 
-"""
-This is the tensordot approach.
+
+
 
 time_dep= np.zeros((iterations,iterations))
 for i in xrange(iterations):
@@ -28,7 +28,8 @@ for i in xrange(iterations):
         else:
             time_dep[i][j]=0
 
-"""
+
+
 #The above just creates a weighting matrix for the tensordot approach
 """
 
@@ -63,14 +64,16 @@ for i in xrange(neuron):
 #print stdp
 
 
-a=np.random.randint(2, size=(batch_size,neurons,iterations))
-b=np.random.randint(2, size=(batch_size,neurons,iterations))
-c=np.random.randint(2, size=(batch_size,neurons,iterations))
-d=np.random.randint(2, size=(batch_size,neurons,iterations))
-e=np.random.randint(2, size=(batch_size,neurons,iterations))
 
-a=a-b-c-d-e
-a[a<0]=0
+a=np.array([[[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
+            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
+            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
+            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]],
+            [[1,0,0,0,0],[0,1,0,0,0],[0,0,0,0,1],[0,0,0,0,0],[0,1,0,0,0]]])
+
+stdp=np.dot(a,np.dot(time_dep,a.transpose(1,2,0)).transpose(2,0,1)).sum(0).sum(1)
+
+
 
 """
 The above just makes a somewhat more sparse random array. Turns out to only be about twice as dense
