@@ -79,7 +79,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 1 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -122,7 +122,8 @@ time_dep= np.zeros((iterations,iterations))
 for i in xrange(iterations):
     for j in xrange(iterations):
         if i !=j:
-            time_dep[i][j]+= 2/float(i-j)**3
+            dt=i-j
+            time_dep[i][j]+= -6/float(dt)**3
         else:
             time_dep[i][j]=0
 
@@ -165,8 +166,8 @@ for tt in xrange(num_trials):
     time_stdp=time.time()
     
     for batch in xrange(batch_size):
-        stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))/batch_size
-    
+        stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))
+    stdp = stdp/batch_size
     time_stdp= time.time()-time_stdp
     time_for_stdp+= time_stdp
     """
