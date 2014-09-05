@@ -112,18 +112,26 @@ This will create a matrix of weights for various positions in time.
 The iterations variable needs to be the same as in the activity function. Plan
 to pass this variable into the activity function later.
 
-The weights are determined by a 1/dt^3. This might later be replaced by an
-exponential decay function.
+The weights are determined by an exponential.
+
+The post and pre activity weights represent the bias towards connection
+strength weakening observed in actual STDP.
 """
 time_for_stdp=time.time()
 stdp=np.zeros((M,M))
 iterations=50
 time_dep= np.zeros((iterations,iterations))
+
+post_activity=-.1
+pre_activity= .05
 for i in xrange(iterations):
     for j in xrange(iterations):
         if i !=j:
             dt=i-j
-            time_dep[i][j]+= -6/float(dt)**3
+            if np.sign(dt) ==1:
+                time_dep[i][j]+= pre_activity*np.exp(-abs(dt))
+            else:
+                time_dep[i][j]+= post_activity*np.exp(-abs(dt))
         else:
             time_dep[i][j]=0
 
