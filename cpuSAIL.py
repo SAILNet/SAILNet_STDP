@@ -124,14 +124,15 @@ time_dep= np.zeros((iterations,iterations))
 
 post_activity=-.1
 pre_activity= .05
+time_scale=1
 for i in xrange(iterations):
     for j in xrange(iterations):
         if i !=j:
             dt=i-j
-            if np.sign(dt) ==1:
-                time_dep[i][j]+= pre_activity*np.exp(-abs(dt))
+            if np.sign(dt) == 1:
+                time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
             else:
-                time_dep[i][j]+= post_activity*np.exp(-abs(dt))
+                time_dep[i][j]+= post_activity*np.exp(-abs(dt/time_scale))
         else:
             time_dep[i][j]=0
 
