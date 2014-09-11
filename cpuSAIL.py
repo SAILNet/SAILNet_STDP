@@ -2,6 +2,7 @@ import numpy as np
 import cPickle, time
 from math import ceil
 
+
 def activities(X,Q,W,theta):
     batch_size, N = X.shape
     sz = int(np.sqrt(N))
@@ -66,10 +67,10 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 25
+num_trials = 5000
 
 # Load Images
-with open('images.pkl','rb') as f:
+with open('images.pkl','r') as f:
     images = cPickle.load(f)
 imsize, imsize, num_images = images.shape
 images = np.transpose(images,axes=(2,0,1))
@@ -79,7 +80,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 1 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -122,13 +123,14 @@ stdp=np.zeros((M,M))
 iterations=50
 time_dep= np.zeros((iterations,iterations))
 
-post_activity=-.1
-pre_activity= .05
-time_scale=1
+post_activity=-10
+pre_activity= 5
+time_scale=2
 for i in xrange(iterations):
     for j in xrange(iterations):
         if i !=j:
-            dt=i-j
+            dt=j-i
+            #j-i gives the correct signs to strengthen pre to post synaptic activity
             if np.sign(dt) == 1:
                 time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
             else:
@@ -165,6 +167,13 @@ for tt in xrange(num_trials):
     dt = time.time()
     # Calcuate network activities
     Y, activity_log = activities(X,Q,W,theta)
+   
+    """
+    This commented out section was used to determine the sign for time_dep
+    activity_log=np.zeros((batch_size,M,iterations))
+    activity_log[0][0][0]+=1
+    activity_log[0][10][1]+=1
+    """
     muy = np.mean(Y,axis=1)
     Cyy = Y.T.dot(Y)/batch_size
     
@@ -204,7 +213,7 @@ for tt in xrange(num_trials):
 
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
-    if tt%24 == 0 and tt != 0:
+    if tt%50 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
@@ -217,7 +226,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('output.pkl','wb') as f:
+with open('output_stdp.pkl','wb') as f:
     cPickle.dump((W,Q,theta),f)
 
 
