@@ -67,7 +67,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 5000
+num_trials = 1000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -123,9 +123,12 @@ stdp=np.zeros((M,M))
 iterations=50
 time_dep= np.zeros((iterations,iterations))
 
-post_activity=-10
-pre_activity= 5
-time_scale=2
+
+#09/17/14 Determined that post_activity=-10 pre_activity=5 and time scale=2 
+#makes the norm of the stdp array much smaller than that of dW
+post_activity=-45
+pre_activity=25
+time_scale=1
 for i in xrange(iterations):
     for j in xrange(iterations):
         if i !=j:
@@ -139,6 +142,16 @@ for i in xrange(iterations):
             time_dep[i][j]=0
 
 time_for_stdp= time.time()-time_for_stdp
+
+#The following will keep track of the change of the magnitude of the stdp
+#matrix for each trial.
+
+mag_stdp=np.zeros(num_trials)
+
+#mag_dW will track the magnitude changes in dW
+
+mag_dW=np.zeros_like(mag_stdp)
+
 """
 End of first STDP part
 """
@@ -188,15 +201,20 @@ for tt in xrange(num_trials):
     stdp = stdp/batch_size
     time_stdp= time.time()-time_stdp
     time_for_stdp+= time_stdp
+    
+    mag_stdp[tt]=np.linalg.norm(stdp)
+    
     """
     The following code is the learning rules
     """    
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW + stdp
+    W += dW #+ stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
+    
+    mag_dW[tt]=np.linalg.norm(dW)
 
     # Update feedforward weights
     square_act = np.sum(Y*Y,axis=0)
@@ -210,6 +228,11 @@ for tt in xrange(num_trials):
     dt = time.time()-dt
     algo_time += dt/60.
     time_for_stdp= time_for_stdp/60
+    
+    """
+    We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
+    """
+    cor_dW_stdp=dW.dot(stdp)/(np.linalg.norm(dW)*np.linalg.norm(stdp))
 
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
@@ -226,7 +249,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('output_stdp.pkl','wb') as f:
-    cPickle.dump((W,Q,theta),f)
+with open('Plotting\output_no_stdp.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW),f)
 
 
