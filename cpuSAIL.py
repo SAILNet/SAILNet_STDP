@@ -210,7 +210,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW #+ stdp
+    W +=dW + stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -249,7 +249,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\output_no_stdp.pkl','wb') as f:
+with open('Plotting\stdp_and_dW.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW),f)
 
 
