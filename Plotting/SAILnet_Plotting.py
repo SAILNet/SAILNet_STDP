@@ -39,20 +39,25 @@ class Run():
         plt.clf
 
 
-    def PlotdWstdp(self):
+    def PlotdWstdp(self,title):
+        
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.plot(self.mag_dW,color="blue", label="dW")
         plt.legend(bbox_to_anchor=(1,.5))
+        plt.title(title)
+        plt.xlabel("Number of Trials")
         plt.savefig('stdp_dW.png')
         plt.clf
         
-    def Plotstdp(self):
+    def Plotstdp(self,title):
         plt.plot(self.mag_stdp, color="green", label="STDP")
+        plt.title(title)
+        plt.xlabel("Number of Trials")
     
-    def PlotdW(self):
+    def PlotdW(self,title):
         plt.plot(self.mag_dW,color="blue", label="dW")
-
-
+        plt.title(title)
+        plt.xlabel("Number of Trials")
 
 
 
@@ -70,23 +75,24 @@ stdp_and_dW=Run("stdp_and_dW.pkl")
 
 #just_dW.Plot_RF()
 
-plt.figure(just_dW.PlotdWstdp())
+plt.figure(just_dW.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
+
+
+plt.figure(just_stdp.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
+
+plt.figure(just_stdp.Plotstdp("Using Just STDP"))
+
+plt.figure(just_stdp.PlotdW("Using Just STDP"))
 
 
 
-plt.figure(just_stdp.Plotstdp())
-
-plt.figure(just_stdp.PlotdW())
+plt.figure(stdp_and_dW.PlotdWstdp("Using Both STDP and dW"))
 
 
 
-plt.figure(stdp_and_dW.PlotdWstdp())
+plt.figure(stdp_and_dW.Plotstdp("Using Both dW and STDP"))
 
-
-
-plt.figure(stdp_and_dW.Plotstdp())
-
-plt.figure(stdp_and_dW.PlotdW())
+plt.figure(stdp_and_dW.PlotdW("Using Both dW and STDP"))
 """
 
 
