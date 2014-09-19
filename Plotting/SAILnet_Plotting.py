@@ -23,17 +23,17 @@ class Run():
     
     
     
-    def Plot_RF(self):
+    def Plot_RF(self,name):
         im_size, num_dict = self.Q.shape
 
         side = int(np.round(np.sqrt(im_size)))
         OC = num_dict/im_size
 
 
-        self.img = tile_raster_images(Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+        img = tile_raster_images(self.Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.imshow(img,cmap=plt.cm.Greys)
         plt.title('Receptive Fields')
-        plt.imsave('RF_no_stdp.png', img, cmap=plt.cm.Greys)
+        plt.imsave(name+'.png', img, cmap=plt.cm.Greys)
         plt.show()
         plt.close
         plt.clf
@@ -93,6 +93,11 @@ plt.figure(stdp_and_dW.PlotdWstdp("Using Both STDP and dW"))
 plt.figure(stdp_and_dW.Plotstdp("Using Both dW and STDP"))
 
 plt.figure(stdp_and_dW.PlotdW("Using Both dW and STDP"))
+
+plt.figure(just_stdp.Plot_RF("RF_Just_STDP"))
+
+plt.figure(just_dW.Plot_RF("RF_Just_dW"))
+
 """
 
 
