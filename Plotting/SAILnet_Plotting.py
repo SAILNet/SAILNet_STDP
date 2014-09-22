@@ -32,7 +32,7 @@ class Run():
 
         img = tile_raster_images(self.Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.imshow(img,cmap=plt.cm.Greys)
-        plt.title('Receptive Fields')
+        plt.title(name + 'Receptive Fields')
         plt.imsave(name+'.png', img, cmap=plt.cm.Greys)
         plt.show()
         plt.close
@@ -74,7 +74,7 @@ just_stdp=Run("just_stdp.pkl")
 stdp_and_dW=Run("stdp_and_dW.pkl")
 
 #just_dW.Plot_RF()
-
+"""
 plt.figure(just_dW.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
 
 
@@ -83,8 +83,6 @@ plt.figure(just_stdp.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"
 plt.figure(just_stdp.Plotstdp("Using Just STDP"))
 
 plt.figure(just_stdp.PlotdW("Using Just STDP"))
-
-
 
 plt.figure(stdp_and_dW.PlotdWstdp("Using Both STDP and dW"))
 
@@ -98,8 +96,8 @@ plt.figure(just_stdp.Plot_RF("RF_Just_STDP"))
 
 plt.figure(just_dW.Plot_RF("RF_Just_dW"))
 
-"""
 
+"""
 
     
 
@@ -107,7 +105,7 @@ plt.figure(just_dW.Plot_RF("RF_Just_dW"))
 
 
 
-
+"""
 Plot_RF(Q)
 
 plt.close
