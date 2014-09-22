@@ -152,6 +152,10 @@ mag_stdp=np.zeros(num_trials)
 
 mag_dW=np.zeros_like(mag_stdp)
 
+#Correlation matrix for each neuron
+
+cor_dW_stdp=np.zeros_like(mag_stdp)
+
 """
 End of first STDP part
 """
@@ -210,7 +214,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W +=dW + stdp
+    W += dW #stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -232,8 +236,8 @@ for tt in xrange(num_trials):
     """
     We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
     """
-    cor_dW_stdp=dW.dot(stdp)/(np.linalg.norm(dW)*np.linalg.norm(stdp))
-
+    cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
+    
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
     if tt%50 == 0 and tt != 0:
@@ -249,7 +253,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\ ' + str(num_trials) + 'stdp_and_dW.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW),f)
+with open('Plotting\dW' + str(num_trials)+'.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp),f)
 
 

@@ -19,7 +19,7 @@ class Run():
     
     def __init__(self,fileName):
         with open(fileName,'rb') as f:
-            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW = cPickle.load(f)
+            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation = cPickle.load(f)
     
     
     
@@ -69,35 +69,31 @@ class Run():
 
 # <codecell>
 
-just_dW=Run("output_no_stdp.pkl")
-just_stdp=Run("just_stdp.pkl")
-stdp_and_dW=Run("stdp_and_dW.pkl")
+#just_dW=Run("output_no_stdp.pkl")
+stdp1000=Run("stdp1000.pkl")
+#stdp_and_dW=Run("stdp_and_dW.pkl")
+#dW5000=Run(" 5000dW.pkl")
+
+#plt.figure(dW5000.Plot_RF("RF Just dW at 5000 trials"))
+#plt.figure(just_dW.Plot_RF("RF Just dW at 1000 trials"))
 
 #just_dW.Plot_RF()
-"""
-plt.figure(just_dW.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
+
+#plt.figure(just_dW.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
 
 
-plt.figure(just_stdp.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
+plt.figure(stdp1000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
 
-plt.figure(just_stdp.Plotstdp("Using Just STDP"))
+plt.figure(stdp1000.Plotstdp("Using Just STDP"))
 
-plt.figure(just_stdp.PlotdW("Using Just STDP"))
+plt.figure(stdp1000.PlotdW("Using Just STDP"))
 
-plt.figure(stdp_and_dW.PlotdWstdp("Using Both STDP and dW"))
+plt.figure(stdp1000.Plot_RF("RF_Just_STDP"))
 
-
-
-plt.figure(stdp_and_dW.Plotstdp("Using Both dW and STDP"))
-
-plt.figure(stdp_and_dW.PlotdW("Using Both dW and STDP"))
-
-plt.figure(just_stdp.Plot_RF("RF_Just_STDP"))
-
-plt.figure(just_dW.Plot_RF("RF_Just_dW"))
+#plt.figure(just_dW.Plot_RF("RF_Just_dW"))
 
 
-"""
+
 
     
 
