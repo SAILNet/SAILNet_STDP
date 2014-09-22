@@ -103,6 +103,9 @@ eta_ave = .3
 Y_ave = p
 Cyy_ave = p**2
 
+
+Cyy_ave_pertrial=np.zeros(num_trials)
+
 # Zero timing variables
 data_time = 0.
 algo_time = 0.
@@ -156,9 +159,7 @@ mag_dW=np.zeros_like(mag_stdp)
 
 cor_dW_stdp=np.zeros_like(mag_stdp)
 
-"""
-End of first STDP part
-"""
+
 
 # Begin Learning
 X = np.zeros((batch_size,N))
@@ -214,7 +215,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW #stdp
+    W += stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -240,6 +241,8 @@ for tt in xrange(num_trials):
     
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
+    Cyy_ave_pertrial[tt]=sum(sum(Cyy))
+    
     if tt%50 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
@@ -253,7 +256,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\dW' + str(num_trials)+'.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp),f)
+with open('Plotting\stdp' + str(num_trials)+'.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave,Cyy_ave_pertrial),f)
 
 
