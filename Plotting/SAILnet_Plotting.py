@@ -65,18 +65,21 @@ class Run():
         plt.plot(self.Yavg, color="yellow")
         plt.title(self.fileName + 'Y_avg')
         plt.xlabel("Number of Trials")
+        plt.savefig(self.[:len(self.fileName)-4] + 'Y_avg.png')
     
     def PlotCavg(self):
         
         plt.plot(self.Cavg, color="red")
         plt.title(self.fileName + 'C_avg')
         plt.xlabel("Number of Trials")
+        plt.savefig(self.fileName[:len(self.fileName)-4] + 'C_avg.png')
         
     def Plotcor(self):
         
         plt.plot(self.correlation, color = "purple")
         plt.title(self.fileName + 'Correlation of dW and STDP')
         plt.xlabel("Number of Trials")
+        plt.savefig(self.fileName[:len(self.fileName)-4]  + 'Correlation of dW and STDP.png')
 
 
 
@@ -92,17 +95,30 @@ stdp1000=Run("stdp1000.pkl")
 #stdp_and_dW=Run("stdp_and_dW.pkl")
 dW1000=Run("dW1000.pkl")
 
+dW5000=Run("dW5000.pkl")
+
+stdp5000=Run("stdp5000.pkl")
 
 
-plt.figure(stdp1000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
 
-plt.figure(stdp1000.Plotstdp("Using Just STDP"))
+plt.figure(stdp5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
 
-plt.figure(stdp1000.PlotdW("Using Just STDP"))
+plt.figure(dW5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
 
+plt.figure(stdp5000.Plotstdp("Using Just STDP"))
+
+plt.figure(stdp5000.PlotdW("Using Just STDP"))
+
+plt.figure(stdp5000.Plot_RF("RF Just STDP at 5000 Trials"))
+
+plt.figure(dW5000.Plot_RF("RF just dW at 5000 Trials"))
 #plt.figure(stdp1000.Plot_RF("RF_Just_STDP"))
 
-plt.figure(stdp1000.Plotcor())
+plt.figure(stdp5000.Plotcor())
+
+plt.figure(dW5000.Plotcor())
+
+plt.figure
 
 
     

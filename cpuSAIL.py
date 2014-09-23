@@ -67,7 +67,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 1000
+num_trials = 5000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -215,7 +215,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += stdp
+    W += dW
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -256,7 +256,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\stdp' + str(num_trials)+'.pkl','wb') as f:
+with open('Plotting\dW' + str(num_trials)+'.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave,Cyy_ave_pertrial),f)
 
 
