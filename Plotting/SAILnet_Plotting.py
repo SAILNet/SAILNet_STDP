@@ -24,7 +24,7 @@ class Run():
     
     
     
-    def Plot_RF(self,name):
+    def Plot_RF(self):
         im_size, num_dict = self.Q.shape
 
         side = int(np.round(np.sqrt(im_size)))
@@ -33,8 +33,8 @@ class Run():
 
         img = tile_raster_images(self.Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.imshow(img,cmap=plt.cm.Greys)
-        plt.title(name + 'Receptive Fields')
-        plt.imsave('Images\The '+name+'.png', img, cmap=plt.cm.Greys)
+        plt.title('Receptive Fields - '+self.fileName[:len(self.fileName)-4])
+        plt.imsave('Images\RF '+self.fileName[:len(self.fileName)-4]+'.png', img, cmap=plt.cm.Greys)
         plt.show()
         plt.close
         plt.clf
@@ -47,18 +47,18 @@ class Run():
         plt.legend(bbox_to_anchor=(1,.5))
         plt.title(title)
         plt.xlabel("Number of Trials")
-        plt.savefig('Images\stdp_dW.png')
+        plt.savefig('Images\stdp_dW_'+self.fileName[:len(self.fileName)-4]+'.png')
         plt.clf
         
-    def Plotstdp(self,title):
+    def Plotstdp(self):
         plt.plot(self.mag_stdp, color="green", label="STDP")
-        plt.title(title)
+        plt.title("Magnitude of STDP")
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Magnitude STDP Using'+self.fileName[:len(self.fileName)-4]+'.png')
     
-    def PlotdW(self,title):
+    def PlotdW(self):
         plt.plot(self.mag_dW,color="blue", label="dW")
-        plt.title(title)
+        plt.title("Magnitude of dW")
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Magnitude dW Using'+self.fileName[:len(self.fileName)-4]+'.png')
         
@@ -107,20 +107,22 @@ plt.figure(stdp5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP")
 
 plt.figure(dW5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
 
-plt.figure(stdp5000.Plotstdp("Magnitude of "))
+plt.figure(stdp5000.Plotstdp())
 
-plt.figure(stdp5000.PlotdW("Magnitude of "))
+plt.figure(stdp5000.PlotdW())
 
-plt.figure(stdp5000.Plot_RF("RF Just STDP at 5000 Trials"))
+plt.figure(stdp5000.Plot_RF())
 
-plt.figure(dW5000.Plot_RF("RF just dW at 5000 Trials"))
+plt.figure(dW5000.Plot_RF())
 #plt.figure(stdp1000.Plot_RF("RF_Just_STDP"))
 
 plt.figure(stdp5000.Plotcor())
 
 plt.figure(dW5000.Plotcor())
 
-plt.figure
+plt.figure(dW1000.Plot_RF())
+
+plt.figure(stdp1000.Plot_RF())
 
 
     
