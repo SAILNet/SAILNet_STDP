@@ -52,34 +52,34 @@ class Run():
         
     def Plotstdp(self):
         plt.plot(self.mag_stdp, color="green", label="STDP")
-        plt.title("Magnitude of STDP")
+        plt.title("Magnitude of STDP"+self.fileName[:len(self.fileName)-4])
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Magnitude STDP Using'+self.fileName[:len(self.fileName)-4]+'.png')
     
     def PlotdW(self):
         plt.plot(self.mag_dW,color="blue", label="dW")
-        plt.title("Magnitude of dW")
+        plt.title("Magnitude of dW"+self.fileName[:len(self.fileName)-4])
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Magnitude dW Using'+self.fileName[:len(self.fileName)-4]+'.png')
         
     def PlotYavg(self):
         
-        plt.plot(self.Yavg, color="yellow")
-        plt.title(self.fileName + 'Y_avg')
+        plt.plot(self.Yavg, color="brown")
+        plt.title(self.fileName[:len(self.fileName)-4] + 'Y_avg')
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Y_avg'+self.fileName[:len(self.fileName)-4]+'.png')
     
     def PlotCavg(self):
         
         plt.plot(self.Cavg, color="red")
-        plt.title(self.fileName + 'C_avg')
+        plt.title(self.fileName[:len(self.fileName)-4] + 'C_avg')
         plt.xlabel("Number of Trials")
         plt.savefig('Images\C_avg'+ self.fileName[:len(self.fileName)-4] + '.png')
         
     def Plotcor(self):
         
         plt.plot(self.correlation, color = "purple")
-        plt.title(self.fileName + 'Correlation of dW and STDP')
+        plt.title(self.fileName[:len(self.fileName)-4] + 'Correlation of dW and STDP')
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Correlation of dW and STDP'+self.fileName[:len(self.fileName)-4] +'.png')
 
@@ -124,9 +124,13 @@ plt.figure(dW1000.Plot_RF())
 
 plt.figure(stdp1000.Plot_RF())
 
+plt.figure(stdp5000.PlotYavg())
 
+plt.figure(dW5000.PlotYavg())
+
+plt.figure(stdp5000.PlotCavg())
     
-
+plt.figure(dW5000.PlotCavg())
 
 
 
