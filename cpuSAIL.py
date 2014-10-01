@@ -69,7 +69,20 @@ def STDP(M,model,iterations):
     time_dep= np.zeros((iterations,iterations))
 
     if model == "New":
-       pass 
+       post_activity=-.070
+       pre_activity=.070
+       time_scale=4
+       for i in xrange(iterations):
+            for j in xrange(iterations):
+                
+                dt=j-i
+                #j-i gives the correct signs to strengthen pre to post synaptic activity
+                if np.sign(dt) == 1:
+                    time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**15
+                else:
+                    time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**15
+                
+       
     
     else:
         #09/17/14 Determined that post_activity=-10 pre_activity=5 and time scale=2 
@@ -144,7 +157,7 @@ algo_time = 0.
 
 time_for_stdp=time.time()
 stdp=np.zeros((M,M))
-stdp_model="Old"
+stdp_model="New"
 
 time_dep=STDP(M,stdp_model,batch_size)
 
@@ -196,7 +209,7 @@ for tt in xrange(num_trials):
     activity_log[0][0][0]+=1
     activity_log[0][10][1]+=1
     """
-    muy = np.mean(Y,axis=1)
+    muy = np.mean(Y,axis=0)
     Cyy = Y.T.dot(Y)/batch_size
     
     """
@@ -219,7 +232,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW
+    W += stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -261,7 +274,7 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\dW' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial),f)
+with open('Plotting\stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep),f)
 
 
