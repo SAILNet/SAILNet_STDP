@@ -157,7 +157,7 @@ algo_time = 0.
 
 time_for_stdp=time.time()
 stdp=np.zeros((M,M))
-stdp_model="New"
+stdp_model="Old"
 
 time_dep=STDP(M,stdp_model,batch_size)
 
