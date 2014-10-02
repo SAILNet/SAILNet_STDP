@@ -67,7 +67,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 5000
+num_trials = 1000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -192,7 +192,7 @@ for tt in xrange(num_trials):
     activity_log[0][0][0]+=1
     activity_log[0][10][1]+=1
     """
-    muy = np.mean(Y,axis=1)
+    muy = np.mean(Y,axis=0)
     Cyy = Y.T.dot(Y)/batch_size
     
     """
