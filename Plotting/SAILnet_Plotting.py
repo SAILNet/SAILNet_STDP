@@ -20,7 +20,7 @@ class Run():
     def __init__(self,fileName):
         self.fileName=fileName
         with open(self.fileName,'rb') as f:
-            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation, self.Yavg,self.Cavg = cPickle.load(f)
+            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation, self.Yavg,self.Cavg, self.time_dep = cPickle.load(f)
     
     
     
@@ -40,12 +40,12 @@ class Run():
         plt.clf
 
 
-    def PlotdWstdp(self,title):
+    def PlotdWstdp(self):
         
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.plot(self.mag_dW,color="blue", label="dW")
         plt.legend(bbox_to_anchor=(1,.5))
-        plt.title(title)
+        plt.title("Magnitude of STDP and dW "+self.fileName[:len(self.fileName)-4])
         plt.xlabel("Number of Trials")
         plt.savefig('Images\stdp_dW_'+self.fileName[:len(self.fileName)-4]+'.png')
         plt.clf
@@ -83,7 +83,14 @@ class Run():
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Correlation of dW and STDP'+self.fileName[:len(self.fileName)-4] +'.png')
 
-
+    def PlotAll(self):
+        plt.figure(self.Plot_RF())
+        plt.figure(self.PlotdWstdp())
+        plt.figure(self.PlotdW())
+        plt.figure(self.Plotstdp())
+        plt.figure(self.Plotcor())
+        plt.figure(self.PlotCavg())
+        plt.figure(self.PlotYavg())
 
 
 
@@ -92,65 +99,12 @@ class Run():
 
 # <codecell>
 
-#just_dW=Run("output_no_stdp.pkl")
-stdp1000=Run("stdp1000.pkl")
-#stdp_and_dW=Run("stdp_and_dW.pkl")
-dW1000=Run("dW1000.pkl")
-
-dW5000=Run("dW5000.pkl")
-
-stdp5000=Run("stdp5000.pkl")
+stdp5000New=Run("stdp5000model_New.pkl")
+dW5000New=Run("dW5000model_New.pkl")
 
 
+stdp5000New.PlotAll()
+dW5000New.PlotAll()
 
-plt.figure(stdp5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using STDP"))
-
-plt.figure(dW5000.PlotdWstdp("Magnitudes of dW and STDP Matricies Using dW"))
-
-plt.figure(stdp5000.Plotstdp())
-
-plt.figure(stdp5000.PlotdW())
-
-plt.figure(stdp5000.Plot_RF())
-
-plt.figure(dW5000.Plot_RF())
-#plt.figure(stdp1000.Plot_RF("RF_Just_STDP"))
-
-plt.figure(stdp5000.Plotcor())
-
-plt.figure(dW5000.Plotcor())
-
-plt.figure(dW1000.Plot_RF())
-
-plt.figure(stdp1000.Plot_RF())
-
-plt.figure(stdp5000.PlotYavg())
-
-plt.figure(dW5000.PlotYavg())
-
-plt.figure(stdp5000.PlotCavg())
-    
-plt.figure(dW5000.PlotCavg())
-
-
-
-
-"""
-Plot_RF(Q)
-
-plt.close
-plt.clf
-
-
-PlotdWstdp(magnitude_stdp,magnitude_dW)
-
-
-
-
-
-with open('output_stdp.pkl','rb') as f:
-    W_stdp,Q,theta,stdp,magnitude_stdp,magnitude_dW = cPickle.load(f)
-
-"""
 
 
