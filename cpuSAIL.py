@@ -62,7 +62,53 @@ def activities(X,Q,W,theta):
     
         
     return [Y,stdp]
+<<<<<<< HEAD
 
+=======
+    
+def STDP(M,model,iterations):
+    
+    
+    time_dep= np.zeros((iterations,iterations))
+
+    if model == "New":
+       post_activity=-.070
+       pre_activity=.070
+       time_scale=4
+       for i in xrange(iterations):
+            for j in xrange(iterations):
+                
+                dt=j-i
+                #j-i gives the correct signs to strengthen pre to post synaptic activity
+                if np.sign(dt) == 1:
+                    time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+                else:
+                    time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+                
+       
+    
+    else:
+        #09/17/14 Determined that post_activity=-10 pre_activity=5 and time scale=2 
+        #makes the norm of the stdp array much smaller than that of dW
+        post_activity=-45
+        pre_activity=25
+        time_scale=1
+        for i in xrange(iterations):
+            for j in xrange(iterations):
+                if i !=j:
+                    dt=j-i
+                    #j-i gives the correct signs to strengthen pre to post synaptic activity
+                    if np.sign(dt) == 1:
+                        time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
+                    else:
+                        time_dep[i][j]+= post_activity*np.exp(-abs(dt/time_scale))
+                else:
+                    time_dep[i][j]=0
+    
+ 
+                
+    return time_dep
+>>>>>>> newstdp
 rng = np.random.RandomState(0)
 
 # Parameters
