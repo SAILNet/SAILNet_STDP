@@ -69,8 +69,8 @@ def STDP(M,model,iterations):
     time_dep= np.zeros((iterations,iterations))
 
     if model == "New":
-       post_activity=-.070
-       pre_activity=.070
+       post_activity=-.027
+       pre_activity=.027
        time_scale=4
        for i in xrange(iterations):
             for j in xrange(iterations):
@@ -109,7 +109,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 5
+num_trials = 5000
 
 # Load Images
 with open('images.pkl','r') as f:

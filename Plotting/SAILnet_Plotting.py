@@ -83,6 +83,11 @@ class Run():
         plt.xlabel("Number of Trials")
         plt.savefig('Images\Correlation of dW and STDP'+self.fileName[:len(self.fileName)-4] +'.png')
 
+    def PlotTimeDep(self):
+        plt.plot(self.time_dep[25])
+        plt.title(self.fileName[:len(self.fileName)-4] + 'Time Weighting Matrix')
+        
+    
     def PlotAll(self):
         plt.figure(self.Plot_RF())
         plt.figure(self.PlotdWstdp())
@@ -91,6 +96,7 @@ class Run():
         plt.figure(self.Plotcor())
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
+        plt.figure(self.PlotTimeDep())
 
 
 
@@ -100,11 +106,11 @@ class Run():
 # <codecell>
 
 stdp5000New=Run("stdp5000model_New.pkl")
-dW5000New=Run("dW5000model_New.pkl")
+stdp5000Old=Run("stdp5000model_Old.pkl")
 
 
 stdp5000New.PlotAll()
-dW5000New.PlotAll()
+stdp5000Old.PlotAll()
 
 
 
