@@ -62,9 +62,6 @@ def activities(X,Q,W,theta):
     
         
     return [Y,stdp]
-<<<<<<< HEAD
-
-=======
     
 def STDP(M,model,iterations):
     
@@ -108,12 +105,11 @@ def STDP(M,model,iterations):
  
                 
     return time_dep
->>>>>>> newstdp
 rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 1000
+num_trials = 5
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -151,44 +147,19 @@ Cyy_ave = p**2
 
 
 Cyy_ave_pertrial=np.zeros(num_trials)
+Y_ave_pertrial=np.zeros_like(Cyy_ave_pertrial)
 
 # Zero timing variables
 data_time = 0.
 algo_time = 0.
 
 
-"""
-This will create a matrix of weights for various positions in time.
-The iterations variable needs to be the same as in the activity function. Plan
-to pass this variable into the activity function later.
 
-The weights are determined by an exponential.
-
-The post and pre activity weights represent the bias towards connection
-strength weakening observed in actual STDP.
-"""
 time_for_stdp=time.time()
 stdp=np.zeros((M,M))
-iterations=50
-time_dep= np.zeros((iterations,iterations))
+stdp_model="Old"
 
-
-#09/17/14 Determined that post_activity=-10 pre_activity=5 and time scale=2 
-#makes the norm of the stdp array much smaller than that of dW
-post_activity=-45
-pre_activity=25
-time_scale=1
-for i in xrange(iterations):
-    for j in xrange(iterations):
-        if i !=j:
-            dt=j-i
-            #j-i gives the correct signs to strengthen pre to post synaptic activity
-            if np.sign(dt) == 1:
-                time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
-            else:
-                time_dep[i][j]+= post_activity*np.exp(-abs(dt/time_scale))
-        else:
-            time_dep[i][j]=0
+time_dep=STDP(M,stdp_model,batch_size)
 
 time_for_stdp= time.time()-time_for_stdp
 
@@ -261,7 +232,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW
+    W += stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -287,7 +258,8 @@ for tt in xrange(num_trials):
     
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
-    Cyy_ave_pertrial[tt]=sum(sum(Cyy))
+    Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(N**2-N)
+    Y_ave_pertrial[tt]=np.mean(Y_ave)
     
     if tt%50 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
@@ -302,7 +274,5 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\dW' + str(num_trials)+'.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave,Cyy_ave_pertrial),f)
-
-
+with open('Plotting\stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep),f)
