@@ -75,8 +75,8 @@ def STDP(M,model,iterations):
        for i in xrange(iterations):
             for j in xrange(iterations):
                 
-                dt=j-i
-                #j-i gives the correct signs to strengthen pre to post synaptic activity
+                dt=i-j
+                #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
                 if np.sign(dt) == 1:
                     time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
                 else:
@@ -93,8 +93,8 @@ def STDP(M,model,iterations):
         for i in xrange(iterations):
             for j in xrange(iterations):
                 if i !=j:
-                    dt=j-i
-                    #j-i gives the correct signs to strengthen pre to post synaptic activity
+                    dt=i-j
+                    #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
                     if np.sign(dt) == 1:
                         time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
                     else:
@@ -157,7 +157,7 @@ algo_time = 0.
 
 time_for_stdp=time.time()
 stdp=np.zeros((M,M))
-stdp_model="Old"
+stdp_model="New"
 
 time_dep=STDP(M,stdp_model,batch_size)
 
