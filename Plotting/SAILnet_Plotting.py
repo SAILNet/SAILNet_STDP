@@ -105,12 +105,12 @@ class Run():
 
 # <codecell>
 
-stdp5000New=Run("stdp5000model_New.pkl")
-stdp25000New=Run("stdp25000model_New.pkl")
+#stdp5000New=Run("stdp5000model_New.pkl")
+#stdp25000New=Run("stdp25000model_New.pkl")
+dW25000New=Run("dW25000model_New.pkl")
 
 
-stdp5000New.PlotAll()
-stdp25000New.PlotAll()
-
+#stdp25000New.PlotAll()
+dW25000New.PlotAll()
 
 
