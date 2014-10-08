@@ -274,5 +274,5 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting\stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+with open('Plotting/stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep),f)
