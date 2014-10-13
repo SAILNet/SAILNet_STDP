@@ -20,7 +20,7 @@ class Run():
     def __init__(self,fileName):
         self.fileName=fileName
         with open(self.fileName,'rb') as f:
-            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation, self.Yavg,self.Cavg, self.time_dep = cPickle.load(f)
+            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation, self.Yavg,self.Cavg, self.time_dep, self.rec_error = cPickle.load(f)
     
     
     
@@ -87,6 +87,10 @@ class Run():
         plt.plot(self.time_dep[25])
         plt.title(self.fileName[:len(self.fileName)-4] + 'Time Weighting Matrix')
         
+    def PlotRecError(self):
+        plt.plot(self.rec_error)
+        plt.title("Mean Squared Error of SAILNet's Reconstruction With dW Learning Rule")
+        plt.savefig('Images/Reconstruction Error '+ self.fileName[:len(self.fileName)-4]+ '.png')
     
     def PlotAll(self):
         plt.figure(self.Plot_RF())
@@ -97,7 +101,7 @@ class Run():
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
         plt.figure(self.PlotTimeDep())
-
+        plt.figure(self.PlotRecError())
 
 
 

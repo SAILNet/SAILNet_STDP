@@ -109,7 +109,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 5000
+num_trials = 25000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -122,7 +122,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 8 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -175,6 +175,8 @@ mag_dW=np.zeros_like(mag_stdp)
 #Correlation matrix for each neuron
 
 cor_dW_stdp=np.zeros_like(mag_stdp)
+
+reconstruction_error=np.zeros_like(mag_dW)
 
 
 
@@ -232,7 +234,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += stdp
+    W += dW
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -256,6 +258,8 @@ for tt in xrange(num_trials):
     """
     cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
+    reconstruction_error[tt]=np.sum(np.sum((X-Y.dot(Q.T))**2))/(2*N*batch_size)  
+    
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
     Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(N**2-N)
@@ -274,5 +278,5 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting/stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep),f)
+with open('Plotting/dW' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep,reconstruction_error),f)
