@@ -33,7 +33,7 @@ class Run():
 
         img = tile_raster_images(self.Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.imshow(img,cmap=plt.cm.Greys)
-        plt.title('Receptive Fields - '+self.fileName[:len(self.fileName)-4])
+        plt.title('Receptive Fields with 25000 Iterations and dW Learning Rule')
         plt.imsave('Images/RF '+self.fileName[:len(self.fileName)-4]+'.png', img, cmap=plt.cm.Greys)
         plt.show()
         plt.close
@@ -45,41 +45,41 @@ class Run():
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.plot(self.mag_dW,color="blue", label="dW")
         plt.legend(bbox_to_anchor=(1,.5))
-        plt.title("Magnitude of STDP and dW "+self.fileName[:len(self.fileName)-4])
+        plt.title("Magnitude of STDP and dW with 25000 Iterations and dW Learning Rule")
         plt.xlabel("Number of Trials")
         plt.savefig('Images/stdp_dW_'+self.fileName[:len(self.fileName)-4]+'.png')
         plt.clf
         
     def Plotstdp(self):
         plt.plot(self.mag_stdp, color="green", label="STDP")
-        plt.title("Magnitude of STDP"+self.fileName[:len(self.fileName)-4])
+        plt.title("Magnitude of STDP with 25000 Iterations and dW Learning Rule")
         plt.xlabel("Number of Trials")
         plt.savefig('Images/Magnitude STDP Using'+self.fileName[:len(self.fileName)-4]+'.png')
     
     def PlotdW(self):
         plt.plot(self.mag_dW,color="blue", label="dW")
-        plt.title("Magnitude of dW"+self.fileName[:len(self.fileName)-4])
+        plt.title("Magnitude of dW with 25000 Iterations and dW Learning Rule ")
         plt.xlabel("Number of Trials")
         plt.savefig('Images/Magnitude dW Using'+self.fileName[:len(self.fileName)-4]+'.png')
         
     def PlotYavg(self):
         
         plt.plot(self.Yavg, color="brown")
-        plt.title(self.fileName[:len(self.fileName)-4] + 'Y_avg')
+        plt.title('Y_avg with 25000 Iterations and dW Learning Rule')
         plt.xlabel("Number of Trials")
         plt.savefig('Images/Y_avg'+self.fileName[:len(self.fileName)-4]+'.png')
     
     def PlotCavg(self):
         
         plt.plot(self.Cavg, color="red")
-        plt.title(self.fileName[:len(self.fileName)-4] + 'C_avg')
+        plt.title('C_avg with 25000 Iterations and dW Learning Rule')
         plt.xlabel("Number of Trials")
         plt.savefig('Images/C_avg'+ self.fileName[:len(self.fileName)-4] + '.png')
         
     def Plotcor(self):
         
         plt.plot(self.correlation, color = "purple")
-        plt.title(self.fileName[:len(self.fileName)-4] + 'Correlation of dW and STDP')
+        plt.title('Correlation of dW and STDP with 25000 Iterations and dW Learning Rule')
         plt.xlabel("Number of Trials")
         plt.savefig('Images/Correlation of dW and STDP'+self.fileName[:len(self.fileName)-4] +'.png')
 
@@ -89,7 +89,7 @@ class Run():
         
     def PlotRecError(self):
         plt.plot(self.rec_error)
-        plt.title("Mean Squared Error of SAILNet's Reconstruction With dW Learning Rule")
+        plt.title("Mean Squared Error of SAILNet's Reconstruction with 25000 Iterations and dW Learning Rule")
         plt.savefig('Images/Reconstruction Error '+ self.fileName[:len(self.fileName)-4]+ '.png')
     
     def PlotAll(self):
