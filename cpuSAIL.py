@@ -109,7 +109,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 5000
+num_trials = 1000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -126,10 +126,14 @@ OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
-p = .05 #Sparcity
+p = .05 #Sparsity
 
 # Initialize Weights
-Q = rng.randn(N,M)
+I = rng.randint(1,N*M,(8,1)) #Selects positions of sparse ones in Q
+Q = np.zeros((N*M,1)) + 10**(-4)
+for p in I:
+    Q[p] = 1
+Q = Q.reshape((N,M))
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
 #1./np.sqrt(np.diag(Q.T.dot(Q))) normalizes the Q matrix
 W = np.zeros((M,M))
