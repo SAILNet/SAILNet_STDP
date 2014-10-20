@@ -10,7 +10,8 @@ def activities(X,Q,W,theta):
     M = Q.shape[1]
     
     """
-    Q is the matrix of connection strengths from each input to each neuron. it is a inputs X number of neurons
+    Q is the matrix of connection strengths from each input to each neuron.
+    It is an (number of inputs by number of neurons) matrix.
     """
 
     num_iterations = 50
@@ -109,7 +110,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 1000
+num_trials = 100
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -130,11 +131,12 @@ p = .05 #Sparsity
 
 # Initialize Weights
 I = rng.randint(1,N*M,(8,1)) #Selects positions of sparse ones in Q
-Q = np.zeros((N*M,1)) + 10**(-4)
+Q = np.zeros((N*M,1)) + 0.1
 for p in I:
     Q[p] = 1
 Q = Q.reshape((N,M))
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
+print Q
 #1./np.sqrt(np.diag(Q.T.dot(Q))) normalizes the Q matrix
 W = np.zeros((M,M))
 theta = 2.*np.ones(M)
