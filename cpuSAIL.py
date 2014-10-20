@@ -106,11 +106,12 @@ def STDP(M,model,iterations):
  
                 
     return time_dep
+
 rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 100
+num_trials = 550
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -121,7 +122,7 @@ images = np.transpose(images,axes=(2,0,1))
 BUFF = 20
 
 # Neuron Parameters
-N = 256
+N = 256 #Number of Inputs
 sz = np.sqrt(N).astype(np.int)
 OC = 2 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
@@ -130,14 +131,20 @@ M = OC*N #M is the number of neurons
 p = .05 #Sparsity
 
 # Initialize Weights
-I = rng.randint(1,N*M,(8,1)) #Selects positions of sparse ones in Q
-Q = np.zeros((N*M,1)) + 0.1
-for p in I:
-    Q[p] = 1
-Q = Q.reshape((N,M))
+Q = np.zeros((N,M))
+for t in range(M):
+    I = rng.randint(1,N,(8,1)) #Positions of sparse 1 or -1 in each neuron
+    index = 0   #Used to alter positioning of 1's and -1's
+    for p in I:
+        if index%2 == 0:
+            Q[:,t][p] = 10
+        else:
+            Q[:,t][p] = -10
+        index += 1
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
+# (1./np.sqrt(np.diag(Q.T.dot(Q)))) normalizes the Q matrix
 print Q
-#1./np.sqrt(np.diag(Q.T.dot(Q))) normalizes the Q matrix
+
 W = np.zeros((M,M))
 theta = 2.*np.ones(M)
 
