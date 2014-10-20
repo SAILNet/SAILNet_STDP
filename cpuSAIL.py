@@ -110,7 +110,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 100
+num_trials = 5000
 
 # Load Images
 with open('images.pkl','r') as f:
