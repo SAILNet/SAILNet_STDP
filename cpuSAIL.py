@@ -252,7 +252,6 @@ for tt in xrange(num_trials):
     # Update feedforward weights
     square_act = np.sum(Y*Y,axis=0)
     mymat = np.diag(square_act)
-    Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
     dQ = beta*X.T.dot(Y)/batch_size - beta*Q.dot(mymat)/batch_size
     Q += dQ
     Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
