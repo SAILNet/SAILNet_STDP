@@ -17,7 +17,7 @@ def activities(X,Q,W,theta):
     num_iterations = 50
 
     eta = .1
-
+    
     B = X.dot(Q)
     #weighting the input activity by the feed-forward weights
 
@@ -137,13 +137,12 @@ for t in range(M):
     index = 0   #Used to alter positioning of 1's and -1's
     for p in I:
         if index%2 == 0:
-            Q[:,t][p] = 10
+            Q[:,t][p] = 1
         else:
-            Q[:,t][p] = -10
+            Q[:,t][p] = -1
         index += 1
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
 # (1./np.sqrt(np.diag(Q.T.dot(Q)))) normalizes the Q matrix
-print Q
 
 W = np.zeros((M,M))
 theta = 2.*np.ones(M)
@@ -188,7 +187,6 @@ mag_dW=np.zeros_like(mag_stdp)
 #Correlation matrix for each neuron
 
 cor_dW_stdp=np.zeros_like(mag_stdp)
-
 
 
 # Begin Learning
@@ -245,7 +243,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += stdp
+    W += dW
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -254,8 +252,10 @@ for tt in xrange(num_trials):
     # Update feedforward weights
     square_act = np.sum(Y*Y,axis=0)
     mymat = np.diag(square_act)
+    Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
     dQ = beta*X.T.dot(Y)/batch_size - beta*Q.dot(mymat)/batch_size
     Q += dQ
+    Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
 
     # Update thresholds
     dtheta = gamma*(np.sum(Y,axis=0)/batch_size-p)
@@ -287,5 +287,5 @@ print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
 print '' 
  
 
-with open('Plotting/stdp' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+with open('Plotting/dW' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep),f)
