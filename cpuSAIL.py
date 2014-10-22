@@ -122,7 +122,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 8 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 7 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -224,9 +224,10 @@ for tt in xrange(num_trials):
         stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))
     stdp = stdp/batch_size
     time_stdp= time.time()-time_stdp
+    
     time_for_stdp+= time_stdp
     
-    mag_stdp[tt]=np.linalg.norm(stdp)
+    #mag_stdp[tt]=np.linalg.norm(stdp)
     
     """
     The following code is the learning rules
@@ -251,7 +252,7 @@ for tt in xrange(num_trials):
     theta += dtheta
     dt = time.time()-dt
     algo_time += dt/60.
-    time_for_stdp= time_for_stdp/60
+    time_for_stdp1= time_for_stdp/60
     
     """
     We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
@@ -269,12 +270,12 @@ for tt in xrange(num_trials):
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
-        print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp)+' min'
+        print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
         print ''
-    total_time = data_time+algo_time+time_for_stdp
-print 'Percent time spent gathering data: '+str(data_time/total_time)+' %'
-print 'Percent time spent in SAILnet: '+str(algo_time/total_time)+' %'
-print 'Percent time spent calculating STDP: '+str(time_for_stdp/total_time)+' %'
+    total_time = data_time+algo_time+time_for_stdp1
+print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
+print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
+print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
 print '' 
  
 
