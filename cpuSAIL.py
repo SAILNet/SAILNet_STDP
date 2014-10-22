@@ -111,7 +111,7 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 550
+num_trials = 5000
 
 # Load Images
 with open('images.pkl','r') as f:
@@ -133,13 +133,13 @@ p = .05 #Sparsity
 # Initialize Weights
 Q = np.zeros((N,M))
 for t in range(M):
-    I = rng.randint(1,N,(8,1)) #Positions of sparse 1 or -1 in each neuron
+    positions = rng.randint(1,N,(8,1)) #Positions of sparse 1 or -1 in each neuron
     index = 0   #Used to alter positioning of 1's and -1's
-    for p in I:
+    for pos in positions:
         if index%2 == 0:
-            Q[:,t][p] = 1
+            Q[:,t][pos] = 1
         else:
-            Q[:,t][p] = -1
+            Q[:,t][pos] = -1
         index += 1
 Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
 # (1./np.sqrt(np.diag(Q.T.dot(Q)))) normalizes the Q matrix
@@ -213,7 +213,7 @@ for tt in xrange(num_trials):
     dt = time.time()
     # Calcuate network activities
     Y, activity_log = activities(X,Q,W,theta)
-   
+    
     """
     This commented out section was used to determine the sign for time_dep
     activity_log=np.zeros((batch_size,M,iterations))
