@@ -1,6 +1,8 @@
 import numpy as np
 import cPickle, time
 from math import ceil
+from pca import pca
+import van_hateren as VH
 
 
 def activities(X,Q,W,theta):
@@ -54,7 +56,7 @@ def activities(X,Q,W,theta):
         
         
         
-        
+        #Forces mean to be 0
         Y += aas
         #update total activity
         Ys[Ys > T] = 0.
@@ -109,20 +111,30 @@ rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 25000
+num_trials = 10000
 
-# Load Images
+
+#Load Images in the Van Hateren Image set.
+van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
+images=van_hateren_instance.load_images(100)
+num_images, imsize, imsize = images.shape
+
+#Creat PCA Instance
+pca_instance=pca.PCA(whiten=True)
+
+"""
+# Load Images, for smaller image set
 with open('images.pkl','r') as f:
     images = cPickle.load(f)
 imsize, imsize, num_images = images.shape
 images = np.transpose(images,axes=(2,0,1))
-
+"""
 BUFF = 20
 
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 7 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 4 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -191,12 +203,18 @@ for tt in xrange(num_trials):
         c = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
         myimage = images[int(num_images*rng.rand()),r:r+sz,c:c+sz].ravel()
         #takes a chunck from a random image, size of 16X16 patch at a random location       
-        myimage = myimage-np.mean(myimage)
-        myimage = myimage/np.std(myimage)
-        #Forces mean to be 0
+        
+        
         X[ii] = myimage
         #creating a list of image patches to work with
-        
+    
+    #Conducts Principle Component Analysis
+    pca_instance.fit(X)
+    X=pca_instance.transform_zca(X)
+    #Forces mean to be 0    
+    X = X-np.mean(X)
+    X = X/X.std()
+    
     dt = time.time()-dt
     data_time += dt/60.
     
