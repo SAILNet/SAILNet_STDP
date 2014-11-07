@@ -3,6 +3,8 @@ import cPickle, time
 from math import ceil
 from pca import pca
 import van_hateren as VH
+from utils import tile_raster_images
+import matplotlib.pyplot as plt
 
 
 def activities(X,Q,W,theta):
@@ -107,12 +109,25 @@ def STDP(M,model,iterations):
  
                 
     return time_dep
+    
+def gif(Q,iteration):
+    im_size, num_dict = Q.shape
+
+    side = int(np.round(np.sqrt(im_size)))
+    OC = num_dict/im_size
+
+
+    img = tile_raster_images(Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+    plt.imsave('Plotting/Images/gif/RF '+ str(iteration)+ '.png', img, cmap=plt.cm.Greys)
+    
+
 rng = np.random.RandomState(0)
 
 # Parameters
 batch_size = 50
-num_trials = 10000
+num_trials = 25000
 
+reduced_learning_rate=.99985
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -134,7 +149,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 4 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 1 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
@@ -190,7 +205,10 @@ cor_dW_stdp=np.zeros_like(mag_stdp)
 
 reconstruction_error=np.zeros_like(mag_dW)
 
-
+#Bolean, Save RF fields and create gif
+create_gif=False
+trials_per_image=10
+gif_images=np.zeros(num_trials/trials_per_image)
 
 # Begin Learning
 X = np.zeros((batch_size,N))
@@ -253,7 +271,7 @@ for tt in xrange(num_trials):
     
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
-    W += dW
+    W += stdp
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
@@ -277,12 +295,26 @@ for tt in xrange(num_trials):
     """
     cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
+    #Error in reconstucting the images
     reconstruction_error[tt]=np.sum(np.sum((X-Y.dot(Q.T))**2))/(2*N*batch_size)  
     
     Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
     Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
     Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(N**2-N)
     Y_ave_pertrial[tt]=np.mean(Y_ave)
+    
+    """
+    Reducing step size after 5000 trials
+    """
+    if tt >= 5000:
+        gamma=gamma*reduced_learning_rate
+        alpha=alpha*reduced_learning_rate
+        beta=beta*reduced_learning_rate
+    """
+    Saving Images for RF gif
+    """
+    if create_gif and tt%trials_per_image==0:
+        gif(Q,tt)
     
     if tt%50 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(num_trials)
@@ -295,7 +327,10 @@ print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
 print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
 print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
 print '' 
- 
 
-with open('Plotting/dW' + str(num_trials)+'model_'+stdp_model+'.pkl','wb') as f:
+with open('Plotting/NewSTDP' + str(num_trials)+'OC_'+str(OC)+'.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep,reconstruction_error),f)
+    
+    
+        
+    
