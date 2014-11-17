@@ -14,7 +14,7 @@ def activities(X,Q,W,theta):
     M = Q.shape[1]
     
     """
-    Q is the matrix of connection strengths from each input to each neuron. it is a inputs X number of neurons
+    Q is the matrix of connection strengths from each input to each neuron. it is an (Inputs X number of neurons) matrix
     """
 
     num_iterations = 50
