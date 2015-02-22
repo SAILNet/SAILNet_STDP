@@ -110,11 +110,13 @@ class Run():
 # <codecell>
 
 #stdp5000New=Run("stdp5000model_New.pkl")
-#stdp25000New=Run("stdp25000model_New.pkl")
-dW25000New=Run("dW25000model_New.pkl")
+stdp25000New=Run("NewSTDP25000OC_8.pkl")
+#stdp25000Old=Run("OldSTDP25000OC_4.pkl")
+#stdp10000Old=Run("dW25000model_New.pkl")
 
 
 #stdp25000New.PlotAll()
-dW25000New.PlotAll()
-
+#stdp10000New.PlotRecError()
+stdp25000New.PlotAll()
+#stdp25000Old.PlotRecError()
 

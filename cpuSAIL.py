@@ -149,7 +149,7 @@ BUFF = 20
 # Neuron Parameters
 N = 256
 sz = np.sqrt(N).astype(np.int)
-OC = 1 #Over-Completeness: num of neurons = OC * num of inputs
+OC = 8 #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
