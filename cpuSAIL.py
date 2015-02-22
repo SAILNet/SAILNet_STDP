@@ -1,10 +1,11 @@
-import numpy as np
+1import numpy as np
 import cPickle, time
 from math import ceil
 from pca import pca
 import van_hateren as VH
 from utils import tile_raster_images
 import matplotlib.pyplot as plt
+import configparser as config
 
 
 def activities(X,Q,W,theta):
