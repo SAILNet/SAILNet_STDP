@@ -22,8 +22,6 @@ class Run():
         with open(self.fileName,'rb') as f:
             self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW, self.correlation, self.Yavg,self.Cavg, self.time_dep,self.rec_error = cPickle.load(f)
     
-    
-    
     def Plot_RF(self):
         im_size, num_dict = self.Q.shape
 
@@ -92,6 +90,30 @@ class Run():
         plt.title("Mean Squared Error of SAILNet's Reconstruction with 25000 Iterations and STDP Learning Rule")
         plt.savefig('Images/Reconstruction Error '+ self.fileName[:len(self.fileName)-4]+ '.png')
     
+    def PlotInhibitHist(self):
+        W_flat = np.ravel(self.W) #Flattens array
+        zeros = np.nonzero(W_flat == 0) #Locates zeros
+        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
+        W_flat = np.abs(np.log(W_flat))
+        plt.hist(W_flat, bins = 10000, normed = True)
+        plt.xlabel("Inhibitory Connection Strength")
+        plt.ylabel("PDF log(connection strength)")
+        plt.title("Histogram of Inhibitory Connection Strengths for 25000 Iterations and STDP Learning Rule")
+        plt.savefig("Histogram" + self.fileName[:len(self.fileName)-4]+ '.png')
+        
+    def PlotInh_vs_RF(self):
+        RF_overlap = self.Q.T.dot(self.Q)
+        RF_overlap = np.ravel(RF_overlap)
+        W_flat = np.ravel(self.W) #Flattens array
+        zeros = np.nonzero(W_flat == 0) #Locates zeros
+        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
+        RF_overlap = np.delete(RF_overlap, zeros) #Deletes Zeros
+        W_flat = np.abs(np.log(W_flat))
+        plt.plot(W_flat, RF_overlap, '.')
+        plt.xlabel("Inhibitory Connection Strength")
+        plt.ylabel("RF Overlap (Dot product)")
+        plt.savefig("RF Overlap vs Inhibitory Strength" + self.fileName[:len(self.fileName)-4]+ '.png')
+        
     def PlotAll(self):
         plt.figure(self.Plot_RF())
         plt.figure(self.PlotdWstdp())
@@ -102,7 +124,8 @@ class Run():
         plt.figure(self.PlotYavg())
         plt.figure(self.PlotTimeDep())
         plt.figure(self.PlotRecError())
-
+        plt.figure(self.PlotInhibitHist())
+        plt.figure(self.PlotInh_vs_RF())
 
 
 
@@ -110,13 +133,27 @@ class Run():
 # <codecell>
 
 #stdp5000New=Run("stdp5000model_New.pkl")
+<<<<<<< HEAD
 stdp25000New=Run("NewSTDP25000OC_8.pkl")
 #stdp25000Old=Run("OldSTDP25000OC_4.pkl")
 #stdp10000Old=Run("dW25000model_New.pkl")
+=======
+#stdp25000New=Run("stdp25000model_New.pkl")
+#dW25000New=Run("dW25000model_New.pkl")
+STDP25000OC8 = Run("NewSTDP25000OC_8.pkl")
+>>>>>>> 670e268b1c88b37bf2f3c04514bf2730dfd6cc33
 
+plt.figure(STDP25000OC8.PlotInhibitHist())
+plt.figure(STDP25000OC8.PlotInh_vs_RF())
 
+#STDP25000OC8.PlotInhibitHist()
 #stdp25000New.PlotAll()
+<<<<<<< HEAD
 #stdp10000New.PlotRecError()
 stdp25000New.PlotAll()
 #stdp25000Old.PlotRecError()
+=======
+#dW25000New.PlotAll()
+
+>>>>>>> 670e268b1c88b37bf2f3c04514bf2730dfd6cc33
 
