@@ -1,11 +1,13 @@
-1import numpy as np
+import numpy as np
 import cPickle, time
 from math import ceil
 from pca import pca
 import van_hateren as VH
 from utils import tile_raster_images
 import matplotlib.pyplot as plt
-import configparser as config
+import ConfigParser
+import os
+import shutil
 
 
 def activities(X,Q,W,theta):
@@ -124,11 +126,16 @@ def gif(Q,iteration):
 
 rng = np.random.RandomState(0)
 
-# Parameters
-batch_size = 50
-num_trials = 25000
 
-reduced_learning_rate=.99985
+config = ConfigParser.ConfigParser()
+config.read("parameters.txt")
+ 
+
+# Parameters
+batch_size = config.getint("Parameters",'batch_size')
+num_trials = config.getint("Parameters",'num_trials')
+
+reduced_learning_rate = config.getfloat("Parameters",'reduced_learning_rate')
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -148,13 +155,13 @@ images = np.transpose(images,axes=(2,0,1))
 BUFF = 20
 
 # Neuron Parameters
-N = 256
+N = config.getint("NeuronParameters",'N')
 sz = np.sqrt(N).astype(np.int)
-OC = 8 #Over-Completeness: num of neurons = OC * num of inputs
+OC = config.getint("NeuronParameters",'OC') #Over-Completeness: num of neurons = OC * num of inputs
 M = OC*N #M is the number of neurons
 
 # Network Parameters
-p = .05 #Sparcity
+p = config.getfloat("NeuronParameters",'p') #Sparcity
 
 # Initialize Weights
 Q = rng.randn(N,M)
@@ -164,11 +171,11 @@ W = np.zeros((M,M))
 theta = 2.*np.ones(M)
 
 # Learning Rates
-alpha = 1.
-beta = .01
-gamma = .1
+alpha = config.getfloat("LearningRates",'alpha')
+beta = config.getfloat("LearningRates",'beta')
+gamma = config.getfloat("LearningRates",'gamma')
 
-eta_ave = .3
+eta_ave = config.getfloat("LearningRates",'eta_ave')
 
 Y_ave = p
 Cyy_ave = p**2
@@ -329,8 +336,21 @@ print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
 print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
 print '' 
 
-with open('Plotting/NewSTDP' + str(num_trials)+'OC_'+str(OC)+'.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,Y_ave_pertrial,Cyy_ave_pertrial,time_dep,reconstruction_error),f)
+saveAttempt = 0   
+    
+while os.path.exists("./Trials/OC"+str(OC)+'_'+str(saveAttempt)):
+    saveAttempt += 1
+    
+directory = "./Trials/OC"+str(OC)+'_'+str(saveAttempt)
+os.makedirs(directory) 
+    
+shutil.copy2("parameters.txt",directory)
+with open(directory +'/data.pkl','wb') as f:
+    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,
+                  Y_ave_pertrial,Cyy_ave_pertrial,time_dep,
+                  reconstruction_error),f)
+
+
     
     
         
