@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import ConfigParser
 import os
 import shutil
+from SAILnet_Plotting import Plot
 
 
 def activities(X,Q,W,theta):
@@ -350,7 +351,11 @@ with open(directory +'/data.pkl','wb') as f:
                   Y_ave_pertrial,Cyy_ave_pertrial,time_dep,
                   reconstruction_error),f)
 
+data_filename = directory + '/data.pkl'
 
+plotter = Plot(data_filename, directory)
+
+plotter.PlotTimeDep()
     
     
         
