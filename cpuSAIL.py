@@ -78,7 +78,7 @@ def STDP(M,model,iterations):
 
     if model == "New":
        post_activity=-.027
-       pre_activity=.027
+       pre_activity=.027 #This one needs to be negative
        time_scale=4
        for i in xrange(iterations):
             for j in xrange(iterations):
@@ -208,6 +208,10 @@ mag_stdp=np.zeros(num_trials)
 
 mag_dW=np.zeros_like(mag_stdp)
 
+#mag_W will track the magnitude in W
+
+mag_W = np.zeros_like(mag_stdp)
+
 #Correlation matrix for each neuron
 
 cor_dW_stdp=np.zeros_like(mag_stdp)
@@ -272,7 +276,7 @@ for tt in xrange(num_trials):
     
     time_for_stdp+= time_stdp
     
-    #mag_stdp[tt]=np.linalg.norm(stdp)
+    mag_stdp[tt]=np.linalg.norm(stdp)
     
     """
     The following code is the learning rules
@@ -285,6 +289,7 @@ for tt in xrange(num_trials):
     W[W < 0] = 0.
     
     mag_dW[tt]=np.linalg.norm(dW)
+    mag_W[tt] =np.linalg.norm(W)
 
     # Update feedforward weights
     square_act = np.sum(Y*Y,axis=0)
@@ -349,13 +354,13 @@ shutil.copy2("parameters.txt",directory)
 with open(directory +'/data.pkl','wb') as f:
     cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,
                   Y_ave_pertrial,Cyy_ave_pertrial,time_dep,
-                  reconstruction_error),f)
+                  reconstruction_error, mag_W),f)
 
 data_filename = directory + '/data.pkl'
 
 plotter = Plot(data_filename, directory)
 
-plotter.PlotTimeDep()
+plotter.PlotAll()
     
     
         

@@ -23,8 +23,7 @@ class Plot():
         self.directory = directory
         os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW,
-            self.correlation, self.Yavg,self.Cavg, self.time_dep,self.rec_error = cPickle.load(f)
+            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW,self.correlation, self.Yavg,self.Cavg, self.time_dep,self.rec_error,self.mag_W = cPickle.load(f)
     
     def Plot_RF(self):
         im_size, num_dict = self.Q.shape
@@ -33,69 +32,77 @@ class Plot():
         OC = num_dict/im_size
 
 
-        img = tile_raster_images(self.Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
+        img = tile_raster_images(self.Q.T, img_shape = (side,side),
+                                 tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
+                                 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+        plt.figure(0)
         plt.imshow(img,cmap=plt.cm.Greys)
         plt.title('Receptive Fields with 25000 Iterations and STDP Learning Rule')
-        plt.imsave('Images/RF '+self.fileName[:len(self.fileName)-4]+'.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/Magnitude_W.png', img, cmap=plt.cm.Greys)
         plt.show()
         plt.close
         plt.clf
 
 
     def PlotdWstdp(self):
-        
+        plt.figure(1)
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.plot(self.mag_dW,color="blue", label="dW")
         plt.legend(bbox_to_anchor=(1,.5))
         plt.title("Magnitude of STDP and dW with 25000 Iterations and STDP Learning Rule")
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/stdp_dW_'+self.fileName[:len(self.fileName)-4]+'.png')
+        plt.savefig(self.directory + '/Images/Magnitude_dW_STDP.png')
         plt.clf
         
     def Plotstdp(self):
+        plt.figure(2)
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.title("Magnitude of STDP with 25000 Iterations and STDP Learning Rule")
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/Magnitude STDP Using'+self.fileName[:len(self.fileName)-4]+'.png')
+        plt.savefig(self.directory + '/Images/Magnitude_STDP.png')
     
     def PlotdW(self):
+        plt.figure(3)
         plt.plot(self.mag_dW,color="blue", label="dW")
         plt.title("Magnitude of dW with 25000 Iterations and STDP Learning Rule ")
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/Magnitude dW Using'+self.fileName[:len(self.fileName)-4]+'.png')
+        plt.savefig(self.directory + '/Images/Magnitude_dW.png')
         
     def PlotYavg(self):
-        
+        plt.figure(4)
         plt.plot(self.Yavg, color="brown")
         plt.title('Y_avg with 25000 Iterations and STDP Learning Rule')
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/Y_avg'+self.fileName[:len(self.fileName)-4]+'.png')
+        plt.savefig(self.directory + '/Images/Yavg.png')
     
     def PlotCavg(self):
-        
+        plt.figure(5)
         plt.plot(self.Cavg, color="red")
         plt.title('C_avg with 25000 Iterations and STDP Learning Rule')
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/C_avg'+ self.fileName[:len(self.fileName)-4] + '.png')
+        plt.savefig(self.directory + '/Images/Cavg.png')
         
     def Plotcor(self):
-        
+        plt.figure(6)
         plt.plot(self.correlation, color = "purple")
         plt.title('Correlation of dW and STDP with 25000 Iterations and STDP Learning Rule')
         plt.xlabel("Number of Trials")
-        plt.savefig('Images/Correlation of dW and STDP'+self.fileName[:len(self.fileName)-4] +'.png')
+        plt.savefig(self.directory + '/Images/Correlation_dW_STDP.png')
 
     def PlotTimeDep(self):
+        plt.figure(7)
         plt.plot(self.time_dep[25])
         plt.title(self.fileName[:len(self.fileName)-4] + 'Time Weighting Matrix')
-        plt.savefig(self.directory + 'Images/Weighting_Matrix.png')
+        plt.savefig(self.directory + '/Images/Weighting_Matrix.png')
     
     def PlotRecError(self):
+        plt.figure(8)
         plt.plot(self.rec_error)
         plt.title("Mean Squared Error of SAILNet's Reconstruction with 25000 Iterations and STDP Learning Rule")
-        plt.savefig('Images/Reconstruction Error '+ self.fileName[:len(self.fileName)-4]+ '.png')
+        plt.savefig(self.directory + '/Images/Rec_Error.png')
     
     def PlotInhibitHist(self):
+        plt.figure(9)
         W_flat = np.ravel(self.W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
@@ -104,9 +111,10 @@ class Plot():
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
         plt.title("Histogram of Inhibitory Connection Strengths for 25000 Iterations and STDP Learning Rule")
-        plt.savefig("Histogram" + self.fileName[:len(self.fileName)-4]+ '.png')
+        plt.savefig(self.directory + '/Images/InhibitHist.png')
         
     def PlotInh_vs_RF(self):
+        plt.figure(10)
         RF_overlap = self.Q.T.dot(self.Q)
         RF_overlap = np.ravel(RF_overlap)
         W_flat = np.ravel(self.W) #Flattens array
@@ -117,7 +125,13 @@ class Plot():
         plt.plot(W_flat, RF_overlap, '.')
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("RF Overlap (Dot product)")
-        plt.savefig("RF Overlap vs Inhibitory Strength" + self.fileName[:len(self.fileName)-4]+ '.png')
+        plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
+        
+    def Plot_Mag_W(self):
+        plt.figure(11)
+        plt.title('Magnitude of Lateral Weight Matrix W')
+        plt.plot(self.mag_W)
+        plt.savefig(self.directory + '/Images/Magnitude_W.png')
         
     def PlotAll(self):
         plt.figure(self.Plot_RF())
@@ -131,6 +145,7 @@ class Plot():
         plt.figure(self.PlotRecError())
         plt.figure(self.PlotInhibitHist())
         plt.figure(self.PlotInh_vs_RF())
+        plt.figure(self.Plot_Mag_W())
 
 
 
