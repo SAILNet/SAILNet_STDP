@@ -260,6 +260,7 @@ for tt in xrange(num_trials):
     activity_log[0][0][0]+=1
     activity_log[0][10][1]+=1
     """
+    
     muy = np.mean(Y,axis=0)
     Cyy = Y.T.dot(Y)/batch_size
     
@@ -337,6 +338,8 @@ for tt in xrange(num_trials):
         print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
         print ''
     total_time = data_time+algo_time+time_for_stdp1
+    
+    
 print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
 print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
 print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
