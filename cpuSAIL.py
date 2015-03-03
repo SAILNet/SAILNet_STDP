@@ -177,6 +177,7 @@ beta = config.getfloat("LearningRates",'beta')
 gamma = config.getfloat("LearningRates",'gamma')
 
 eta_ave = config.getfloat("LearningRates",'eta_ave')
+lateral_constraint = config.getfloat('LearningRates','lateral_constraint')
 
 Y_ave = p
 Cyy_ave = p**2
@@ -286,6 +287,7 @@ for tt in xrange(num_trials):
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
     W += stdp
+    #W -= lateral_constraint*W
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
