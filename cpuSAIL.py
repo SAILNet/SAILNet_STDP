@@ -287,7 +287,7 @@ for tt in xrange(num_trials):
     # Update lateral weigts
     dW = alpha*(Cyy-p**2)
     W += stdp
-    #W -= lateral_constraint*W
+    W -= lateral_constraint*W
     W = W-np.diag(np.diag(W))
     W[W < 0] = 0.
     
