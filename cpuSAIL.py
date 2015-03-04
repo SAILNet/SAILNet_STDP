@@ -78,7 +78,7 @@ def STDP(M,model,iterations):
 
     if model == "New":
        post_activity=-.027
-       pre_activity=.027 #This one needs to be negative
+       pre_activity=.027 
        time_scale=4
        for i in xrange(iterations):
             for j in xrange(iterations):
