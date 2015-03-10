@@ -13,6 +13,7 @@ class Network():
         config = ConfigParser.ConfigParser()
         config.read(parameters_file)
         rng = np.random.RandomState(0)
+        self.num_iterations = 50
         
         """
         Load network Parameters from config file
@@ -40,5 +41,12 @@ class Network():
         self.W = np.zeros((self.M,self.M))
         self.theta = 2.*np.ones(self.M)
         self.X = np.zeros((self.batch_size,self.N))
+        
+        """
+        These are used for the activities function
+        """
+        
+        self.Y = np.zeros((self.batch_size,self.M))
+        self.spike_train=np.zeros((self.batch_size,self.M,self.num_iterations))
         
     

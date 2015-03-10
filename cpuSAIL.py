@@ -9,67 +9,8 @@ import os
 import shutil
 from SAILnet_Plotting import Plot
 from Network import Network
+from Activity import Activity
 
-
-def activities(X,Q,W,theta):
-    batch_size, N = X.shape
-    sz = int(np.sqrt(N))
-
-    M = Q.shape[1]
-    
-    """
-    Q is the matrix of connection strengths from each input to each neuron. it is an (Inputs X number of neurons) matrix
-    """
-
-    num_iterations = 50
-
-    eta = .1
-
-    B = X.dot(Q)
-    #weighting the input activity by the feed-forward weights
-
-    T = np.tile(theta,(batch_size,1))
-
-    Ys = np.zeros((batch_size,M))
-    aas = np.zeros((batch_size,M))
-    Y = np.zeros((batch_size,M))
-    stdp=np.zeros((batch_size,M,num_iterations))
-    
-    
-    """    
-    aas determines who spikes. Subtracting aas.dot(W) creates inhibition based on the weight.
-    aas is either 1 or 0, either fired or not.
-
-    (1 - eta)*Ys is a decay term.
-    
-    eta*(B) is a term that increases the activity based on the strength of the input
-    weighted by the feed forward weights.
-    
-    eta*aas.dot(W) term is the inhibitory term.    
-    """
-    for tt in xrange(num_iterations):
-        Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
-        aas = np.zeros((batch_size,M))
-        #This resets the current activity of the time step to 0's        
-        aas[Ys > T] = 1.
-        #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
-        
-        
-        """        
-        Second attempt at STDP, using more matricies     
-        """
-        stdp[:,:,tt]=aas
-        
-        
-        
-        #Forces mean to be 0
-        Y += aas
-        #update total activity
-        Ys[Ys > T] = 0.
-        #after firing set back to zero for activity calculations in next time step
-    
-        
-    return [Y,stdp]
     
 def STDP(M,model,iterations):
     
@@ -130,6 +71,7 @@ rng = np.random.RandomState(0)
 config_file = 'parameters.txt'
 
 network = Network(config_file)
+activity = Activity()
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -224,8 +166,9 @@ for tt in xrange(network.num_trials):
 
     dt = time.time()
     # Calcuate network activities
-    Y, activity_log = activities(network.X,network.Q,network.W,network.theta)
-   
+    
+    activity.get_acts(network)
+    
     """
     This commented out section was used to determine the sign for time_dep
     activity_log=np.zeros((batch_size,M,iterations))
@@ -233,8 +176,8 @@ for tt in xrange(network.num_trials):
     activity_log[0][10][1]+=1
     """
     
-    muy = np.mean(Y,axis=0)
-    Cyy = Y.T.dot(Y)/network.batch_size
+    muy = np.mean(network.Y,axis=0)
+    Cyy = network.Y.T.dot(network.Y)/network.batch_size
     
     """
     using stdp matrix to update W
@@ -243,7 +186,7 @@ for tt in xrange(network.num_trials):
     time_stdp=time.time()
     
     for batch in xrange(network.batch_size):
-        stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))
+        stdp+=np.dot(network.spike_train[batch],np.dot(time_dep,network.spike_train[batch].T))
     stdp = stdp/network.batch_size
     time_stdp= time.time()-time_stdp
     
@@ -266,17 +209,18 @@ for tt in xrange(network.num_trials):
     mag_W[tt] =np.linalg.norm(network.W)
 
     # Update feedforward weights
-    square_act = np.sum(Y*Y,axis=0)
+    square_act = np.sum(network.Y*network.Y,axis=0)
     mymat = np.diag(square_act)
-    dQ = network.beta*network.X.T.dot(Y)/network.batch_size - network.beta*network.Q.dot(mymat)/network.batch_size
+    dQ = network.beta*network.X.T.dot(network.Y)/network.batch_size - network.beta*network.Q.dot(mymat)/network.batch_size
     network.Q += dQ
 
     # Update thresholds
-    dtheta = network.gamma*(np.sum(Y,axis=0)/network.batch_size-network.p)
+    dtheta = network.gamma*(np.sum(network.Y,axis=0)/network.batch_size-network.p)
     network.theta += dtheta
     dt = time.time()-dt
     algo_time += dt/60.
     time_for_stdp1= time_for_stdp/60
+    
     
     """
     We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
@@ -284,7 +228,7 @@ for tt in xrange(network.num_trials):
     cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
     #Error in reconstucting the images
-    reconstruction_error[tt]=np.sum(np.sum((network.X-Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
+    reconstruction_error[tt]=np.sum(np.sum((network.X-network.Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
     
     Y_ave = (1.-network.eta_ave)*Y_ave + network.eta_ave*muy
     Cyy_ave=(1.-network.eta_ave)*Cyy_ave + network.eta_ave*Cyy
@@ -335,6 +279,8 @@ with open(directory +'/data.pkl','wb') as f:
 data_filename = directory + '/data.pkl'
 
 plotter = Plot(data_filename, directory)
+
+print network.Y
 
 plotter.PlotAll()
     
