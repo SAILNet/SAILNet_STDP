@@ -1,6 +1,5 @@
 import numpy as np
 import cPickle, time
-from math import ceil
 from pca import pca
 import van_hateren as VH
 from utils import tile_raster_images
@@ -9,6 +8,7 @@ import ConfigParser
 import os
 import shutil
 from SAILnet_Plotting import Plot
+from Network import Network
 
 
 def activities(X,Q,W,theta):
@@ -127,16 +127,9 @@ def gif(Q,iteration):
 
 rng = np.random.RandomState(0)
 
+config_file = 'parameters.txt'
 
-config = ConfigParser.ConfigParser()
-config.read("parameters.txt")
- 
-
-# Parameters
-batch_size = config.getint("Parameters",'batch_size')
-num_trials = config.getint("Parameters",'num_trials')
-
-reduced_learning_rate = config.getfloat("Parameters",'reduced_learning_rate')
+network = Network(config_file)
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -155,35 +148,14 @@ images = np.transpose(images,axes=(2,0,1))
 """
 BUFF = 20
 
-# Neuron Parameters
-N = config.getint("NeuronParameters",'N')
-sz = np.sqrt(N).astype(np.int)
-OC = config.getint("NeuronParameters",'OC') #Over-Completeness: num of neurons = OC * num of inputs
-M = OC*N #M is the number of neurons
 
-# Network Parameters
-p = config.getfloat("NeuronParameters",'p') #Sparcity
+sz = np.sqrt(network.N).astype(np.int)
 
-# Initialize Weights
-Q = rng.randn(N,M)
-Q = Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
-#1./np.sqrt(np.diag(Q.T.dot(Q))) normalizes the Q matrix
-W = np.zeros((M,M))
-theta = 2.*np.ones(M)
-
-# Learning Rates
-alpha = config.getfloat("LearningRates",'alpha')
-beta = config.getfloat("LearningRates",'beta')
-gamma = config.getfloat("LearningRates",'gamma')
-
-eta_ave = config.getfloat("LearningRates",'eta_ave')
-lateral_constraint = config.getfloat('LearningRates','lateral_constraint')
-
-Y_ave = p
-Cyy_ave = p**2
+Y_ave = network.p
+Cyy_ave = network.p**2
 
 
-Cyy_ave_pertrial=np.zeros(num_trials)
+Cyy_ave_pertrial=np.zeros(network.num_trials)
 Y_ave_pertrial=np.zeros_like(Cyy_ave_pertrial)
 
 # Zero timing variables
@@ -193,17 +165,17 @@ algo_time = 0.
 
 
 time_for_stdp=time.time()
-stdp=np.zeros((M,M))
+stdp=np.zeros((network.M,network.M))
 stdp_model="New"
 
-time_dep=STDP(M,stdp_model,batch_size)
+time_dep=STDP(network.M,stdp_model,network.batch_size)
 
 time_for_stdp= time.time()-time_for_stdp
 
 #The following will keep track of the change of the magnitude of the stdp
 #matrix for each trial.
 
-mag_stdp=np.zeros(num_trials)
+mag_stdp=np.zeros(network.num_trials)
 
 #mag_dW will track the magnitude changes in dW
 
@@ -222,30 +194,29 @@ reconstruction_error=np.zeros_like(mag_dW)
 #Bolean, Save RF fields and create gif
 create_gif=False
 trials_per_image=10
-gif_images=np.zeros(num_trials/trials_per_image)
+gif_images=np.zeros(network.num_trials/trials_per_image)
 
-# Begin Learning
-X = np.zeros((batch_size,N))
 
-for tt in xrange(num_trials):
+
+for tt in xrange(network.num_trials):
     # Extract image patches from images
     dt = time.time()
-    for ii in xrange(batch_size):
+    for ii in xrange(network.batch_size):
         r = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
         c = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
         myimage = images[int(num_images*rng.rand()),r:r+sz,c:c+sz].ravel()
         #takes a chunck from a random image, size of 16X16 patch at a random location       
         
         
-        X[ii] = myimage
+        network.X[ii] = myimage
         #creating a list of image patches to work with
     
     #Conducts Principle Component Analysis
-    pca_instance.fit(X)
-    X=pca_instance.transform_zca(X)
+    pca_instance.fit(network.X)
+    network.X=pca_instance.transform_zca(network.X)
     #Forces mean to be 0    
-    X = X-np.mean(X)
-    X = X/X.std()
+    network.X = network.X-np.mean(network.X)
+    network.X = network.X/network.X.std()
     
     dt = time.time()-dt
     data_time += dt/60.
@@ -253,7 +224,7 @@ for tt in xrange(num_trials):
 
     dt = time.time()
     # Calcuate network activities
-    Y, activity_log = activities(X,Q,W,theta)
+    Y, activity_log = activities(network.X,network.Q,network.W,network.theta)
    
     """
     This commented out section was used to determine the sign for time_dep
@@ -263,7 +234,7 @@ for tt in xrange(num_trials):
     """
     
     muy = np.mean(Y,axis=0)
-    Cyy = Y.T.dot(Y)/batch_size
+    Cyy = Y.T.dot(Y)/network.batch_size
     
     """
     using stdp matrix to update W
@@ -271,9 +242,9 @@ for tt in xrange(num_trials):
     
     time_stdp=time.time()
     
-    for batch in xrange(batch_size):
+    for batch in xrange(network.batch_size):
         stdp+=np.dot(activity_log[batch],np.dot(time_dep,activity_log[batch].T))
-    stdp = stdp/batch_size
+    stdp = stdp/network.batch_size
     time_stdp= time.time()-time_stdp
     
     time_for_stdp+= time_stdp
@@ -285,24 +256,24 @@ for tt in xrange(num_trials):
     """    
     
     # Update lateral weigts
-    dW = alpha*(Cyy-p**2)
-    W += stdp
-    W -= lateral_constraint*W
-    W = W-np.diag(np.diag(W))
-    W[W < 0] = 0.
+    dW = network.alpha*(Cyy-network.p**2)
+    network.W += stdp
+    network.W -= network.lateral_constraint*network.W
+    network.W = network.W-np.diag(np.diag(network.W))
+    network.W[network.W < 0] = 0.
     
     mag_dW[tt]=np.linalg.norm(dW)
-    mag_W[tt] =np.linalg.norm(W)
+    mag_W[tt] =np.linalg.norm(network.W)
 
     # Update feedforward weights
     square_act = np.sum(Y*Y,axis=0)
     mymat = np.diag(square_act)
-    dQ = beta*X.T.dot(Y)/batch_size - beta*Q.dot(mymat)/batch_size
-    Q += dQ
+    dQ = network.beta*network.X.T.dot(Y)/network.batch_size - network.beta*network.Q.dot(mymat)/network.batch_size
+    network.Q += dQ
 
     # Update thresholds
-    dtheta = gamma*(np.sum(Y,axis=0)/batch_size-p)
-    theta += dtheta
+    dtheta = network.gamma*(np.sum(Y,axis=0)/network.batch_size-network.p)
+    network.theta += dtheta
     dt = time.time()-dt
     algo_time += dt/60.
     time_for_stdp1= time_for_stdp/60
@@ -313,28 +284,28 @@ for tt in xrange(num_trials):
     cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
     #Error in reconstucting the images
-    reconstruction_error[tt]=np.sum(np.sum((X-Y.dot(Q.T))**2))/(2*N*batch_size)  
+    reconstruction_error[tt]=np.sum(np.sum((network.X-Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
     
-    Y_ave = (1.-eta_ave)*Y_ave + eta_ave*muy
-    Cyy_ave=(1.-eta_ave)*Cyy_ave + eta_ave*Cyy
-    Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(N**2-N)
+    Y_ave = (1.-network.eta_ave)*Y_ave + network.eta_ave*muy
+    Cyy_ave=(1.-network.eta_ave)*Cyy_ave + network.eta_ave*Cyy
+    Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(network.N**2-network.N)
     Y_ave_pertrial[tt]=np.mean(Y_ave)
     
     """
     Reducing step size after 5000 trials
     """
     if tt >= 5000:
-        gamma=gamma*reduced_learning_rate
-        alpha=alpha*reduced_learning_rate
-        beta=beta*reduced_learning_rate
+        network.gamma=network.gamma*network.reduced_learning_rate
+        network.alpha=network.alpha*network.reduced_learning_rate
+        network.beta=network.beta*network.reduced_learning_rate
     """
     Saving Images for RF gif
     """
     if create_gif and tt%trials_per_image==0:
-        gif(Q,tt)
+        gif(network.Q,tt)
     
     if tt%50 == 0 and tt != 0:
-        print 'Batch: '+str(tt)+' out of '+str(num_trials)
+        print 'Batch: '+str(tt)+' out of '+str(network.num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
         print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
@@ -349,15 +320,15 @@ print ''
 
 saveAttempt = 0   
     
-while os.path.exists("./Trials/OC"+str(OC)+'_'+str(saveAttempt)):
+while os.path.exists("./Trials/OC"+str(network.OC)+'_'+str(saveAttempt)):
     saveAttempt += 1
     
-directory = "./Trials/OC"+str(OC)+'_'+str(saveAttempt)
+directory = "./Trials/OC"+str(network.OC)+'_'+str(saveAttempt)
 os.makedirs(directory) 
     
 shutil.copy2("parameters.txt",directory)
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((W,Q,theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,
+    cPickle.dump((network.W,network.Q,network.theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,
                   Y_ave_pertrial,Cyy_ave_pertrial,time_dep,
                   reconstruction_error, mag_W),f)
 

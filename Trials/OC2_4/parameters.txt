@@ -13,5 +13,5 @@ alpha: 1.
 beta: .01
 gamma: .1
 eta_ave: .3
-lateral_constraint: .1
+lateral_constraint: .001
 
