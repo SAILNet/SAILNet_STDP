@@ -4,7 +4,6 @@ from pca import pca
 import van_hateren as VH
 from utils import tile_raster_images
 import matplotlib.pyplot as plt
-import ConfigParser
 import os
 import shutil
 from SAILnet_Plotting import Plot
@@ -54,12 +53,7 @@ BUFF = 20
 
 sz = np.sqrt(network.N).astype(np.int)
 
-Y_ave = network.p
-Cyy_ave = network.p**2
 
-
-Cyy_ave_pertrial=np.zeros(network.num_trials)
-Y_ave_pertrial=np.zeros_like(Cyy_ave_pertrial)
 
 # Zero timing variables
 data_time = 0.
@@ -68,19 +62,13 @@ algo_time = 0.
 
 
 
-#mag_dW will track the magnitude changes in dW
 
-mag_dW=np.zeros(network.num_trials)
-
-#mag_W will track the magnitude in W
-
-mag_W = np.zeros_like(mag_dW)
 
 #Correlation matrix for each neuron
 
 #cor_dW_stdp=np.zeros_like(mag_dW)
 
-reconstruction_error=np.zeros_like(mag_dW)
+
 
 #Bolean, Save RF fields and create gif
 create_gif=False
@@ -147,8 +135,8 @@ for tt in xrange(network.num_trials):
     
     learn.Update(network)
     
-    mag_dW[tt]=np.linalg.norm(learn.dW)
-    mag_W[tt] =np.linalg.norm(network.W)
+    network.mag_dW[tt]=np.linalg.norm(learn.dW)
+    network.mag_W[tt] =np.linalg.norm(network.W)
 
     
     dt = time.time()-dt
@@ -164,12 +152,12 @@ for tt in xrange(network.num_trials):
     #cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
     #Error in reconstucting the images
-    reconstruction_error[tt]=np.sum(np.sum((network.X-network.Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
+    network.reconstruction_error[tt]=np.sum(np.sum((network.X-network.Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
     
-    Y_ave = (1.-network.eta_ave)*Y_ave + network.eta_ave*muy
-    Cyy_ave=(1.-network.eta_ave)*Cyy_ave + network.eta_ave*Cyy
-    Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(network.N**2-network.N)
-    Y_ave_pertrial[tt]=np.mean(Y_ave)
+    network.Y_ave = (1.-network.eta_ave)*network.Y_ave + network.eta_ave*muy
+    network.Cyy_ave=(1.-network.eta_ave)*network.Cyy_ave + network.eta_ave*Cyy
+    network.Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(network.N**2-network.N)
+    network.Y_ave_pertrial[tt]=np.mean(network.Y_ave)
     
     """
     Reducing step size after 5000 trials
@@ -206,9 +194,9 @@ os.makedirs(directory)
     
 shutil.copy2("parameters.txt",directory)
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network.W,network.Q,network.theta,learn.dW,mag_dW,
-                  Y_ave_pertrial,Cyy_ave_pertrial,learn.time_dep,
-                  reconstruction_error, mag_W),f)
+    cPickle.dump((network.W,network.Q,network.theta,learn.dW,network.mag_dW,
+                  network.Y_ave_pertrial,network.Cyy_ave_pertrial,learn.time_dep,
+                  network.reconstruction_error, network.mag_W),f)
 
 data_filename = directory + '/data.pkl'
 
