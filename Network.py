@@ -49,4 +49,11 @@ class Network():
         self.Y = np.zeros((self.batch_size,self.M))
         self.spike_train=np.zeros((self.batch_size,self.M,self.num_iterations))
         
+    def ReduceLearning(self,tt):
+        
+        if tt >= 5000:
+            self.gamma=self.gamma*self.reduced_learning_rate
+            self.alpha=self.alpha*self.reduced_learning_rate
+            self.beta=self.beta*self.reduced_learning_rate
+        
     

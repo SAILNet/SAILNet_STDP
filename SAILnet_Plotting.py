@@ -23,8 +23,8 @@ class Plot():
         self.directory = directory
         os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.W,self.Q,self.theta,self.stdp,self.mag_stdp,self.mag_dW,self.correlation, self.Yavg,self.Cavg, self.time_dep,self.rec_error,self.mag_W = cPickle.load(f)
-    
+            self.W,self.Q,self.theta,self.stdp,self.mag_dW, self.Yavg,self.Cavg, self.time_dep,self.rec_error,self.mag_W = cPickle.load(f)
+            
     def Plot_RF(self):
         im_size, num_dict = self.Q.shape
 
@@ -43,7 +43,7 @@ class Plot():
         plt.close
         plt.clf
 
-
+    """
     def PlotdWstdp(self):
         plt.figure(1)
         plt.plot(self.mag_stdp, color="green", label="STDP")
@@ -53,14 +53,15 @@ class Plot():
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Magnitude_dW_STDP.png')
         plt.clf
-        
+    """
+    """
     def Plotstdp(self):
         plt.figure(2)
         plt.plot(self.mag_stdp, color="green", label="STDP")
         plt.title("Magnitude of STDP with 25000 Iterations and STDP Learning Rule")
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Magnitude_STDP.png')
-    
+    """
     def PlotdW(self):
         plt.figure(3)
         plt.plot(self.mag_dW,color="blue", label="dW")
@@ -81,14 +82,14 @@ class Plot():
         plt.title('C_avg with 25000 Iterations and STDP Learning Rule')
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Cavg.png')
-        
+    """
     def Plotcor(self):
         plt.figure(6)
         plt.plot(self.correlation, color = "purple")
         plt.title('Correlation of dW and STDP with 25000 Iterations and STDP Learning Rule')
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Correlation_dW_STDP.png')
-
+    """
     def PlotTimeDep(self):
         plt.figure(7)
         plt.plot(self.time_dep[25])
@@ -135,10 +136,10 @@ class Plot():
         
     def PlotAll(self):
         plt.figure(self.Plot_RF())
-        plt.figure(self.PlotdWstdp())
+        #plt.figure(self.PlotdWstdp())
         plt.figure(self.PlotdW())
-        plt.figure(self.Plotstdp())
-        plt.figure(self.Plotcor())
+        #plt.figure(self.Plotstdp())
+        #plt.figure(self.Plotcor())
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
         plt.figure(self.PlotTimeDep())

@@ -10,6 +10,9 @@ class Learning_Rule():
     def __init__(self):
         raise NotImplementedError
     
+    def CalculateChange(self):
+        raise NotImplementedError
+    
     def Update(self):
         raise NotImplementedError
         

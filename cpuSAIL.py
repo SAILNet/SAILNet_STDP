@@ -10,50 +10,10 @@ import shutil
 from SAILnet_Plotting import Plot
 from Network import Network
 from Activity import Activity
+from Exp_STDP_rule import Exp_STDP
 
     
-def STDP(M,model,iterations):
-    
-    
-    time_dep= np.zeros((iterations,iterations))
 
-    if model == "New":
-       post_activity=-.027
-       pre_activity=.027 
-       time_scale=4
-       for i in xrange(iterations):
-            for j in xrange(iterations):
-                
-                dt=i-j
-                #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
-                if np.sign(dt) == 1:
-                    time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
-                else:
-                    time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
-                
-       
-    
-    else:
-        #09/17/14 Determined that post_activity=-10 pre_activity=5 and time scale=2 
-        #makes the norm of the stdp array much smaller than that of dW
-        post_activity=-45
-        pre_activity=25
-        time_scale=1
-        for i in xrange(iterations):
-            for j in xrange(iterations):
-                if i !=j:
-                    dt=i-j
-                    #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
-                    if np.sign(dt) == 1:
-                        time_dep[i][j]+= pre_activity*np.exp(-abs(dt/time_scale))
-                    else:
-                        time_dep[i][j]+= post_activity*np.exp(-abs(dt/time_scale))
-                else:
-                    time_dep[i][j]=0
-    
- 
-                
-    return time_dep
     
 def gif(Q,iteration):
     im_size, num_dict = Q.shape
@@ -72,6 +32,7 @@ config_file = 'parameters.txt'
 
 network = Network(config_file)
 activity = Activity()
+learn = Exp_STDP('New')
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -106,30 +67,18 @@ algo_time = 0.
 
 
 
-time_for_stdp=time.time()
-stdp=np.zeros((network.M,network.M))
-stdp_model="New"
-
-time_dep=STDP(network.M,stdp_model,network.batch_size)
-
-time_for_stdp= time.time()-time_for_stdp
-
-#The following will keep track of the change of the magnitude of the stdp
-#matrix for each trial.
-
-mag_stdp=np.zeros(network.num_trials)
 
 #mag_dW will track the magnitude changes in dW
 
-mag_dW=np.zeros_like(mag_stdp)
+mag_dW=np.zeros(network.num_trials)
 
 #mag_W will track the magnitude in W
 
-mag_W = np.zeros_like(mag_stdp)
+mag_W = np.zeros_like(mag_dW)
 
 #Correlation matrix for each neuron
 
-cor_dW_stdp=np.zeros_like(mag_stdp)
+#cor_dW_stdp=np.zeros_like(mag_dW)
 
 reconstruction_error=np.zeros_like(mag_dW)
 
@@ -185,47 +134,34 @@ for tt in xrange(network.num_trials):
     
     time_stdp=time.time()
     
-    for batch in xrange(network.batch_size):
-        stdp+=np.dot(network.spike_train[batch],np.dot(time_dep,network.spike_train[batch].T))
-    stdp = stdp/network.batch_size
+    learn.CalculateChange(network)
+    
     time_stdp= time.time()-time_stdp
-    
-    time_for_stdp+= time_stdp
-    
-    mag_stdp[tt]=np.linalg.norm(stdp)
     
     """
     The following code is the learning rules
     """    
     
     # Update lateral weigts
-    dW = network.alpha*(Cyy-network.p**2)
-    network.W += stdp
-    network.W -= network.lateral_constraint*network.W
-    network.W = network.W-np.diag(np.diag(network.W))
-    network.W[network.W < 0] = 0.
+    #dW = network.alpha*(Cyy-network.p**2)
     
-    mag_dW[tt]=np.linalg.norm(dW)
+    learn.Update(network)
+    
+    mag_dW[tt]=np.linalg.norm(learn.dW)
     mag_W[tt] =np.linalg.norm(network.W)
 
-    # Update feedforward weights
-    square_act = np.sum(network.Y*network.Y,axis=0)
-    mymat = np.diag(square_act)
-    dQ = network.beta*network.X.T.dot(network.Y)/network.batch_size - network.beta*network.Q.dot(mymat)/network.batch_size
-    network.Q += dQ
-
-    # Update thresholds
-    dtheta = network.gamma*(np.sum(network.Y,axis=0)/network.batch_size-network.p)
-    network.theta += dtheta
+    
     dt = time.time()-dt
     algo_time += dt/60.
-    time_for_stdp1= time_for_stdp/60
+    
     
     
     """
     We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
+    Due to coding changes, we will no longer be calculating both SAILNet learning
+    rule and the newer form of STDP
     """
-    cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
+    #cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
     #Error in reconstucting the images
     reconstruction_error[tt]=np.sum(np.sum((network.X-network.Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
@@ -238,10 +174,8 @@ for tt in xrange(network.num_trials):
     """
     Reducing step size after 5000 trials
     """
-    if tt >= 5000:
-        network.gamma=network.gamma*network.reduced_learning_rate
-        network.alpha=network.alpha*network.reduced_learning_rate
-        network.beta=network.beta*network.reduced_learning_rate
+    network.ReduceLearning(tt)
+    
     """
     Saving Images for RF gif
     """
@@ -252,14 +186,14 @@ for tt in xrange(network.num_trials):
         print 'Batch: '+str(tt)+' out of '+str(network.num_trials)
         print 'Cumulative time spent gathering data: '+str(data_time)+' min'
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
-        print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
+        #print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
         print ''
-    total_time = data_time+algo_time+time_for_stdp1
+    total_time = data_time+algo_time
     
     
 print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
 print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
-print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
+#print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
 print '' 
 
 saveAttempt = 0   
@@ -272,8 +206,8 @@ os.makedirs(directory)
     
 shutil.copy2("parameters.txt",directory)
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network.W,network.Q,network.theta,stdp,mag_stdp,mag_dW,cor_dW_stdp,
-                  Y_ave_pertrial,Cyy_ave_pertrial,time_dep,
+    cPickle.dump((network.W,network.Q,network.theta,learn.dW,mag_dW,
+                  Y_ave_pertrial,Cyy_ave_pertrial,learn.time_dep,
                   reconstruction_error, mag_W),f)
 
 data_filename = directory + '/data.pkl'
