@@ -56,6 +56,9 @@ class Network():
         self.Y_ave = self.p
         self.Cyy_ave = self.p**2
         
+        self.muy = np.mean(self.Y,axis=0)
+        self.Cyy = self.Y.T.dot(self.Y)/self.batch_size
+        
         
         self.Cyy_ave_pertrial=np.zeros(self.num_trials)
         self.Y_ave_pertrial=np.zeros_like(self.Cyy_ave_pertrial)   
@@ -78,6 +81,24 @@ class Network():
             self.gamma=self.gamma*self.reduced_learning_rate
             self.alpha=self.alpha*self.reduced_learning_rate
             self.beta=self.beta*self.reduced_learning_rate
-    
-    
+            
+    def UpdateData(self,tt,learn):
+        self.mag_dW[tt]=np.linalg.norm(learn.dW)
+        self.mag_W[tt] =np.linalg.norm(self.W) 
+        
+        self.muy = np.mean(self.Y,axis=0)
+        self.Cyy = self.Y.T.dot(self.Y)/self.batch_size
+        
+        self.reconstruction_error[tt]=np.sum(np.sum((self.X-self.Y.dot(self.Q.T))**2))/(2*self.N*self.batch_size)  
+        self.Y_ave = (1.-self.eta_ave)*self.Y_ave + self.eta_ave*self.muy
+        self.Cyy_ave=(1.-self.eta_ave)*self.Cyy_ave + self.eta_ave*self.Cyy
+        self.Cyy_ave_pertrial[tt]=sum(sum(self.Cyy-np.diag(np.diag(self.Cyy))))/(self.N**2-self.N)
+        self.Y_ave_pertrial[tt]=np.mean(self.Y_ave)
+        
+        """
+        We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
+        Due to coding changes, we will no longer be calculating both SAILNet learning
+        rule and the newer form of STDP
+        """
+        #cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     

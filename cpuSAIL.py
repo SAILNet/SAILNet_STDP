@@ -10,6 +10,7 @@ from SAILnet_Plotting import Plot
 from Network import Network
 from Activity import Activity
 from Exp_STDP_rule import Exp_STDP
+from SAILNet_rule import SAILNet_rule
 
     
 
@@ -31,7 +32,7 @@ config_file = 'parameters.txt'
 
 network = Network(config_file)
 activity = Activity()
-learn = Exp_STDP('New')
+learn = SAILNet_rule()
 
 #Load Images in the Van Hateren Image set.
 van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
@@ -113,8 +114,6 @@ for tt in xrange(network.num_trials):
     activity_log[0][10][1]+=1
     """
     
-    muy = np.mean(network.Y,axis=0)
-    Cyy = network.Y.T.dot(network.Y)/network.batch_size
     
     """
     using stdp matrix to update W
@@ -131,33 +130,22 @@ for tt in xrange(network.num_trials):
     """    
     
     # Update lateral weigts
-    #dW = network.alpha*(Cyy-network.p**2)
+    #
     
     learn.Update(network)
     
-    network.mag_dW[tt]=np.linalg.norm(learn.dW)
-    network.mag_W[tt] =np.linalg.norm(network.W)
 
     
     dt = time.time()-dt
     algo_time += dt/60.
     
     
-    
     """
-    We shall determine the correlation between dW and stdp by dW*stdp/(|dW||stdp|)
-    Due to coding changes, we will no longer be calculating both SAILNet learning
-    rule and the newer form of STDP
+    Updating all the variables which store important information for analysis
     """
-    #cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
-    #Error in reconstucting the images
-    network.reconstruction_error[tt]=np.sum(np.sum((network.X-network.Y.dot(network.Q.T))**2))/(2*network.N*network.batch_size)  
+    network.UpdateData(tt,learn)
     
-    network.Y_ave = (1.-network.eta_ave)*network.Y_ave + network.eta_ave*muy
-    network.Cyy_ave=(1.-network.eta_ave)*network.Cyy_ave + network.eta_ave*Cyy
-    network.Cyy_ave_pertrial[tt]=sum(sum(Cyy-np.diag(np.diag(Cyy))))/(network.N**2-network.N)
-    network.Y_ave_pertrial[tt]=np.mean(network.Y_ave)
     
     """
     Reducing step size after 5000 trials
@@ -194,9 +182,7 @@ os.makedirs(directory)
     
 shutil.copy2("parameters.txt",directory)
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network.W,network.Q,network.theta,learn.dW,network.mag_dW,
-                  network.Y_ave_pertrial,network.Cyy_ave_pertrial,learn.time_dep,
-                  network.reconstruction_error, network.mag_W),f)
+    cPickle.dump((network,learn),f)
 
 data_filename = directory + '/data.pkl'
 
