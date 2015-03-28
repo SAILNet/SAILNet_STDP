@@ -3,6 +3,8 @@
 Created on Sun Aug  3 20:15:53 2014
 
 @author: Greg Martin
+
+Experiment used to determine the time dependent matrix for STDP
 """
 import numpy as np
 import time
