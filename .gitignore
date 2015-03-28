@@ -2,3 +2,4 @@ Plotting/NewSTDP25000OC_8.pkl
 *.iml
 vanhateren_iml/readIML.m
 *.pkl
+*.pyc
