@@ -9,8 +9,7 @@ import shutil
 from SAILnet_Plotting import Plot
 from Network import Network
 from Activity import Activity
-from Exp_STDP_rule import Exp_STDP
-from SAILNet_rule import SAILNet_rule
+from Learning_Rule import Exp_STDP,SAILNet_rule
 
     
 
