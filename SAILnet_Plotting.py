@@ -112,7 +112,7 @@ class Plot():
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.abs(np.log(W_flat))
-        plt.hist(W_flat, bins = 10000, normed = True)
+        plt.hist(W_flat, bins = 100000, normed = True)
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
         plt.title("Histogram of Inhibitory Connection Strengths for 25000 Iterations and STDP Learning Rule")
