@@ -11,21 +11,19 @@ import numpy as np
 "Base Class for Implementing Learning Rules"
 class Learning_Rule(object):
     
-    def __init__(self):
-        raise NotImplementedError
+ 
     
     def CalculateChange(self):
         raise NotImplementedError
     
-    def Update(self):
+    def Update(self,network):
+        self.CalculateChange(network)
         raise NotImplementedError
 
 
 "Classic SAILNet Learning Rule"
 class SAILNet_rule(Learning_Rule):
-    def __init__(self):
-        pass
-        
+    
     
     def CalculateChange(self,network):
         """        
@@ -47,6 +45,7 @@ class SAILNet_rule(Learning_Rule):
         self.dtheta = network.gamma*(np.sum(network.Y,axis=0)/network.batch_size-network.p)
         
     def Update(self, network):
+        self.CalculateChange(network)        
         
         network.W += self.dW
         network.W = network.W-np.diag(np.diag(network.W))
@@ -68,8 +67,8 @@ class Exp_STDP(Learning_Rule):
         if model == "New":
             iterations = 50
             self.time_dep= np.zeros((iterations,iterations))
-            post_activity=-.027
-            pre_activity=.027 #This one needs to be negative
+            post_activity=-.0027
+            pre_activity=.027 
             time_scale=4
             for i in xrange(iterations):
                 for j in xrange(iterations):
@@ -129,7 +128,7 @@ class Exp_STDP(Learning_Rule):
         self.dtheta = network.gamma*(np.sum(network.Y,axis=0)/network.batch_size-network.p)
         
     def Update(self, network):
-        
+        self.CalculateChange(network)
         network.W += self.dW
         network.W -= network.lateral_constraint*network.W
         network.W = network.W-np.diag(np.diag(network.W))
@@ -138,6 +137,23 @@ class Exp_STDP(Learning_Rule):
         
         network.Q += self.dQ
         network.theta += self.dtheta
+        
+    def polarityTest(self, network):
+        
+        spikeTrain = np.zeros([network.M, 50])
+        spikeTrain[0][0] = 1
+        spikeTrain[10][1] = 1
+        
+        dw = np.dot(spikeTrain,np.dot(self.time_dep,spikeTrain.T))
+        
+        if dw[0][10] < dw[10][0]:
+            return True
+                
+        else:
+            return False
+        
+        
+        
     
         
         
