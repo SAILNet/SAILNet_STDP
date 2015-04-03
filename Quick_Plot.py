@@ -7,18 +7,11 @@ Created on Sat Mar 28 20:20:54 2015
 This program lets us create new plots based on old Pickle files from previous runs
 """
 
-import numpy as np
-import cPickle, time
-from pca import pca
-import van_hateren as VH
-from utils import tile_raster_images
-import matplotlib.pyplot as plt
-import os
-import shutil
+
+import cPickle
 from SAILnet_Plotting import Plot
 from Network import Network
-from Activity import Activity
-from Learning_Rule import Exp_STDP,SAILNet_rule
+from Learning_Rule import SAILNet_rule
 
 OverC = 4
 SA = 0
