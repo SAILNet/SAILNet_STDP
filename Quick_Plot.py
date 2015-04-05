@@ -14,9 +14,9 @@ from Network import Network
 from Learning_Rule import SAILNet_rule
 
 OverC = 4
-SA = 0
+SA = 4
 
-directory = '/Trials/OC' + str(OverC) + '_' + str(SA)
+directory = './Trials/OC' + str(OverC) + '_' + str(SA)
 data_filename = directory + '/data.pkl'
 
 config_file = 'parameters.txt'
@@ -24,9 +24,6 @@ config_file = 'parameters.txt'
 network = Network(config_file)
 
 learn = SAILNet_rule()
-
-with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network,learn),f)    
     
 plotter = Plot(data_filename, directory)
 
