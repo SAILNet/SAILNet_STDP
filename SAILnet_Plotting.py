@@ -21,7 +21,8 @@ class Plot():
     def __init__(self,fileName, directory):
         self.fileName=fileName
         self.directory = directory
-        os.makedirs(self.directory+'/Images')
+        if os.path.exists(self.directory+'/Images')==False:       
+            os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
             self.network, self.learning_rule = cPickle.load(f)
             
@@ -111,10 +112,10 @@ class Plot():
         W_flat = np.ravel(self.network.W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        W_flat = np.abs(np.log(W_flat))
-        hist, bin_edges = np.histogram(W_flat, bins = 10000, density = True)
-        hist = np.append(np.array[0],hist)
-        plt.plot(bin_edges,hist,'o')
+        W_flat = np.abs(np.log(W_flat))/np.log(10)
+        num, bin_edges = np.histogram(W_flat, bins = 10000, density = True)
+        num = np.append(np.array([0]),num)
+        plt.plot(bin_edges,num,'o')
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
         plt.title("Histogram of Inhibitory Connection Strengths for 25000 Iterations and STDP Learning Rule")
