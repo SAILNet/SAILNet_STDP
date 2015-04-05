@@ -36,7 +36,7 @@ learn = Exp_STDP("New")
 polarity = learn.polarityTest(network)
 
 #Load Images in the Van Hateren Image set.
-van_hateren_instance=VH.VanHateren("vanhateren_iml\\")
+van_hateren_instance=VH.VanHateren("vanhateren_iml")
 images=van_hateren_instance.load_images(100)
 num_images, imsize, imsize = images.shape
 
