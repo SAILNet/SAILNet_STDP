@@ -1,0 +1,17 @@
+[Parameters]
+batch_size: 50
+num_trials: 5000
+reduced_learning_rate: .99985
+
+[NeuronParameters]
+N: 256
+OC: 8
+p: .05
+
+[LearningRates]
+alpha: 1.
+beta: .01
+gamma: .1
+eta_ave: .3
+lateral_constraint: .005
+
