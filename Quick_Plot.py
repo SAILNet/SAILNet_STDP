@@ -8,13 +8,12 @@ This program lets us create new plots based on old Pickle files from previous ru
 """
 
 
-import cPickle
 from SAILnet_Plotting import Plot
 from Network import Network
 from Learning_Rule import SAILNet_rule
 
-OverC = 4
-SA = 4
+OverC = 8
+SA = 2
 
 directory = './Trials/OC' + str(OverC) + '_' + str(SA)
 data_filename = directory + '/data.pkl'
