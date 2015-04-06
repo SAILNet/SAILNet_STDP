@@ -31,7 +31,7 @@ config_file = 'parameters.txt'
 
 network = Network(config_file)
 activity = Activity()
-learn = SAILNet_rule("New")
+learn = SAILNet_rule()
 
 polarity = learn.polarityTest(network)
 
