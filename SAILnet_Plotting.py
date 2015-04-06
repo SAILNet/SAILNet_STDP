@@ -113,7 +113,7 @@ class Plot():
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log(W_flat)/np.log(10)
-        num, bin_edges = np.histogram(W_flat, bins = 10000, density = True)
+        num, bin_edges = np.histogram(W_flat,range = (-12,1), bins = 100, density = True)
         num = np.append(np.array([0]),num)
         plt.xlim([-6,2])
         plt.plot(bin_edges,num,'o')
@@ -125,7 +125,11 @@ class Plot():
     def PlotInh_vs_RF(self):
         plt.figure(10)
         RF_overlap = self.network.Q.T.dot(self.network.Q)
-        RF_overlap = np.ravel(RF_overlap)
+        pairs = np.random.randint(0,self.network.M,(5000,2))
+        RFv = np.array([])        
+        for pair in pairs:
+            RF_pair = RF_overlap[pair[0]][pair[1]]
+            RFv = np.append(RFv, np.array([RF_pair]))
         W_flat = np.ravel(self.network.W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
