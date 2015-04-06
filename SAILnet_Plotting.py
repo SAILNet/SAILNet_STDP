@@ -112,9 +112,10 @@ class Plot():
         W_flat = np.ravel(self.network.W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        W_flat = np.abs(np.log(W_flat))/np.log(10)
+        W_flat = np.log(W_flat)/np.log(10)
         num, bin_edges = np.histogram(W_flat, bins = 10000, density = True)
         num = np.append(np.array([0]),num)
+        plt.xlim([-6,2])
         plt.plot(bin_edges,num,'o')
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
