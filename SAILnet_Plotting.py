@@ -113,29 +113,36 @@ class Plot():
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log(W_flat)/np.log(10)
-        num, bin_edges = np.histogram(W_flat,range = (-12,3), bins = 100, density = True)
+        num, bin_edges = np.histogram(W_flat,range = (-12,2), bins = 100, density = True)
         num = np.append(np.array([0]),num)
-        plt.plot(bin_edges,num,'o')
+        bin_edges = 10**bin_edges
+        plt.semilogx(bin_edges,num,'o')
+        plt.ylim(0,0.25)
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
-        plt.title("Histogram of Inhibitory Connection Strengths for 25000 Iterations and STDP Learning Rule")
         plt.savefig(self.directory + '/Images/InhibitHist.png')
         
     def PlotInh_vs_RF(self):
         plt.figure(10)
         RF_overlap = self.network.Q.T.dot(self.network.Q)
         pairs = np.random.randint(0,self.network.M,(5000,2))
-        RFv = np.array([])        
+        RF_sample = np.array([])
+        W_sample = np.array([])
         for pair in pairs:
-            RF_pair = RF_overlap[pair[0]][pair[1]]
-            RFv = np.append(RFv, np.array([RF_pair]))
-        W_flat = np.ravel(self.network.W) #Flattens array
-        zeros = np.nonzero(W_flat == 0) #Locates zeros
-        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        RF_overlap = np.delete(RF_overlap, zeros) #Deletes Zeros
-        W_flat = np.abs(np.log(W_flat))
-        plt.plot(W_flat, RF_overlap, '.')
+            Overlap = RF_overlap[pair[0]][pair[1]]
+            RF_sample = np.append(RF_sample, np.array([Overlap]))
+            w1 = self.network.W[pair[0]][pair[1]]
+            #w2 = self.network.W[pair[1]][pair[0]]
+            #w_avg = (w1+w2)/2
+            W_sample = np.append(W_sample,np.array([w1]))
+        #zeros = np.nonzero(W_sample == 0) #Locates zeros
+        #W_sample = np.delete(W_sample, zeros) #Deletes Zeros
+        #RF_sample = np.delete(RF_sample,zeros)
+        #W_sample = np.log(W_sample)/np.log(10)
+        plt.xlim(10**-25,10**1.5)
+        plt.semilogx(W_sample, RF_sample, '.')
         plt.xlabel("Inhibitory Connection Strength")
+        #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
         plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
         
