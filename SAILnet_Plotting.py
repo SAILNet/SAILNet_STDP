@@ -152,6 +152,39 @@ class Plot():
         plt.plot(self.network.mag_W)
         plt.savefig(self.directory + '/Images/Magnitude_W.png')
         
+    def RasterPlot(self):
+        
+        spikes = self.network.spike_train[5][:][:]
+        
+        check = np.nonzero(spikes)
+        
+        reducedSpikes = np.zeros([len(check[0]),50])
+        
+        neuron = 0
+        for j in check[0]:
+        
+            reducedSpikes[neuron] = spikes[j]
+            neuron += 1
+        
+        plt.figure()
+        count1 = 0
+        for neuron in(reducedSpikes):
+            count =0
+            for timestep in neuron:
+                if timestep != 0:
+                    plt.vlines(count, count1 +.5, count1 +1.4)            
+                count += 1  
+            count1 += 1
+            
+            
+        plt.xlabel('time')
+        plt.ylabel('Neuron')
+        
+        return reducedSpikes
+        
+        
+        
+        
     def PlotAll(self):
         plt.figure(self.Plot_RF())
         #plt.figure(self.PlotdWstdp())

@@ -67,9 +67,9 @@ class Exp_STDP(Learning_Rule):
         if model == "New":
             iterations = 50
             self.time_dep= np.zeros((iterations,iterations))
-            post_activity=-.27
-            pre_activity= 2.7 
-            time_scale=4
+            post_activity=-2.7
+            pre_activity= 27 
+            time_scale=2
             for i in xrange(iterations):
                 for j in xrange(iterations):
                     

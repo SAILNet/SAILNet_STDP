@@ -11,7 +11,7 @@ This program lets us create new plots based on old Pickle files from previous ru
 from SAILnet_Plotting import Plot
 
 OverC = 8
-SA = 2
+SA = 1
 
 directory = './Trials/OC' + str(OverC) + '_' + str(SA)
 data_filename = directory + '/data.pkl'
@@ -19,4 +19,4 @@ data_filename = directory + '/data.pkl'
     
 plotter = Plot(data_filename, directory)
 
-
+check = plotter.RasterPlot()
