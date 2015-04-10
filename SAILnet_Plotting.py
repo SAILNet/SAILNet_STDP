@@ -9,6 +9,7 @@
 
 import cPickle
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fnt
 import numpy as np
 from utils import tile_raster_images
 import os
@@ -113,13 +114,14 @@ class Plot():
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log(W_flat)/np.log(10)
-        num, bin_edges = np.histogram(W_flat,range = (-12,2), bins = 100, density = True)
+        num, bin_edges = np.histogram(W_flat,range = (-6,2), bins = 100, density = True)
         num = np.append(np.array([0]),num)
         bin_edges = 10**bin_edges
         plt.semilogx(bin_edges,num,'o')
-        plt.ylim(0,0.25)
-        plt.xlabel("Inhibitory Connection Strength")
-        plt.ylabel("PDF log(connection strength)")
+        plt.ylim(0,0.9)
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Inhibitory Connection Strength",**{'size':'25'})
+        plt.ylabel("PDF log(connection strength)",**{'size':'25'})
         plt.savefig(self.directory + '/Images/InhibitHist.png')
         
     def PlotInh_vs_RF(self):
@@ -139,11 +141,12 @@ class Plot():
         #W_sample = np.delete(W_sample, zeros) #Deletes Zeros
         #RF_sample = np.delete(RF_sample,zeros)
         #W_sample = np.log(W_sample)/np.log(10)
-        plt.xlim(10**-25,10**1.5)
+        plt.xlim(10**-3,10**1.5)
         plt.semilogx(W_sample, RF_sample, '.')
-        plt.xlabel("Inhibitory Connection Strength")
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Inhibitory Connection Strength",**{'size':'25'})
         #plt.ylim(-0.7,0.7)
-        plt.ylabel("RF Overlap (Dot product)")
+        plt.ylabel("RF Overlap (Dot product)",**{'size':'25'})
         plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
         
     def Plot_Mag_W(self):
@@ -176,9 +179,9 @@ class Plot():
                 count += 1  
             count1 += 1
             
-            
-        plt.xlabel('time')
-        plt.ylabel('Neuron')
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel('time',**{'size':'25'})
+        plt.ylabel('Neuron',**{'size':'25'})
         
         return reducedSpikes
         
