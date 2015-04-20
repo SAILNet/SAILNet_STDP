@@ -32,7 +32,7 @@ for i in xrange(iterations):
     spike_train[0][i] = 1
     spike_train[1][iterations-i-1] = 1
     dW = np.dot(spike_train,np.dot(time_dep,spike_train.transpose()))
-    IPSP = np.append(IPSP,dW[0][1])
+    IPSP = np.append(IPSP,dW[1][0]) #this is the post-synaptic potential
     delta_t = np.append(delta_t,iterations-2*i-1)
     
 plt.plot(delta_t,IPSP)
