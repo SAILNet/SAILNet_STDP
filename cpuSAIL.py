@@ -8,7 +8,8 @@ import os
 import shutil
 from SAILnet_Plotting import Plot
 from Network import Network
-from Activity import Activity
+#from Activity import Activity
+from Activity import Activity_gpu as Activity
 from Learning_Rule import Exp_STDP, SAILNet_rule
 
     
@@ -36,8 +37,9 @@ learn = Exp_STDP("New")
 polarity = learn.polarityTest(network)
 
 #Load Images in the Van Hateren Image set.
-van_hateren_instance=VH.VanHateren("vanhateren_iml")
-images=van_hateren_instance.load_images(100)
+#van_hateren_instance=VH.VanHateren("vanhateren_iml")
+van_hateren_instance=VH.VanHateren("/home/jesse/Development/data/vanhateren")
+images=van_hateren_instance.load_images(10)
 num_images, imsize, imsize = images.shape
 
 #Creat PCA Instance
