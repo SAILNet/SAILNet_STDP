@@ -7,10 +7,12 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 from SAILnet_Plotting import Plot
-from Network import Network
+# from Network import Network
+from Network import Network_gpu as Network
 #from Activity import Activity
 from Activity import Activity_gpu as Activity
-from Learning_Rule import Exp_STDP, SAILNet_rule
+#from Learning_Rule import Exp_STDP, SAILNet_rule
+from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
 
     
 
@@ -31,10 +33,8 @@ rng = np.random.RandomState(0)
 config_file = 'parameters.txt'
 
 network = Network(config_file)
-activity = Activity()
-learn = SAILNet_rule()
-
-polarity = learn.polarityTest(network)
+activity = Activity(network)
+learn = SAILNet_rule(network)
 
 #Load Images in the Van Hateren Image set.
 #van_hateren_instance=VH.VanHateren("vanhateren_iml")
@@ -43,7 +43,8 @@ images=van_hateren_instance.load_images(10)
 num_images, imsize, imsize = images.shape
 
 #Creat PCA Instance
-pca_instance=pca.PCA(whiten=True)
+with open('/home/jesse/whitener.pkl', 'r') as f:
+    pca_instance = cPickle.load(f)
 
 """
 # Load Images, for smaller image set
@@ -63,11 +64,6 @@ sz = np.sqrt(network.N).astype(np.int)
 data_time = 0.
 algo_time = 0.
 
-
-
-
-
-
 #Correlation matrix for each neuron
 
 #cor_dW_stdp=np.zeros_like(mag_dW)
@@ -78,8 +74,7 @@ algo_time = 0.
 create_gif=False
 trials_per_image=10
 gif_images=np.zeros(network.num_trials/trials_per_image)
-
-
+X = np.zeros(network.X.get_value().shape)
 
 for tt in xrange(network.num_trials):
     # Extract image patches from images
@@ -91,15 +86,15 @@ for tt in xrange(network.num_trials):
         #takes a chunck from a random image, size of 16X16 patch at a random location       
         
         
-        network.X[ii] = myimage
+        X[ii] = myimage
         #creating a list of image patches to work with
     
     #Conducts Principle Component Analysis
-    pca_instance.fit(network.X)
-    network.X=pca_instance.transform_zca(network.X)
+    X=pca_instance.transform_zca(X)
     #Forces mean to be 0    
-    network.X = network.X-np.mean(network.X)
-    network.X = network.X/network.X.std()
+    X = X-X.mean(axis=1)[...,np.newaxis]
+    X = X/X.std(axis=1)[...,np.newaxis]
+    network.X.set_value(X.astype('float32'))
     
     dt = time.time()-dt
     data_time += dt/60.
@@ -108,7 +103,7 @@ for tt in xrange(network.num_trials):
     dt = time.time()
     # Calcuate network activities
     
-    activity.get_acts(network)
+    activity.get_acts()
     
     """
     This commented out section was used to determine the sign for time_dep
@@ -122,7 +117,7 @@ for tt in xrange(network.num_trials):
     
     time_stdp=time.time()
     
-    learn.Update(network)
+    learn.Update()
     
     time_stdp= time.time()-time_stdp
     
@@ -140,7 +135,7 @@ for tt in xrange(network.num_trials):
     Updating all the variables which store important information for analysis
     """
     
-    network.UpdateData(tt,learn)
+    #network.UpdateData(tt,learn)
     
     
     """
