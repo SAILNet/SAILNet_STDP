@@ -223,11 +223,13 @@ class Exp_STDP_gpu(Learning_Rule):
         """
         Calculate Change in Feed-Forward Weights dW
         """
-        dW=T.zeros_like(W)
+        dW=T.zeros_like(W).astype('float32')
+        
         for batch in xrange(batch_size):
             
             dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
             dW = dW/batch_size
+        
         
         W = W + dW
         W = W - T.diag(T.diag(W))
@@ -246,7 +248,12 @@ class Exp_STDP_gpu(Learning_Rule):
         Calculate Change in Threshold Weights dtheta
         """        
         dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
-        theta = theta+dtheta
+        theta = (theta+dtheta).astype('float32')
+        
+        print Q.type
+        print theta.type
+        print W.type
+        print network.W.type
         
         updates = OrderedDict()
         updates[network.Q] = Q
@@ -271,7 +278,7 @@ class Exp_STDP_gpu(Learning_Rule):
                 else:
                     self.time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
                     
-        self.time_dep = T.shared(self.time_dep)
+        self.time_dep = theano.shared(self.time_dep.astype('float32'))
         
     def Update(self):
         self.f()
