@@ -91,7 +91,7 @@ class Activity_gpu():
         self.f = theano.function([X, Q, theta, W, Y_o, Ys_o, aas_o, spike_train_o], [Y, spike_train])
         
     def get_acts(self,network):
-        print 'gpu'
+        #print 'gpu'
         
         Ys = np.zeros((network.batch_size,network.M)).astype('float32')
         Y = np.zeros((network.batch_size,network.M)).astype('float32')
