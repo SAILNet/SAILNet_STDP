@@ -5,7 +5,7 @@ reduced_learning_rate: .99985
 
 [NeuronParameters]
 N: 256
-OC: 2
+OC: 8
 p: .05
 
 [LearningRates]
