@@ -6,7 +6,8 @@ Created on Mon Mar 09 22:22:28 2015
 """
 
 import numpy as np
-
+import theano
+import theano.tensor as T
 
 "Base Class for Implementing Learning Rules"
 class Learning_Rule(object):
@@ -51,6 +52,75 @@ class SAILNet_rule(Learning_Rule):
         network.W = network.W-np.diag(np.diag(network.W))
         network.W[network.W < 0] = 0.        
         
+        
+        network.Q += self.dQ
+        network.theta += self.dtheta
+        
+"Classic SAILNet Learning Rule (Theano Version)"
+class SAILNet_rule_gpu(Learning_Rule):
+    
+    def __init__(self):
+        Cyy = T.matrix('Cyy')
+        Y = T.matrix('Y')
+        X = T.matrix('X')
+        Q_o = T.matrix('Q')        
+        alpha = T.scalar('alpha')
+        p = T.scalar('p')                
+        beta = T.scalar('beta')
+        batch_size = T.scalar('batch_size')
+        gamma = T.scalar('gamma')
+        
+        """        
+        Calculate change in Lateral Weights dW
+        """
+        dW = alpha*(Cyy - p**2)
+        
+        """
+        Calculate Change in Feed-Forward Weights dQ
+        """        
+        square_act = T.sum(Y*Y,axis=0)
+        mymat = T.diag(square_act)
+        dQ = beta*(T.dot(T.transpose(X),Y))/batch_size - beta*(T.dot(Q_o,mymat))/batch_size        
+        
+        """
+        Calculate Change in Threshold Weights dtheta
+        """        
+        dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
+        
+        self.f_W = theano.function([alpha,p,Cyy],[dW])
+        self.f_Q = theano.function([Y,X,Q_o,beta,batch_size],[dQ])
+        self.f_T = theano.function([gamma,Y,batch_size,p],[dtheta])
+        
+    def CalculateChange(self,network):
+        
+        Cyy = network.Cyy.astype('float32')
+        Y = network.Y.astype('float32')
+        X = network.X.astype('float32')
+        Q = network.Q.astype('float32')  
+        alpha = network.alpha.astype('float32')
+        p = network.p.astype('float32')                
+        beta = network.beta.astype('float32')
+        batch_size = network.batch_size.astype('float32')
+        gamma = network.gamma.astype('float32')
+        
+        self.dW = self.f_W(alpha,p,Cyy)        
+        self.dQ = self.f_Q(Y, X, Q, batch_size, beta)        
+        self.dtheta = self.f_T(gamma,Y,batch_size,p)
+        
+    def Update(self, network):
+        self.CalculateChange(network)
+        
+        W = T.matrix('W')
+        
+        W += self.dW
+        W = W - T.diag(T.diag(W))
+        W = T.switch(T.lt(W,T.zeros_like(W)),0,W)
+        W_n = W
+        
+        f = theano.function([dW,W],[W_n])
+        
+        W = network.W.astype('float32')
+        network.W = f(self.dW,W)
         
         network.Q += self.dQ
         network.theta += self.dtheta

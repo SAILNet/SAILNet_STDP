@@ -15,7 +15,7 @@ class Activity():
         print 'cpu'
         
         B = network.X.dot(network.Q)
-        T = np.tile(network.theta,(network.batch_size,1))
+        Th = np.tile(network.theta,(network.batch_size,1))
         Ys = np.zeros((network.batch_size,network.M))
         Y = np.zeros((network.batch_size,network.M))
         aas = np.zeros((network.batch_size,network.M))
@@ -29,7 +29,7 @@ class Activity():
             Ys = (1.-eta)*Ys+eta*(B-aas.dot(network.W))
             aas = np.zeros((network.batch_size,network.M))
             #This resets the current activity of the time step to 0's        
-            aas[Ys > T] = 1.
+            aas[Ys > Th] = 1.
             #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
             
             
@@ -43,7 +43,7 @@ class Activity():
             #Forces mean to be 0
             Y += aas
             #update total activity
-            Ys[Ys > T] = 0.
+            Ys[Ys > Th] = 0.
             
         network.Y = Y
         network.spike_train = spike_train
