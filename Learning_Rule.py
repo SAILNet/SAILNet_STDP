@@ -225,11 +225,14 @@ class Exp_STDP_gpu(Learning_Rule):
         """
         dW=T.zeros_like(W)
         for batch in xrange(batch_size):
-            temp_train = T.set_subtensor(spike_train[batch])
-            dW = dW + T.dot(temp_train, T.dot(self.time_dep,T.transpose(temp_train)))
+            
+            dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
             dW = dW/batch_size
-       
-       
+        
+        W = W + dW
+        W = W - T.diag(T.diag(W))
+        W = T.switch(T.lt(W,T.zeros_like(W)),0.,W)
+        
         """
         Calculate Change in Feed-Forward Weights dQ
         """        
@@ -246,7 +249,7 @@ class Exp_STDP_gpu(Learning_Rule):
         theta = theta+dtheta
         
         updates = OrderedDict()
-        updates[network.Q] =Q
+        updates[network.Q] = Q
         updates[network.W] = W
         updates[network.theta] = theta
         
@@ -268,7 +271,7 @@ class Exp_STDP_gpu(Learning_Rule):
                 else:
                     self.time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
                     
-                    
+        self.time_dep = T.shared(self.time_dep)
         
     def Update(self):
         self.f()
