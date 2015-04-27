@@ -202,7 +202,90 @@ class Exp_STDP(Learning_Rule):
         else:
             return False
         
+
+"STDP based learning rule using Theano"
+
+class Exp_STDP_gpu(Learning_Rule):
+    
+    def __init__(self,network):
+        self.CreateMatrix()
+        Y = network.Y
+        X = network.X
+        Q = network.Q
+        W = network.W
+        spike_train = network.spike_train
+        theta = network.theta
+        p = network.p
+        beta = network.beta
+        gamma = network.gamma
+        batch_size = network.batch_size
         
+        """
+        Calculate Change in Feed-Forward Weights dW
+        """
+        dW=T.zeros_like(W)
+        for batch in xrange(batch_size):
+            temp_train = T.set_subtensor(spike_train[batch])
+            dW = dW + T.dot(temp_train, T.dot(self.time_dep,T.transpose(temp_train)))
+            dW = dW/batch_size
+       
+       
+        """
+        Calculate Change in Feed-Forward Weights dQ
+        """        
+        square_act = T.sum(Y*Y,axis=0)
+        mymat = T.diag(square_act)
+        dQ = beta*(T.dot(T.transpose(X),Y))/batch_size - beta*(T.dot(Q,mymat))/batch_size        
+        Q = Q+dQ
+
+        
+        """
+        Calculate Change in Threshold Weights dtheta
+        """        
+        dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
+        theta = theta+dtheta
+        
+        updates = OrderedDict()
+        updates[network.Q] =Q
+        updates[network.W] = W
+        updates[network.theta] = theta
+        
+        self.f = theano.function([], [], updates=updates)
+                        
+    def CreateMatrix(self):
+        iterations = 50
+        self.time_dep= np.zeros((iterations,iterations))
+        post_activity=-2.7
+        pre_activity= 27 
+        time_scale=2
+        for i in xrange(iterations):
+            for j in xrange(iterations):
+                
+                dt=i-j
+                #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
+                if np.sign(dt) == 1:
+                    self.time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+                else:
+                    self.time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+                    
+                    
+        
+    def Update(self):
+        self.f()
+        
+    def polarityTest(self, network):
+        
+        spikeTrain = np.zeros([network.M, 50])
+        spikeTrain[0][0] = 1
+        spikeTrain[10][1] = 1
+        
+        dw = np.dot(spikeTrain,np.dot(self.time_dep,spikeTrain.T))
+        
+        if dw[0][10] < dw[10][0]:
+            return True
+                
+        else:
+            return False
         
     
         

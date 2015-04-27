@@ -11,8 +11,8 @@ from SAILnet_Plotting import Plot
 from Network import Network_gpu as Network
 #from Activity import Activity
 from Activity import Activity_gpu as Activity
-#from Learning_Rule import Exp_STDP, SAILNet_rule
-from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
+from Learning_Rule import Exp_STDP_gpu as STDP_rule
+#from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
 
     
 
@@ -34,7 +34,7 @@ config_file = 'parameters.txt'
 
 network = Network(config_file)
 activity = Activity(network)
-learn = SAILNet_rule(network)
+learn = STDP_rule(network)
 
 #Load Images in the Van Hateren Image set.
 #van_hateren_instance=VH.VanHateren("vanhateren_iml")
