@@ -135,7 +135,7 @@ for tt in xrange(network.num_trials):
     Updating all the variables which store important information for analysis
     """
     
-    #network.UpdateData(tt,learn)
+    network.UpdateData(tt,learn)
     
     
     """

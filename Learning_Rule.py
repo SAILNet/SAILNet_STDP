@@ -260,7 +260,7 @@ class Exp_STDP_gpu(Learning_Rule):
         updates[network.W] = W
         updates[network.theta] = theta
         
-        self.f = theano.function([], [], updates=updates)
+        self.f = theano.function([], [dW], updates=updates)
                         
     def CreateMatrix(self):
         iterations = 50
@@ -281,7 +281,7 @@ class Exp_STDP_gpu(Learning_Rule):
         self.time_dep = theano.shared(self.time_dep.astype('float32'))
         
     def Update(self):
-        self.f()
+        self.dW = self.f()
         
     def polarityTest(self, network):
         
