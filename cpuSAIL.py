@@ -13,19 +13,12 @@ from Network import Network_gpu as Network
 from Activity import Activity_gpu as Activity
 from Learning_Rule import Exp_STDP_gpu as STDP_rule
 #from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
+from Utility import make_X as imgX
 
     
 
     
-def gif(Q,iteration):
-    im_size, num_dict = Q.shape
 
-    side = int(np.round(np.sqrt(im_size)))
-    OC = num_dict/im_size
-
-
-    img = tile_raster_images(Q.T, img_shape = (side,side), tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1), scale_rows_to_unit_interval=True, output_pixel_vals=True)
-    plt.imsave('Plotting/Images/gif/RF '+ str(iteration)+ '.png', img, cmap=plt.cm.Greys)
     
 
 rng = np.random.RandomState(0)
@@ -79,15 +72,7 @@ X = np.zeros(network.X.get_value().shape)
 for tt in xrange(network.num_trials):
     # Extract image patches from images
     dt = time.time()
-    for ii in xrange(network.batch_size):
-        r = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
-        c = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
-        myimage = images[int(num_images*rng.rand()),r:r+sz,c:c+sz].ravel()
-        #takes a chunck from a random image, size of 16X16 patch at a random location       
-        
-        
-        X[ii] = myimage
-        #creating a list of image patches to work with
+    X = imgX(network, images)
     
     #Conducts Principle Component Analysis
     X=pca_instance.transform_zca(X)
