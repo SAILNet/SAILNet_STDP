@@ -84,8 +84,8 @@ class Network():
             self.beta=self.beta*self.reduced_learning_rate
             
     def UpdateData(self,tt,learn):
-        self.mag_dW[tt]=np.linalg.norm(learn.dW)
-        self.mag_W[tt] =np.linalg.norm(self.W) 
+        self.mag_dW[tt]=T.sqrt(T.sum(T.sqr(learn.dW)))
+        self.mag_W[tt] =T.sqrt(T.sum(T.sqr(self.W))) 
         
         self.muy = np.mean(self.Y,axis=0)
         self.Cyy = self.Y.T.dot(self.Y)/self.batch_size
@@ -183,8 +183,8 @@ class Network_gpu():
             self.alpha.set_value(self.alpha.get_value()*self.reduced_learning_rate)
             
     def UpdateData(self,tt,learn):
-        self.mag_dW[tt]=np.linalg.norm(learn.dW)
-        self.mag_W[tt] =np.linalg.norm(self.W) 
+        self.mag_dW[tt]=theano.sqrt(theano.sum(theano.sqr(learn.dW)))
+        self.mag_W[tt] = theano.sqrt(theano.sum(theano.sqr(self.W))) 
         
         self.muy = np.mean(self.Y,axis=0)
         self.Cyy = self.Y.T.dot(self.Y)/self.batch_size
