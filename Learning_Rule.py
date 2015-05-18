@@ -18,9 +18,16 @@ class Learning_Rule(object):
     def CalculateChange(self):
         raise NotImplementedError
     
-    def Update(self,network):
-        self.CalculateChange(network)
+    def Update(self):
         raise NotImplementedError
+
+    def ReduceLearning(self,tt):
+        
+        if tt >= 5000:
+            network.gamma.set_value(network.gamma.get_value()*network.reduced_learning_rate)
+            network.beta.set_value(network.beta.get_value()*network.reduced_learning_rate)
+            network.alpha.set_value(network.alpha.get_value()*network.reduced_learning_rate)
+            
 
 
 "Classic SAILNet Learning Rule"
@@ -61,6 +68,7 @@ class SAILNet_rule(Learning_Rule):
 class SAILNet_rule_gpu(Learning_Rule):
     
     def __init__(self, network):
+        self.network = network
         Y = network.Y
         X = network.X
         Q = network.Q
@@ -162,7 +170,7 @@ class Exp_STDP(Learning_Rule):
         
         for batch in xrange(network.batch_size):
             self.dW+=np.dot(network.spike_train[batch],np.dot(self.time_dep,network.spike_train[batch].T))
-            self.dW = self.dW/network.batch_size
+        self.dW = self.dW/network.batch_size
             
         
         """
@@ -208,6 +216,7 @@ class Exp_STDP(Learning_Rule):
 class Exp_STDP_gpu(Learning_Rule):
     
     def __init__(self,network):
+        self.network = network
         self.CreateMatrix()
         Y = network.Y
         X = network.X
@@ -228,7 +237,7 @@ class Exp_STDP_gpu(Learning_Rule):
         for batch in xrange(batch_size):
             
             dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
-            dW = dW/batch_size
+        dW = dW/batch_size
         
         
         W = W + dW

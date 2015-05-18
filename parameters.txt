@@ -1,11 +1,11 @@
 [Parameters]
 batch_size: 50
-num_trials: 5000
+num_trials: 500
 reduced_learning_rate: .99985
 
 [NeuronParameters]
 N: 256
-OC: 8
+OC: 4
 p: .05
 
 [LearningRates]

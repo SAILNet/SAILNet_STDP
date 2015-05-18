@@ -14,6 +14,7 @@ from Activity import Activity_gpu as Activity
 from Learning_Rule import Exp_STDP_gpu as STDP_rule
 #from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
 from Utility import make_X as imgX
+from Monitor import Monitor
 
     
 
@@ -28,6 +29,7 @@ config_file = 'parameters.txt'
 network = Network(config_file)
 activity = Activity(network)
 learn = STDP_rule(network)
+monitor = Monitor(network)
 
 #Load Images in the Van Hateren Image set.
 #van_hateren_instance=VH.VanHateren("vanhateren_iml")
@@ -35,7 +37,7 @@ van_hateren_instance=VH.VanHateren("/home/jesse/Development/data/vanhateren")
 images=van_hateren_instance.load_images(10)
 num_images, imsize, imsize = images.shape
 
-#Creat PCA Instance
+#Create PCA Instance
 with open('/home/jesse/whitener.pkl', 'r') as f:
     pca_instance = cPickle.load(f)
 
@@ -56,12 +58,6 @@ sz = np.sqrt(network.N).astype(np.int)
 # Zero timing variables
 data_time = 0.
 algo_time = 0.
-
-#Correlation matrix for each neuron
-
-#cor_dW_stdp=np.zeros_like(mag_dW)
-
-
 
 #Bolean, Save RF fields and create gif
 create_gif=False
@@ -97,36 +93,25 @@ for tt in xrange(network.num_trials):
     activity_log[0][10][1]+=1
     """
     
-    
-
-    
     time_stdp=time.time()
     
     learn.Update()
     
     time_stdp= time.time()-time_stdp
     
-
-    
-    
-    
-
-    
     dt = time.time()-dt
     algo_time += dt/60.
-    
     
     """
     Updating all the variables which store important information for analysis
     """
     
-    network.UpdateData(tt,learn)
-    
+    monitor.log()
     
     """
     Reducing step size after 5000 trials
     """
-    network.ReduceLearning(tt)
+    learn.ReduceLearning(tt)
     
     """
     Saving Images for RF gif
@@ -157,14 +142,13 @@ directory = "./Trials/OC"+str(network.OC)+'_'+str(saveAttempt)
 os.makedirs(directory) 
     
 shutil.copy2("parameters.txt",directory)
+network.to_cpu()
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network,learn),f)
+    cPickle.dump((network,monitor),f)
 
 data_filename = directory + '/data.pkl'
 
 plotter = Plot(data_filename, directory)
-
-print network.Y
 
 plotter.PlotAll()
     
