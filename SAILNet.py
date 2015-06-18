@@ -8,10 +8,10 @@ import os
 import shutil
 from SAILnet_Plotting import Plot
 # from Network import Network
-from Network import Network_gpu as Network
+from Network import Network as Network
 #from Activity import Activity
-from Activity import Activity_gpu as Activity
-from Learning_Rule import SAILNet_rule_gpu as Rule
+from Activity import Activity as Activity
+from Learning_Rule import SAILNet_rule as Rule
 #from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
 from Utility import make_X as imgX
 from Monitor import Monitor

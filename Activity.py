@@ -13,7 +13,6 @@ from theano.compat.python2x import OrderedDict
 class Activity():
     
     def get_acts(self,network):
-        print 'cpu'
         
         B = network.X.dot(network.Q)
         Th = np.tile(network.theta,(network.batch_size,1))
