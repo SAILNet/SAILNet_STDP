@@ -90,6 +90,6 @@ class Activity_gpu():
         self.f = theano.function([], [], updates=updates)
         
     def get_acts(self):
-        #print 'gpu'
+        "print 'gpu'"
         
         self.f()
