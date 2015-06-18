@@ -11,14 +11,10 @@ from SAILnet_Plotting import Plot
 from Network import Network_gpu as Network
 #from Activity import Activity
 from Activity import Activity_gpu as Activity
-from Learning_Rule import Exp_STDP_gpu as STDP_rule
+from Learning_Rule import SAILNet_rule_gpu as Rule
 #from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
 from Utility import make_X as imgX
 from Monitor import Monitor
-
-    
-
-    
 
     
 
@@ -28,7 +24,7 @@ config_file = 'parameters.txt'
 
 network = Network(config_file)
 activity = Activity(network)
-learn = STDP_rule(network)
+learn = Rule(network)
 monitor = Monitor(network)
 
 #Load Images in the Van Hateren Image set.
@@ -50,10 +46,7 @@ images = np.transpose(images,axes=(2,0,1))
 """
 BUFF = 20
 
-
 sz = np.sqrt(network.N).astype(np.int)
-
-
 
 # Zero timing variables
 data_time = 0.
@@ -86,12 +79,6 @@ for tt in xrange(network.num_trials):
     
     activity.get_acts()
     
-    """
-    This commented out section was used to determine the sign for time_dep
-    activity_log=np.zeros((batch_size,M,iterations))
-    activity_log[0][0][0]+=1
-    activity_log[0][10][1]+=1
-    """
     
     time_stdp=time.time()
     
@@ -116,8 +103,8 @@ for tt in xrange(network.num_trials):
     """
     Saving Images for RF gif
     """
-    if create_gif and tt%trials_per_image==0:
-        gif(network.Q,tt)
+    #if create_gif and tt%trials_per_image==0:
+    #    gif(network.Q,tt)
     
     if tt%50 == 0 and tt != 0:
         print 'Batch: '+str(tt)+' out of '+str(network.num_trials)
@@ -125,20 +112,23 @@ for tt in xrange(network.num_trials):
         print 'Cumulative time spent in SAILnet: '+str(algo_time)+' min'
         #print 'Cumulative time spent calculating STDP weights: '+str(time_for_stdp1)+' min'
         print ''
-    total_time = data_time+algo_time
+    #total_time = data_time+algo_time
     
     
-print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
-print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
+#print 'Percent time spent gathering data: '+str(data_time/total_time*100)+' %'
+#print 'Percent time spent in SAILnet: '+str(algo_time/total_time*100)+' %'
 #print 'Percent time spent calculating STDP: '+str(time_for_stdp1/total_time*100)+' %'
-print '' 
+#print '' 
 
-saveAttempt = 0   
+saveAttempt = 0
+
     
 while os.path.exists("./Trials/OC"+str(network.OC)+'_'+str(saveAttempt)):
     saveAttempt += 1
-    
-directory = "./Trials/OC"+str(network.OC)+'_'+str(saveAttempt)
+
+learntype = str(type(learn))[len(str(type(learn)))-14:]
+
+directory = "./Trials/"+ learntype + "OC" +str(network.OC)+'_'+str(saveAttempt)
 os.makedirs(directory) 
     
 shutil.copy2("parameters.txt",directory)
