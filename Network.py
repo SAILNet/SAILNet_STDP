@@ -84,8 +84,8 @@ class Network():
             self.beta=self.beta*self.reduced_learning_rate
             
     def UpdateData(self,tt,learn):
-        self.mag_dW[tt]=T.sqrt(T.sum(T.sqr(learn.dW)))
-        self.mag_W[tt] =T.sqrt(T.sum(T.sqr(self.W))) 
+        self.mag_dW[tt]=np.sqrt(np.sum(np.sqr(learn.dW)))
+        self.mag_W[tt] =np.sqrt(np.sum(np.sqr(self.W))) 
         
         self.muy = np.mean(self.Y,axis=0)
         self.Cyy = self.Y.T.dot(self.Y)/self.batch_size
