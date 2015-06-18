@@ -85,6 +85,7 @@ class SAILNet_rule_gpu(Learning_Rule):
         """
         Cyy = Y.T.dot(Y)/batch_size
         dW = alpha*(Cyy - p**2)
+        dW=dW.astype('float32')        
         W = W+dW
         W = W - T.diag(T.diag(W))
         W = T.switch(T.lt(W,T.zeros_like(W)),0.,W)
@@ -102,7 +103,7 @@ class SAILNet_rule_gpu(Learning_Rule):
         Calculate Change in Threshold Weights dtheta
         """        
         dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
-        theta = theta+dtheta
+        theta = (theta+dtheta).astype('float32')
 
         updates = OrderedDict()
         updates[network.Q] =Q
@@ -259,16 +260,11 @@ class Exp_STDP_gpu(Learning_Rule):
         dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
         theta = (theta+dtheta).astype('float32')
         
-        print Q.type
-        print theta.type
-        print W.type
-        print network.W.type
-        
         updates = OrderedDict()
         updates[network.Q] = Q
         updates[network.W] = W
         updates[network.theta] = theta
-        
+
         self.f = theano.function([], [dW], updates=updates)
                         
     def CreateMatrix(self):
