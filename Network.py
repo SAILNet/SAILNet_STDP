@@ -150,7 +150,6 @@ class Network_gpu():
     def to_cpu(self):
         items = self.__dict__
         updates = {}
-        print self.__dict__
         for key, value in items.iteritems():
             if isinstance(value, theano.tensor.sharedvar.SharedVariable):
                 updates[key] = value.get_value()

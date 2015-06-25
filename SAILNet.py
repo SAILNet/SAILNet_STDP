@@ -6,13 +6,14 @@ from utils import tile_raster_images
 import matplotlib.pyplot as plt
 import os
 import shutil
+import h5py
 from SAILnet_Plotting import Plot
 # from Network import Network
-from Network import Network as Network
+from Network import Network_gpu as Network
 #from Activity import Activity
-from Activity import Activity as Activity
-from Learning_Rule import SAILNet_rule as Rule
-#from Learning_Rule import SAILNet_rule_gpu as SAILNet_rule
+from Activity import Activity_gpu as Activity
+#from Learning_Rule import SAILNet_rule as Rule
+from Learning_Rule import SAILNet_rule_gpu as Rule
 from Utility import make_X as imgX
 from Monitor import Monitor
 
@@ -29,13 +30,16 @@ monitor = Monitor(network)
 
 #Load Images in the Van Hateren Image set.
 #van_hateren_instance=VH.VanHateren("vanhateren_iml")
-van_hateren_instance=VH.VanHateren("/home/jesse/Development/data/vanhateren")
-images=van_hateren_instance.load_images(10)
+#van_hateren_instance=VH.VanHateren("/home/jesse/Development/data/vanhateren")
+#images=van_hateren_instance.load_images(10)
+num_images = 35#00
+with h5py.File('/home/jesse/Development/data/vanhateren/whitened_images.h5', 'r') as f:
+    images = f['images'][:num_images]
 num_images, imsize, imsize = images.shape
 
 #Create PCA Instance
-with open('/home/jesse/whitener.pkl', 'r') as f:
-    pca_instance = cPickle.load(f)
+#with open('/home/jesse/whitener.pkl', 'r') as f:
+#    pca_instance = cPickle.load(f)
 
 """
 # Load Images, for smaller image set
@@ -64,7 +68,7 @@ for tt in xrange(network.num_trials):
     X = imgX(network, images)
     
     #Conducts Principle Component Analysis
-    X=pca_instance.transform_zca(X)
+#    X=pca_instance.transform_zca(X)
     #Forces mean to be 0    
     X = X-X.mean(axis=1)[...,np.newaxis]
     X = X/X.std(axis=1)[...,np.newaxis]
