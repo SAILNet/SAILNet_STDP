@@ -5,22 +5,34 @@ Created on Mon May 18 02:28:21 2015
 @author: Greg
 """
 import numpy as np
+import  h5py
 
-rng = np.random.RandomState(0)
 
-BUFF = 20
+class Data(object):
+    def __init__(self, filename, num_images, batch_size, dim, seed=20150602):
+        self.rng = np.random.RandomState(seed)
+        self.batch_size = batch_size
+        self.dim = dim
 
-def make_X(network, images):
-    num_images, imsize, imsize = images.shape
-    X = np.zeros(network.X.get_value().shape)
-    sz = np.sqrt(network.N).astype(np.int)
-    for ii in xrange(network.batch_size):
-        r = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
-        c = BUFF+int((imsize-sz-2.*BUFF)*rng.rand())
-        myimage = images[int(num_images*rng.rand()),r:r+sz,c:c+sz].ravel()
-        #takes a chunck from a random image, size of 16X16 patch at a random location       
-            
-            
-        X[ii] = myimage
-        
-    return X
+        self.BUFF = 20
+        with h5py.File(filename, 'r') as f:
+            self.images = f['images'][:num_images]
+        self.num_images, imsize, imsize = self.images.shape
+        self.imsize = imsize
+
+
+
+    def make_X(self, network):
+        X = np.empty((self.batch_size, self.dim))
+        sz = np.sqrt(self.dim).astype(np.int)
+        for ii in xrange(self.batch_size):
+            r = self.BUFF+int((self.imsize-sz-2.*self.BUFF)*self.rng.rand())
+            c = self.BUFF+int((self.imsize-sz-2.*self.BUFF)*self.rng.rand())
+            myimage = self.images[int(self.num_images*self.rng.rand()),r:r+sz,c:c+sz].ravel()
+            #takes a chunck from a random image, size of 16X16 patch at a random location       
+                
+            X[ii] = myimage
+
+        X = X-X.mean(axis=1, keepdims=True)
+        X = X/X.std(axis=1, keepdims=True)
+        network.X.set_value(X.astype('float32'))

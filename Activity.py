@@ -5,7 +5,6 @@ Created on Mon Mar 09 23:28:22 2015
 @author: Greg
 """
 import numpy as np
-from Network import Network
 import theano
 import theano.tensor as T
 from theano.compat.python2x import OrderedDict
@@ -55,7 +54,7 @@ class Activity_gpu():
         Q = network.Q
         theta = network.theta
         W = network.W
-        Y = network.Y
+        Y = T.zeros_like(network.Y)
         Ys = T.zeros_like(Y)
         aas = T.zeros_like(Y)
         spike_train = network.spike_train
@@ -73,9 +72,6 @@ class Activity_gpu():
             aas = T.switch(Ys > Th, 1., aas)
             #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
             
-            """        
-            Second attempt at STDP, using more matricies     
-            """
             spike_train = T.set_subtensor(spike_train[:,:,tt], aas)
             
             #Forces mean to be 0
@@ -89,6 +85,4 @@ class Activity_gpu():
         self.f = theano.function([], [], updates=updates)
         
     def get_acts(self):
-        "print 'gpu'"
-        
         self.f()
