@@ -8,6 +8,38 @@ import ConfigParser
 import numpy as np
 import theano
 
+class Network_gpu():
+    
+    def __init__(self,parameters):
+        
+        self.parameters = parameters
+             
+        """
+        Initialize X, W, Q, and theta as Theano Shared Variables
+        """        
+        
+        self.Q = theano.shared(parameters.Q.dot(np.diag(1./np.sqrt(np.diag(parameters.Q.T.dot(parameters.Q))))).astype('float32'))
+        self.W = theano.shared(np.zeros((parameters.M,parameters.M)).astype('float32'))
+        self.theta = theano.shared(2.*np.ones(parameters.M).astype('float32'))
+        self.X = theano.shared(np.zeros((parameters.batch_size,parameters.N)).astype('float32'))
+        
+        """
+        Save Spikes per Trial and Spike History as Theano Shared Variables
+        """
+        
+        self.Y = theano.shared(np.zeros((parameters.batch_size,parameters.M)).astype('float32'))
+        self.spike_train = theano.shared(np.zeros((parameters.batch_size,
+                                                   parameters.M,
+                                                   parameters.num_iterations)).astype('float32'))
+        
+    def to_cpu(self):
+        items = self.__dict__
+        updates = {}
+        for key, value in items.iteritems():
+            if isinstance(value, theano.tensor.sharedvar.SharedVariable):
+                updates[key] = value.get_value()
+        self.__dict__.update(updates)
+        
 class Network():
     
     def __init__(self,parameters_file):
@@ -103,54 +135,3 @@ class Network():
         """
         #cor_dW_stdp[tt]=sum(sum(dW.dot(stdp)))/(np.linalg.norm(dW)*np.linalg.norm(stdp))
     
-class Network_gpu():
-    
-    def __init__(self,parameters_file):
-        config = ConfigParser.ConfigParser()
-        config.read(parameters_file)
-        rng = np.random.RandomState(0)
-        self.num_iterations = 50
-        
-        """
-        Load network Parameters from config file
-        """
-        
-        self.batch_size = config.getint("Parameters",'batch_size')
-        self.num_trials = config.getint("Parameters",'num_trials')
-        self.reduced_learning_rate = config.getfloat("Parameters",'reduced_learning_rate')
-        self.N = config.getint("NeuronParameters",'N')
-        self.OC = config.getint("NeuronParameters",'OC')
-        self.p = config.getfloat("NeuronParameters",'p')
-        self.alpha = theano.shared(np.array(config.getfloat("LearningRates",'alpha')).astype('float32'))
-        self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
-        self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))
-        self.eta_ave = config.getfloat("LearningRates",'eta_ave')
-        self.lateral_constraint = config.getfloat('LearningRates','lateral_constraint')
-        
-        """
-        Initialize X, W, Q, and theta; the input and network parameters.
-        """        
-        
-        self.M = self.OC*self.N        
-        self.Q = rng.randn(self.N,self.M)
-        self.Q = theano.shared(self.Q.dot(np.diag(1./np.sqrt(np.diag(self.Q.T.dot(self.Q))))).astype('float32'))
-        self.W = theano.shared(np.zeros((self.M,self.M)).astype('float32'))
-        self.theta = theano.shared(2.*np.ones(self.M).astype('float32'))
-        self.X = theano.shared(np.zeros((self.batch_size,self.N)).astype('float32'))
-        
-        """
-        These are used for the activities function
-        """
-        
-        self.Y = theano.shared(np.zeros((self.batch_size,self.M)).astype('float32'))
-        self.spike_train = theano.shared(np.zeros((self.batch_size,
-                                                   self.M,
-                                                   self.num_iterations)).astype('float32'))
-        
-    def to_cpu(self):
-        items = self.__dict__
-        updates = {}
-        for key, value in items.iteritems():
-            if isinstance(value, theano.tensor.sharedvar.SharedVariable):
-                updates[key] = value.get_value()
-        self.__dict__.update(updates)

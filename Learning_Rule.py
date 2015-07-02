@@ -22,11 +22,11 @@ class Learning_Rule(object):
         raise NotImplementedError
 
     def ReduceLearning(self,tt):
-        
-        if tt >= 5000:
-            network.gamma.set_value(network.gamma.get_value()*network.reduced_learning_rate)
-            network.beta.set_value(network.beta.get_value()*network.reduced_learning_rate)
-            network.alpha.set_value(network.alpha.get_value()*network.reduced_learning_rate)
+        network = self.network
+        if tt <= 5000:
+            network.parameters.gamma.set_value(network.parameters.gamma.get_value()*network.parameters.reduced_learning_rate)
+            network.parameters.beta.set_value(network.parameters.beta.get_value()*network.parameters.reduced_learning_rate)
+            network.parameters.alpha.set_value(network.parameters.alpha.get_value()*network.parameters.reduced_learning_rate)
             
 
 
@@ -69,40 +69,43 @@ class SAILNet_rule_gpu(Learning_Rule):
     
     def __init__(self, network):
         self.network = network
+        self.parameters = network.parameters
         Y = network.Y
         X = network.X
         Q = network.Q
         W = network.W
         theta = network.theta
-        p = network.p
-        alpha = network.alpha
-        beta = network.beta
-        gamma = network.gamma
-        batch_size = network.batch_size
+        p = self.parameters.p
+        alpha = self.parameters.alpha
+        beta = self.parameters.beta
+        gamma = self.parameters.gamma
+        batch_size = self.parameters.batch_size
 
         """        
         Calculate change in Lateral Weights dW
         """
         Cyy = Y.T.dot(Y)/batch_size
+        muy = Y.mean(axis=0)
+        
         dW = alpha*(Cyy - p**2)
-        dW=dW.astype('float32')        
+        dW=dW.astype('float32')
         W = W+dW
         W = W - T.diag(T.diag(W))
-        W = T.switch(T.lt(W,T.zeros_like(W)),0.,W)
+        W = T.switch(W < 0.,0.,W)
         
         """
         Calculate Change in Feed-Forward Weights dQ
         """        
         square_act = T.sum(Y*Y,axis=0)
         mymat = T.diag(square_act)
-        dQ = beta*(T.dot(T.transpose(X),Y))/batch_size - beta*(T.dot(Q,mymat))/batch_size        
+        dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
         Q = Q+dQ
 
         
         """
         Calculate Change in Threshold Weights dtheta
         """        
-        dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
+        dtheta = gamma*(muy - p)
         theta = (theta+dtheta).astype('float32')
 
         updates = OrderedDict()
@@ -218,6 +221,7 @@ class Exp_STDP_gpu(Learning_Rule):
     
     def __init__(self,network):
         self.network = network
+        self.parameters = network.parameters
         self.CreateMatrix()
         Y = network.Y
         X = network.X
@@ -225,10 +229,10 @@ class Exp_STDP_gpu(Learning_Rule):
         W = network.W
         spike_train = network.spike_train
         theta = network.theta
-        p = network.p
-        beta = network.beta
-        gamma = network.gamma
-        batch_size = network.batch_size
+        p = self.parameters.p
+        beta = self.parameters.beta
+        gamma = self.parameters.gamma
+        batch_size = self.parameters.batch_size
         
         """
         Calculate Change in Feed-Forward Weights dW
@@ -290,7 +294,7 @@ class Exp_STDP_gpu(Learning_Rule):
         
     def polarityTest(self, network):
         
-        spikeTrain = np.zeros([network.M, 50])
+        spikeTrain = np.zeros([self.parameters.M, 50])
         spikeTrain[0][0] = 1
         spikeTrain[10][1] = 1
         
