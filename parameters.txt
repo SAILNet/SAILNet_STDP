@@ -3,7 +3,7 @@ rule: Exp_STDP_gpu
 
 [Parameters]
 batch_size: 50
-num_trials: 5500
+num_trials: 20000
 reduced_learning_rate: .99985
 
 [NeuronParameters]

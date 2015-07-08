@@ -1,8 +1,6 @@
-import numpy as np
 import cPickle
 import os, shutil
-from SAILnet_Plotting import Plot
-from Plotter import Plotter
+from Plotter import Plot
 import Learning_Rule
 from Parameters import Parameters
 from Network import Network_gpu as Network
@@ -14,7 +12,7 @@ parameters = Parameters('parameters.txt')
 network = Network(parameters)
 activity = Activity(network)
 learn = getattr(Learning_Rule,parameters.rule)(network)
-monitor = Monitor(network)
+monitor = Monitor(network,learn)
 data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
             35,
             parameters.batch_size,
@@ -30,7 +28,7 @@ for tt in range(network.parameters.num_trials):
     data.make_X(network) 
     activity.get_acts()
     learn.Update()
-    monitor.log()
+    monitor.log(tt)
     learn.ReduceLearning(tt)
     
     """
@@ -40,18 +38,13 @@ for tt in range(network.parameters.num_trials):
     #    gif(network.Q,tt)
     
     if tt%50 == 0 and tt != 0:
-        print('Batch: '+str(tt)+' out of '+ str(network.parameters.num_trials))
-
-plott = Plotter(monitor)
-
-plott.plot_ybar()
+        print('Batch: '+str(tt)+' out of '+ str(parameters.num_trials))
 
 saveAttempt = 0
-    
-while os.path.exists("./Trials/OC"+str(network.parameters.OC)+'_'+str(saveAttempt)):
+while os.path.exists("./Trials/OC"+str(parameters.OC)+'_Num' + str(parameters.num_trials) + '_' + str(saveAttempt)):
     saveAttempt += 1
 
-directory = "./Trials/OC" +str(network.parameters.OC)+'_'+str(saveAttempt)
+directory = "./Trials/OC" +str(parameters.OC)+'_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
 os.makedirs(directory) 
     
 shutil.copy2("parameters.txt",directory)
@@ -61,7 +54,8 @@ with open(directory +'/data.pkl','wb') as f:
 
 data_filename = directory + '/data.pkl'
 
-plotter = Plot(data_filename, directory)
+
+plotter = Plot(data_filename, directory, monitor)
 
 plotter.PlotAll()
     
