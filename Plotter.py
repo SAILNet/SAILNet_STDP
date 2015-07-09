@@ -7,14 +7,13 @@ import os
 
 class Plot():
     
-    def __init__(self,fileName, directory, monitor):
-        self.monitor = monitor
+    def __init__(self,fileName, directory):
         self.fileName=fileName
         self.directory = directory
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.network, self.learning_rule = cPickle.load(f)
+            self.network, self.learning_rule, self.monitor = cPickle.load(f)
             
     def Plot_RF(self):
         im_size, num_dict = self.network.Q.shape

@@ -50,12 +50,12 @@ os.makedirs(directory)
 shutil.copy2("parameters.txt",directory)
 network.to_cpu()
 with open(directory +'/data.pkl','wb') as f:
-    cPickle.dump((network,monitor),f)
+    cPickle.dump((network,learn,monitor),f)
 
 data_filename = directory + '/data.pkl'
 
 
-plotter = Plot(data_filename, directory, monitor)
+plotter = Plot(data_filename, directory)
 
 plotter.PlotAll()
     
