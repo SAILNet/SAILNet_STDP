@@ -13,7 +13,7 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.network, self.learning_rule, self.monitor = cPickle.load(f)
+            self.network, self.monitor = cPickle.load(f)
             
     def Plot_RF(self):
         im_size, num_dict = self.network.Q.shape
