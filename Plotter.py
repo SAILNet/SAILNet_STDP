@@ -20,19 +20,16 @@ class Plot():
 
         side = int(np.round(np.sqrt(im_size)))
         OC = num_dict/im_size
-        print('j')
 
         img = tile_raster_images(self.network.Q.T, img_shape = (side,side),
                                  tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
-        print('k')
-        #plt.figure(0)
-        print('f')
+        plt.figure(0)
         plt.title('Receptive Fields')
         plt.imsave(self.directory + '/Images/Receptive_Fields.png', img, cmap=plt.cm.Greys)
     
     def PlotdW(self):
-        #plt.figure(3)
+        plt.figure(3)
         plt.plot(self.monitor.mag_dW)
         plt.title('Magnitude dW')
         plt.xlabel("Number of Trials")
@@ -76,7 +73,7 @@ class Plot():
             pass
         
     def PlotRecError(self):
-        #plt.figure(8)
+        plt.figure(8)
         plt.plot(self.network.reconstruction_error)
         plt.title("Mean Squared Error of SAILNet's Reconstruction with 25000 Iterations and STDP Learning Rule")
         plt.savefig(self.directory + '/Images/Rec_Error.png')
