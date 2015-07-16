@@ -51,7 +51,7 @@ class SAILNet_rule_gpu(Learning_Rule):
         Cyy = Y.T.dot(Y)/batch_size
         muy = Y.mean(axis=0)
         
-        dW = alpha*(Cyy - p**2)
+        dW = alpha*(Cyy - 100*p**2)
         dW=dW.astype('float32')
         
         mag_dW = T.sqrt(T.sum(T.sqr(dW)))
