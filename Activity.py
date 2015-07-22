@@ -31,17 +31,9 @@ class Activity():
             aas[Ys > Th] = 1.
             #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
             
-            
-            """        
-            Second attempt at STDP, using more matricies     
-            """
             spike_train[:,:,tt]=aas
             
-            
-            
-            #Forces mean to be 0
             Y += aas
-            #update total activity
             Ys[Ys > Th] = 0.
             
         network.Y = Y

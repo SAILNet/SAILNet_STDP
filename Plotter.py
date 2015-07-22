@@ -13,7 +13,7 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.network, self.learning_rule, self.monitor = cPickle.load(f)
+            self.network, self.monitor = cPickle.load(f)
             
     def Plot_RF(self):
         im_size, num_dict = self.network.Q.shape
@@ -108,7 +108,7 @@ class Plot():
             #w2 = self.network.W[pair[1]][pair[0]]
             #w_avg = (w1+w2)/2
             W_sample = np.append(W_sample,np.array([w1]))
-        #zeros = np.nonzero(W_sample == 0) #Locates zeros
+        #zeros = np.nonzero(np.unique(R,return_index =True)W_sample == 0) #Locates zeros
         #W_sample = np.delete(W_sample, zeros) #Deletes Zeros
         #RF_sample = np.delete(RF_sample,zeros)
         #W_sample = np.log(W_sample)/np.log(10)
@@ -156,6 +156,16 @@ class Plot():
         
         return reducedSpikes
         
+    def Spike_train(self):
+        latest_spike = np.array([])
+        spikes = self.network.spike_train
+        for batch in range(len(spikes[:,0,0])):
+            S = spikes[batch,:,:]
+            print batch
+            R,C = np.nonzero(S)
+            N,I = np.unique(R,return_index =True)
+            latest_spike = np.append(latest_spike,max(C[I]))
+        return latest_spike
         
     def PlotAll(self):
         plt.figure(self.Plot_RF())

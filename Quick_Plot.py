@@ -16,7 +16,6 @@ SA = 0
 directory = './Trials/OC' + str(OverC) + '_Num' + str(NumTrials) + '_' + str(SA)
 data_filename = directory + '/data.pkl'
 
-    
 plotter = Plot(data_filename, directory)
 
-plotter.PlotAll()
+L = plotter.Spike_train()

@@ -18,24 +18,12 @@ data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
             parameters.batch_size,
             parameters.N)
 
-"""Bolean, Save RF fields and create gif
-create_gif=False
-trials_per_image=10
-gif_images=np.zeros(network.num_trials/trials_per_image)
-"""
-
 for tt in range(network.parameters.num_trials):
     data.make_X(network) 
     activity.get_acts()
     learn.Update()
     monitor.log(tt)
     learn.ReduceLearning(tt)
-    
-    """
-    Saving Images for RF gif
-    """
-    #if create_gif and tt%trials_per_image==0:
-    #    gif(network.Q,tt)
     
     if tt%50 == 0 and tt != 0:
         print('Batch: '+str(tt)+' out of '+ str(parameters.num_trials))
