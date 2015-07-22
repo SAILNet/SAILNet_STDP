@@ -108,7 +108,7 @@ class Plot():
             #w2 = self.network.W[pair[1]][pair[0]]
             #w_avg = (w1+w2)/2
             W_sample = np.append(W_sample,np.array([w1]))
-        #zeros = np.nonzero(np.unique(R,return_index =True)W_sample == 0) #Locates zeros
+        #zeros = np.nonzero(W_sample == 0) #Locates zeros
         #W_sample = np.delete(W_sample, zeros) #Deletes Zeros
         #RF_sample = np.delete(RF_sample,zeros)
         #W_sample = np.log(W_sample)/np.log(10)
