@@ -9,14 +9,14 @@ import  h5py
 
 
 class Data(object):
-    def __init__(self, filename, num_images, batch_size, dim, seed=20150602):
+    def __init__(self, filename, num_images, batch_size, dim, start=0, seed=20150602):
         self.rng = np.random.RandomState(seed)
         self.batch_size = batch_size
         self.dim = dim
 
         self.BUFF = 20
         with h5py.File(filename, 'r') as f:
-            self.images = f['images'][:num_images]
+            self.images = f['images'][start:start+num_images]
         self.num_images, imsize, imsize = self.images.shape
         self.imsize = imsize
 
@@ -35,4 +35,5 @@ class Data(object):
 
         X = X-X.mean(axis=1, keepdims=True)
         X = X/X.std(axis=1, keepdims=True)
-        network.X.set_value(X.astype('float32'))
+        #network.X.set_value(X.astype('float32'))
+        network.X = X

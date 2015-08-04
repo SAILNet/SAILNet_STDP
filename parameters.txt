@@ -1,9 +1,11 @@
 [LearningRule]
-rule: SAILNet_rule_gpu
+dW_rule: dW_time_dep
+function: Gaussian
 
 [Parameters]
-batch_size: 50
-num_trials: 15000
+batch_size: 100
+num_trials: 500
+num_iterations: 50
 reduced_learning_rate: .99985
 
 [NeuronParameters]

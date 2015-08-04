@@ -27,3 +27,7 @@ class Monitor(object):
         self.y_bar[tt] = y_bar
         self.Cyy_bar[tt] = Cyy_bar
         self.mag_dW[tt] = self.learn.mag_dW[0]
+    
+    def cleanup(self):
+        self.network = None
+        self.learn = None

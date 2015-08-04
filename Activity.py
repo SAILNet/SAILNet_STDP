@@ -14,11 +14,11 @@ class Activity():
     def get_acts(self,network):
         
         B = network.X.dot(network.Q)
-        Th = np.tile(network.theta,(network.batch_size,1))
-        Ys = np.zeros((network.batch_size,network.M))
-        Y = np.zeros((network.batch_size,network.M))
-        aas = np.zeros((network.batch_size,network.M))
-        spike_train = np.zeros((network.batch_size,network.M,network.num_iterations))
+        Th = np.tile(network.theta,(network.parameters.batch_size,1))
+        Ys = np.zeros((network.parameters.batch_size,network.parameters.M))
+        Y = np.zeros((network.parameters.batch_size,network.parameters.M))
+        aas = np.zeros((network.parameters.batch_size,network.parameters.M))
+        spike_train = np.zeros((network.parameters.batch_size,network.parameters.M,network.parameters.num_iterations))
         
         num_iterations = 50
 
@@ -26,7 +26,7 @@ class Activity():
         
         for tt in xrange(num_iterations):
             Ys = (1.-eta)*Ys+eta*(B-aas.dot(network.W))
-            aas = np.zeros((network.batch_size,network.M))
+            aas = np.zeros((network.parameters.batch_size,network.parameters.M))
             #This resets the current activity of the time step to 0's        
             aas[Ys > Th] = 1.
             #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
@@ -54,7 +54,7 @@ class Activity_gpu():
         B = X.dot(Q)
         Th = theta.dimshuffle('x', 0)
 
-        num_iterations = 50
+        num_iterations = network.parameters.num_iterations
         eta = .1
 
         for tt in xrange(num_iterations):

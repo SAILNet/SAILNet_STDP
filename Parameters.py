@@ -14,16 +14,17 @@ class Parameters():
         config = ConfigParser.ConfigParser()
         config.read(parameters_file)
         rng = np.random.RandomState(0)
-        self.num_iterations = 50
         
         """
         Load network Parameters from config file
         """
         
-        self.rule = config.get('LearningRule','rule')
+        self.rule = config.get('LearningRule','dW_rule')
+        self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
         self.num_trials = config.getint("Parameters",'num_trials')
+        self.num_iterations = config.getint("Parameters",'num_iterations')
         self.reduced_learning_rate = np.array(config.getfloat("Parameters",'reduced_learning_rate')).astype('float32')
         self.N = config.getint("NeuronParameters",'N')
         self.OC = config.getint("NeuronParameters",'OC')

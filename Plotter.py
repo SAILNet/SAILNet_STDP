@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 import os
+from Activity import Activity as Activity
+from Utility import Data
 
 
 class Plot():
@@ -13,7 +15,7 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
         with open(self.fileName,'rb') as f:
-            self.network, self.monitor = cPickle.load(f)
+            self.network, self.learning_rule, self.monitor = cPickle.load(f)
             
     def Plot_RF(self):
         im_size, num_dict = self.network.Q.shape
@@ -24,12 +26,42 @@ class Plot():
         img = tile_raster_images(self.network.Q.T, img_shape = (side,side),
                                  tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
-        plt.figure(0)
+        plt.figure()
         plt.title('Receptive Fields')
         plt.imsave(self.directory + '/Images/Receptive_Fields.png', img, cmap=plt.cm.Greys)
     
+    def Plot_Exp_RF(self):        
+        self.network.parameters.batch_size = 1000
+        parameters = self.network.parameters
+        data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
+            1035,
+            parameters.batch_size,
+            parameters.N,
+            start=35)     
+        
+        data.make_X(self.network) 
+        activity = Activity()
+        activity.get_acts(self.network)
+                
+        Exp_RF = self.network.X.T.dot(self.network.Y)
+        
+        spike_sum = np.sum(self.network.Y,axis = 0,dtype='f')
+        Exp_RF = Exp_RF.dot(np.diag(1/spike_sum))
+
+        im_size, num_dict = Exp_RF.shape
+
+        side = int(np.round(np.sqrt(im_size)))
+        OC = num_dict/im_size
+
+        img = tile_raster_images(Exp_RF.T, img_shape = (side,side),
+                                 tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
+                                 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+        plt.figure()
+        plt.title('Experimental Receptive Fields')
+        plt.imsave(self.directory + '/Images/Exp_RF.png', img, cmap=plt.cm.Greys)
+    
     def PlotdW(self):
-        plt.figure(3)
+        plt.figure()
         plt.plot(self.monitor.mag_dW)
         plt.title('Magnitude dW')
         plt.xlabel("Number of Trials")
@@ -179,7 +211,7 @@ class Plot():
         plt.figure(self.PlotInhibitHist())
         plt.figure(self.PlotInh_vs_RF())
         #plt.figure(self.Plot_Mag_W())
-
+        plt.figure(self.Plot_Exp_RF())
 
 
 

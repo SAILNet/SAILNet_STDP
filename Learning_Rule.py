@@ -9,11 +9,8 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.compat.python2x import OrderedDict
-
-"Base Class for Implementing Learning Rules"
-class Learning_Rule(object):
     
- 
+class Learning_Rule(object):
     
     def CalculateChange(self):
         raise NotImplementedError
@@ -28,10 +25,9 @@ class Learning_Rule(object):
             network.parameters.beta.set_value(network.parameters.beta.get_value()*network.parameters.reduced_learning_rate)
             network.parameters.alpha.set_value(network.parameters.alpha.get_value()*network.parameters.reduced_learning_rate)
             
-"Classic SAILNet Learning Rule (Theano Version)"
-class SAILNet_rule_gpu(Learning_Rule):
+class Learning_Rule_gpu(Learning_Rule):
     
-    def __init__(self, network):
+    def __init__(self, network, dW_rule):
         self.network = network
         parameters = network.parameters
         Y = network.Y
@@ -40,19 +36,12 @@ class SAILNet_rule_gpu(Learning_Rule):
         W = network.W
         theta = network.theta
         p = parameters.p
-        alpha = parameters.alpha
         beta = parameters.beta
         gamma = parameters.gamma
         batch_size = parameters.batch_size
-
-        """        
-        Calculate change in Lateral Weights dW
-        """
-        Cyy = Y.T.dot(Y)/batch_size
-        muy = Y.mean(axis=0)
+        dW_Rule = str_to_dW[dW_rule](network)
         
-        dW = alpha*(Cyy - 10*p**2)
-        dW=dW.astype('float32')
+        dW,self.time_dep = dW_Rule.calc_dW()
         
         mag_dW = T.sqrt(T.sum(T.sqr(dW)))
 
@@ -72,6 +61,7 @@ class SAILNet_rule_gpu(Learning_Rule):
         """
         Calculate Change in Threshold Weights dtheta
         """        
+        muy = Y.mean(axis=0)
         dtheta = gamma*(muy - p)
         theta = (theta+dtheta).astype('float32')
 
@@ -85,101 +75,141 @@ class SAILNet_rule_gpu(Learning_Rule):
     def Update(self):
         self.mag_dW = self.f()
         
+"SAILNet Rule and Time Dependent Rules for dW"
         
-"STDP based learning rule using Theano"
-
-class Exp_STDP_gpu(Learning_Rule):
+class Abs_dW(object):
     
     def __init__(self,network):
         self.network = network
-        parameters = network.parameters
-        self.CreateMatrix()
-        Y = network.Y
-        X = network.X
-        Q = network.Q
-        W = network.W
-        spike_train = network.spike_train
-        theta = network.theta
-        p = parameters.p
-        beta = parameters.beta
-        gamma = parameters.gamma
-        batch_size = parameters.batch_size
+
+class dW_SAILnet(Abs_dW):
+    
+    def calc_dW(self):
         
-        """
-        Calculate Change in Feed-Forward Weights dW
-        """
-        dW=T.zeros_like(W).astype('float32')
+        Y = self.network.Y
+        alpha = self.network.parameters.alpha
+        batch_size = self.network.parameters.batch_size
+        p = self.network.parameters.p
         
-        for batch in xrange(batch_size):
-            
-            dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
+        Cyy = Y.T.dot(Y)/batch_size
+        dW = alpha*(Cyy - p**2)
+        
+        dW=dW.astype('float32')
+
+        return dW
+    
+class dW_identity(Abs_dW):
+    
+    def calc_dW(self):
+        spike_train = self.network.spike_train
+        batch_size = self.network.parameters.batch_size
+        num_iterations = self.network.parameters.num_iterations  
+        p = self.network.parameters.p
+        alpha = self.network.parameters.alpha        
+        dW =  T.zeros_like(self.network.W).astype('float32')       
+        
+        min_constant = p**2/num_iterations
+        dW = T.tensordot(spike_train, spike_train, axes=([0, 2], [0, 2]))
+        #for batch in xrange(batch_size):
+        #    dW = dW + T.dot(spike_train[batch], T.transpose(spike_train[batch]))
+        
         dW = dW/batch_size
+        dW = alpha*(dW - min_constant)
         
-        mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+        return dW
         
-        W = W + dW
-        W = W - T.diag(T.diag(W))
-        W = T.switch(T.lt(W,T.zeros_like(W)),0.,W)
+class dW_time_dep(Abs_dW):
+    
+    def __init__(self,network):
+        super(dW_time_dep,self).__init__(network)
+        self.time_dep = time_matrix(str_to_fnc[network.parameters.function],self.network.parameters.num_iterations)
         
-        """
-        Calculate Change in Feed-Forward Weights dQ
-        """        
-        square_act = T.sum(Y*Y,axis=0)
-        mymat = T.diag(square_act)
-        dQ = beta*(T.dot(T.transpose(X),Y))/batch_size - beta*(T.dot(Q,mymat))/batch_size        
-        Q = Q+dQ
+    def calc_dW(self):
+        spike_train = self.network.spike_train
+        batch_size = self.network.parameters.batch_size
+        num_iterations = self.network.parameters.num_iterations  
+        p = self.network.parameters.p
+        alpha = self.network.parameters.alpha  
+        dW =  T.zeros_like(self.network.W).astype('float32')
+        
+        P = p*np.ones(num_iterations,dtype= 'float32')
+        min_constant = np.dot(P,np.dot(self.time_dep.get_value(),P))/num_iterations**2
+        
+        dW = T.tensordot(spike_train,self.time_dep,axes=([2],[0]))
+        dW = T.tensordot(dW, spike_train,axes=([0,2],[0,2]))        
+        #for batch in xrange(batch_size):
+        #    dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
+        
+        dW = dW/batch_size  
+        dW = alpha*(dW - min_constant)
+        
+        dW = dW.astype('float32')
 
+        return dW,self.time_dep
         
-        """
-        Calculate Change in Threshold Weights dtheta
-        """        
-        dtheta = gamma*(T.sum(Y,axis = 0)/batch_size - p)
-        theta = (theta+dtheta).astype('float32')
-        
-        updates = OrderedDict()
-        updates[network.Q] = Q
-        updates[network.W] = W
-        updates[network.theta] = theta
+str_to_dW = {'dW_SAILnet': dW_SAILnet,
+             'dW_identity': dW_identity,
+             'dW_time_dep': dW_time_dep}
+    
+def time_matrix(function,iterations):
+    
+    time_dep= np.zeros((iterations,iterations))
+    for i in xrange(iterations):
+        for j in xrange(iterations):
 
-        self.f = theano.function([], [mag_dW], updates=updates)
-                        
-    def CreateMatrix(self):
-        iterations = 50
-        self.time_dep= np.zeros((iterations,iterations))
-        post_activity=-2.7
-        pre_activity= 27 
-        time_scale=2
-        for i in xrange(iterations):
-            for j in xrange(iterations):
+            time_dep[i][j] = function(i,j)
                 
-                dt=i-j
-                #i-j gives the correct signs to strengthen pre to post synaptic activity 10/05/14
-                if np.sign(dt) == 1:
-                    self.time_dep[i][j]+= pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
-                else:
-                    self.time_dep[i][j]+= post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
-                    
-        self.time_dep = theano.shared(self.time_dep.astype('float32'))
+    return theano.shared(time_dep.astype('float32'))  
         
-    def Update(self):
-        self.mag_dW = self.f()
         
-    def polarityTest(self, network):
-        
-        spikeTrain = np.zeros([self.parameters.M, 50])
-        spikeTrain[0][0] = 1
-        spikeTrain[10][1] = 1
-        
-        dw = np.dot(spikeTrain,np.dot(self.time_dep,spikeTrain.T))
-        
-        if dw[0][10] < dw[10][0]:
-            return True
-                
-        else:
-            return False
-            
+"Time Dependent Functions"
 
-"Classic SAILNet Learning Rule"
+def STDP(i,j):
+    post_activity=-2.7
+    pre_activity= 27 
+    time_scale=2
+    
+    dt = i-j
+    if np.sign(dt) == 1:
+        return pre_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+    else:
+        return post_activity*np.exp(-abs(dt*time_scale))*(dt)**16
+    
+def Unit(i,j): #Same as vanilla SAILNet
+    return 1
+    
+def Step(i,j):
+    dt = i-j
+    step_len = 2
+    step_height = 1
+    if abs(dt) <= step_len:
+        return step_height
+    else:
+        return 0
+        
+def Well(i,j):
+    dt = i-j
+    length = 2
+    depth = 1
+    if abs(dt) <= length/2:
+        return 0
+    else:
+        return depth
+
+def Gaussian(i,j):
+    std = 5
+    dt = i-j
+    return np.exp(-0.5*(dt/std)**2)
+    
+    
+str_to_fnc = {'STDP': STDP,
+              'Unit': Unit,
+              'Step': Step,
+              'Well': Well,
+              'Gaussian': Gaussian}        
+        
+        
+        
 class SAILNet_rule(Learning_Rule):
     
     
@@ -212,6 +242,7 @@ class SAILNet_rule(Learning_Rule):
         
         network.Q += self.dQ
         network.theta += self.dtheta
+        
         
 "STDP Learning Rule Based on Haas 2006 Paper"
 class Exp_STDP(Learning_Rule):
