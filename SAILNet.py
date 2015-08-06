@@ -13,12 +13,12 @@ parameters = Parameters('parameters.txt')
 saveAttempt = 0
 while os.path.exists('./Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)):
     saveAttempt += 1
-
 directory = './Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
 os.makedirs(directory) 
-file(directory + '/Comments.txt','wt').write("Testing Functions")
-    
+file(directory + '/Comments.txt','wt').write("Testing RF Saving throughout learning")
 shutil.copy2("parameters.txt",directory)
+
+plotter = Plot(directory)   
 network = Network(parameters)
 activity = Activity(network)
 learn = Learning_Rule(network,parameters.rule)
@@ -40,6 +40,9 @@ for tt in range(network.parameters.num_trials):
     
     if tt%50 == 0 and tt != 0:
         print('Batch: '+str(tt)+' out of '+ str(parameters.num_trials))
+    
+    if tt%250 == 0 and tt != 0:
+        plotter.Plot_RF(network_Q = network.Q,filenum = tt)
         
 #print('Time:' + str(total_time))
 
@@ -48,11 +51,7 @@ monitor.cleanup()
 with open(directory +'/data.pkl','wb') as f:
     cPickle.dump((network,learn,monitor),f)
 
-data_filename = directory + '/data.pkl'
-
-
-plotter = Plot(data_filename, directory)
-
+plotter.load_network()
 plotter.PlotAll()
     
     

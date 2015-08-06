@@ -9,26 +9,35 @@ from Utility import Data
 
 class Plot():
     
-    def __init__(self,fileName, directory):
-        self.fileName=fileName
+    def __init__(self, directory):
         self.directory = directory
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
+            os.makedirs(self.directory+'/Images/RFs')
+            
+    def load_network(self):
+        self.fileName = self.directory + '/data.pkl'
         with open(self.fileName,'rb') as f:
             self.network, self.learning_rule, self.monitor = cPickle.load(f)
             
-    def Plot_RF(self):
-        im_size, num_dict = self.network.Q.shape
+    def Plot_RF(self,network_Q = None,filenum = ''):
+        if network_Q != None:
+            Q = network_Q.get_value()
+            filenum = str(filenum)
+        else:
+            Q = self.network.Q
+            
+        im_size, num_dict = Q.shape
 
         side = int(np.round(np.sqrt(im_size)))
         OC = num_dict/im_size
 
-        img = tile_raster_images(self.network.Q.T, img_shape = (side,side),
+        img = tile_raster_images(Q.T, img_shape = (side,side),
                                  tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.figure()
-        plt.title('Receptive Fields')
-        plt.imsave(self.directory + '/Images/Receptive_Fields.png', img, cmap=plt.cm.Greys)
+        plt.title('Receptive Fields' + filenum)
+        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+filenum+'.png', img, cmap=plt.cm.Greys)
     
     def Plot_Exp_RF(self):        
         self.network.parameters.batch_size = 1000
@@ -58,7 +67,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.figure()
         plt.title('Experimental Receptive Fields')
-        plt.imsave(self.directory + '/Images/Exp_RF.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
     
     def PlotdW(self):
         plt.figure()

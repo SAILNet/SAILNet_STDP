@@ -41,9 +41,11 @@ class Learning_Rule_gpu(Learning_Rule):
         batch_size = parameters.batch_size
         dW_Rule = str_to_dW[dW_rule](network)
         
-        dW,self.time_dep = dW_Rule.calc_dW()
+        dW = dW_Rule.calc_dW()
+	
+	#dW,self.time_dep = dW_Rule.calc_dW()        
         
-        mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+	mag_dW = T.sqrt(T.sum(T.sqr(dW)))
 
         W = W+dW
         W = W - T.diag(T.diag(W))
@@ -145,7 +147,7 @@ class dW_time_dep(Abs_dW):
         
         dW = dW.astype('float32')
 
-        return dW,self.time_dep
+        return dW#,self.time_dep
         
 str_to_dW = {'dW_SAILnet': dW_SAILnet,
              'dW_identity': dW_identity,
