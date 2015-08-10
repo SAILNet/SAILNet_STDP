@@ -13,7 +13,6 @@ class Parameters():
     def __init__(self,parameters_file):
         config = ConfigParser.ConfigParser()
         config.read(parameters_file)
-        rng = np.random.RandomState(0)
         
         """
         Load network Parameters from config file
@@ -35,6 +34,5 @@ class Parameters():
         self.eta_ave = config.getfloat("LearningRates",'eta_ave')
         self.lateral_constraint = config.getfloat('LearningRates','lateral_constraint')
         self.M = self.OC*self.N        
-        self.Q = rng.randn(self.N,self.M)
         
         

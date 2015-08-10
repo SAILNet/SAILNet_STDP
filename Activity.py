@@ -59,7 +59,7 @@ class Activity_gpu():
         eta = .1
 
         for tt in xrange(num_iterations):
-            Ys = (1.-eta*Q_norms)*Ys+eta*(B-aas.dot(W))
+            Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
             aas = 0.*aas
             #This resets the current activity of the time step to 0's        
             aas = T.switch(Ys > Th, 1., aas)

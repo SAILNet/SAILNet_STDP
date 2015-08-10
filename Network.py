@@ -13,14 +13,15 @@ class Network_gpu():
     def __init__(self,parameters):
         
         self.parameters = parameters
-             
+        rng = np.random.RandomState(1246)
+     
         """
         Initialize X, W, Q, and theta as Theano Shared Variables
         """        
-        
-        self.Q = theano.shared(parameters.Q.dot(np.diag(1./np.sqrt(np.diag(parameters.Q.T.dot(parameters.Q))))).astype('float32'))
+        Q = rng.randn(parameters.N,parameters.M)
+        self.Q = theano.shared(0.5*Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q))))).astype('float32'))
         self.W = theano.shared(np.zeros((parameters.M,parameters.M)).astype('float32'))
-        self.theta = theano.shared(2.*np.ones(parameters.M).astype('float32'))
+        self.theta = theano.shared(0.5*np.ones(parameters.M).astype('float32'))
         self.X = theano.shared(np.zeros((parameters.batch_size,parameters.N)).astype('float32'))
         
         """

@@ -34,5 +34,5 @@ class Data(object):
             X[ii] = myimage
 
         X = X-X.mean(axis=1, keepdims=True)
-        X = X/X.std(axis=1, keepdims=True)
+        X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         network.X.set_value(X.astype('float32'))
