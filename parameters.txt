@@ -6,7 +6,7 @@ function: None
 batch_size: 100
 num_trials: 10000
 num_iterations: 50
-reduced_learning_rate: .99985
+reduced_learning_rate: .9995
 
 [NeuronParameters]
 N: 256
