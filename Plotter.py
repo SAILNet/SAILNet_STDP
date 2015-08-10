@@ -9,7 +9,7 @@ from Utility import Data
 
 class Plot():
     
-    def __init__(self, directory,parameters):
+    def __init__(self, directory):
 	self.parameters = parameters
         self.directory = directory
         if os.path.exists(self.directory+'/Images')==False:       
@@ -294,6 +294,7 @@ class Plot():
 
 
 if __name__ == "__main__":
-    filename, directory = sys.argv[1:]
-    plotter = Plot(filename, directory)
+    directory = sys.argv[1]
+    plotter = Plot(directory)
+    plotter.load_network()
     plotter.PlotAll()
