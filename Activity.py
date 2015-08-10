@@ -42,20 +42,22 @@ class Activity():
 class Activity_gpu():
     
     def __init__(self, network):
+	batch_size = network.parameters.batch_size
+        num_iterations = network.parameters.num_iterations
+	M = network.parameters.M
         X = network.X
         Q = network.Q
         theta = network.theta
         W = network.W
-        Y = T.zeros_like(network.Y)
+        Y = T.alloc(0,(batch_size,M))
         Ys = T.zeros_like(Y)
         aas = T.zeros_like(Y)
-        spike_train = network.spike_train
+        spike_train = T.alloc(0,(batch_size,M,num_iterations))
         Q_norms = (Q*Q).sum(axis=0, keepdims=True)
 
         B = X.dot(Q)
         Th = theta.dimshuffle('x', 0)
 
-        num_iterations = network.parameters.num_iterations
         eta = .1
 
         for tt in xrange(num_iterations):

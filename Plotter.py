@@ -4,7 +4,7 @@ import numpy as np
 from utils import tile_raster_images
 import os
 from Activity import Activity_gpu as Activity
-from Utility import Data
+from Data import Data
 from Parameters import Parameters
 
 class Plot():
@@ -40,7 +40,7 @@ class Plot():
         plt.title('Receptive Fields' + filenum)
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+str(self.parameters.function)+filenum+'.png', img, cmap=plt.cm.Greys)
     
-    def Plot_Exp_RF(self):        
+    def validation_data(self):        
         self.network.parameters.batch_size = 10000
         parameters = self.network.parameters
         data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
@@ -56,7 +56,8 @@ class Plot():
         activity.get_acts(self.network)
 
 	self.network.to_cpu()
-                
+        
+    def Plot_EXP_RF(self):
         Exp_RF = self.network.X.T.dot(self.network.Y)
         
         spike_sum = np.sum(self.network.Y,axis = 0,dtype='f')
@@ -74,6 +75,42 @@ class Plot():
         plt.title('Experimental Receptive Fields')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
     
+    def Plot_Rate_Hist(self):
+	spike_sum = np.sum(self.network.Y,axis = 0)
+	rates = spike_sum/len(self.network.Y[:,1])
+	num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
+	num = np.append(np.array([0]),num)
+        bin_edges = 10**bin_edges
+        plt.plot(bin_edges,num,'o')
+        plt.ylim(0,100)
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Mean Firing Rate")
+        plt.ylabel("Number of Cells")
+        plt.savefig(self.directory + '/Images/RateHist.png') 
+     
+    def Plot_Rate_Hist_LC(self):
+	
+	spike_sum = np.sum(self.network.Y,axis = 0)
+	rates = spike_sum/len(self.network.Y[:,1])
+	num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
+	num = np.append(np.array([0]),num)
+        bin_edges = 10**bin_edges
+        plt.plot(bin_edges,num,'o')
+        plt.ylim(0,100)
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Mean Firing Rate")
+        plt.ylabel("Number of Cells")
+        plt.savefig(self.directory + '/Images/RateHist.png') 
+
+    def Plot_Rate_Corr(self):
+	corrcoef = np.array([])
+	Y = self.network.Y
+	num_neurons = len(self.network.parameters.M)
+	for i in range(num_neurons):
+	    for j in range(num_neurons):
+		if i <j:
+		    corrcoef = corrcoef.append(np.corrcoef(Y[:,i],
+
     def PlotdW(self):
         plt.figure(18)
         plt.plot(self.monitor.mag_dW)
@@ -92,7 +129,7 @@ class Plot():
         plt.figure(5)
         plt.plot(self.monitor.Cyy_bar)
         plt.title("AverageY^2")
-        plt.xlabel("Number of Trials")
+        
         plt.savefig(self.directory + '/Images/Cavg.png')
         
     def PlotSNR(self):
