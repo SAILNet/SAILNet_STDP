@@ -43,9 +43,9 @@ class Learning_Rule_gpu(Learning_Rule):
         
         dW = dW_Rule.calc_dW()
 	
-	#dW,self.time_dep = dW_Rule.calc_dW()        
+        #dW,self.time_dep = dW_Rule.calc_dW()        
         
-	mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+        mag_dW = T.sqrt(T.sum(T.sqr(dW)))
 
         W = W+dW
         W = W - T.diag(T.diag(W))
@@ -182,16 +182,16 @@ def Unit(i,j): #Same as vanilla SAILNet
     
 def Step(i,j):
     dt = i-j
-    step_len = 2
+    step_len = 10
     step_height = 1
-    if abs(dt) <= step_len:
+    if abs(dt) <= step_len/2:
         return step_height
     else:
         return 0
         
 def Well(i,j):
     dt = i-j
-    length = 2
+    length = 10
     depth = 1
     if abs(dt) <= length/2:
         return 0

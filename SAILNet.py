@@ -8,17 +8,7 @@ from Activity import Activity_gpu as Activity
 from Data import Data
 from Monitor import Monitor
 
-parameters = Parameters('parameters.txt')
-    
-saveAttempt = 0
-while os.path.exists('./Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)):
-    saveAttempt += 1
-directory = './Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
-os.makedirs(directory) 
-file(directory + '/Comments.txt','wt').write("Testing RF Saving throughout learning")
-shutil.copy2("parameters.txt",directory)
-
-plotter = Plot(directory)   
+parameters = Parameters('parameters.txt')  
 network = Network(parameters)
 activity = Activity(network)
 learn = Learning_Rule(network,parameters.rule)
@@ -29,6 +19,16 @@ data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
             parameters.N)
 total_time = 0
 
+saveAttempt = 0
+while os.path.exists('./Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)):
+    saveAttempt += 1
+directory = './Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
+os.makedirs(directory) 
+file(directory + '/Comments.txt','wt').write("Testing different plots of Q,Y and X to understand reconstruction behavior. Made all averages over whole matrices.")
+shutil.copy2("parameters.txt",directory)
+
+plotter = Plot(directory,parameters)
+ 
 for tt in range(network.parameters.num_trials):
     data.make_X(network) 
     activity.get_acts()
@@ -41,7 +41,7 @@ for tt in range(network.parameters.num_trials):
     if tt%50 == 0 and tt != 0:
         print('Batch: '+str(tt)+' out of '+ str(parameters.num_trials))
     
-    if tt%250 == 0 and tt != 0:
+    if tt%500 == 0 and tt != 0:
         plotter.Plot_RF(network_Q = network.Q,filenum = tt)
         
 #print('Time:' + str(total_time))
