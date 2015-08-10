@@ -5,12 +5,12 @@ from utils import tile_raster_images
 import os
 from Activity import Activity as Activity
 from Utility import Data
-
+from Parameters import Parameters
 
 class Plot():
     
     def __init__(self, directory):
-	self.parameters = parameters
+	self.parameters = Parameters(os.path.join(directory,'parameters.txt'))
         self.directory = directory
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')

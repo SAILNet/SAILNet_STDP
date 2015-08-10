@@ -27,7 +27,7 @@ os.makedirs(directory)
 file(directory + '/Comments.txt','wt').write("Testing different plots of Q,Y and X to understand reconstruction behavior. Made all averages over whole matrices.")
 shutil.copy2("parameters.txt",directory)
 
-plotter = Plot(directory,parameters)
+plotter = Plot(directory)
  
 for tt in range(network.parameters.num_trials):
     data.make_X(network) 
