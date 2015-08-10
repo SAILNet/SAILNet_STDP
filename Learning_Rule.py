@@ -145,7 +145,7 @@ class dW_time_dep(Abs_dW):
         
         dW = dW.astype('float32')
 
-        return dW,self.time_dep
+        return dW#,self.time_dep
         
 str_to_dW = {'dW_SAILnet': dW_SAILnet,
              'dW_identity': dW_identity,
@@ -180,16 +180,16 @@ def Unit(i,j): #Same as vanilla SAILNet
     
 def Step(i,j):
     dt = i-j
-    step_len = 2
+    step_len = 10
     step_height = 1
-    if abs(dt) <= step_len:
+    if abs(dt) <= step_len/2:
         return step_height
     else:
         return 0
         
 def Well(i,j):
     dt = i-j
-    length = 2
+    length = 10
     depth = 1
     if abs(dt) <= length/2:
         return 0
