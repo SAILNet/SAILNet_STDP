@@ -1,10 +1,10 @@
 [LearningRule]
-dW_rule: dW_time_dep
+dW_rule: dW_SAILnet
 function: Gaussian
 
 [Parameters]
 batch_size: 100
-num_trials: 500
+num_trials: 10000
 num_iterations: 50
 reduced_learning_rate: .99985
 

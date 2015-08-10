@@ -1,4 +1,4 @@
-import cPickle
+import cPickle, sys
 import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
@@ -214,4 +214,7 @@ class Plot():
         plt.figure(self.Plot_Exp_RF())
 
 
-
+if __name__ == "__main__":
+    filename, directory = sys.argv[1:]
+    plotter = Plot(filename, directory)
+    plotter.PlotAll()

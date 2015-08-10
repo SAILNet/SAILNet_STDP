@@ -41,7 +41,7 @@ class Learning_Rule_gpu(Learning_Rule):
         batch_size = parameters.batch_size
         dW_Rule = str_to_dW[dW_rule](network)
         
-        dW,self.time_dep = dW_Rule.calc_dW()
+        dW = dW_Rule.calc_dW()
         
         mag_dW = T.sqrt(T.sum(T.sqr(dW)))
 
