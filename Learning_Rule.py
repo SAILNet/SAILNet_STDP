@@ -20,7 +20,7 @@ class Learning_Rule(object):
 
     def ReduceLearning(self,tt):
         network = self.network
-        if tt <= 5000:
+        if tt >= 5000:
             network.parameters.gamma.set_value(network.parameters.gamma.get_value()*network.parameters.reduced_learning_rate)
             network.parameters.beta.set_value(network.parameters.beta.get_value()*network.parameters.reduced_learning_rate)
             network.parameters.alpha.set_value(network.parameters.alpha.get_value()*network.parameters.reduced_learning_rate)
