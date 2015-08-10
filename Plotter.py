@@ -339,7 +339,7 @@ class Plot():
         plt.figure(self.PlotInhibitHist())
         plt.figure(self.PlotInh_vs_RF())
         #plt.figure(self.Plot_Mag_W())
-        plt.figure(self.Plot_Exp_RF())
+        plt.figure(self.Plot_EXP_RF())
 
 
 if __name__ == "__main__":
