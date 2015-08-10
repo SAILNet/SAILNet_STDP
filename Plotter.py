@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 import os
-from Activity import Activity as Activity
+from Activity import Activity_gpu as Activity
 from Utility import Data
 from Parameters import Parameters
 
@@ -41,17 +41,21 @@ class Plot():
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+str(self.parameters.function)+filenum+'.png', img, cmap=plt.cm.Greys)
     
     def Plot_Exp_RF(self):        
-        self.network.parameters.batch_size = 1000
+        self.network.parameters.batch_size = 10000
         parameters = self.network.parameters
         data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
-            1035,
+            1000,
             parameters.batch_size,
             parameters.N,
             start=35)     
-        
+       
+	self.network.to_gpu()	
+	 
         data.make_X(self.network) 
         activity = Activity()
         activity.get_acts(self.network)
+
+	self.network.to_cpu()
                 
         Exp_RF = self.network.X.T.dot(self.network.Y)
         

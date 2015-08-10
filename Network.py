@@ -21,7 +21,7 @@ class Network_gpu():
         Q = rng.randn(parameters.N,parameters.M)
         self.Q = theano.shared(0.5*Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q))))).astype('float32'))
         self.W = theano.shared(np.zeros((parameters.M,parameters.M)).astype('float32'))
-        self.theta = theano.shared(0.5*np.ones(parameters.M).astype('float32'))
+        self.theta = theano.shared(0.2*np.ones(parameters.M).astype('float32'))
         self.X = theano.shared(np.zeros((parameters.batch_size,parameters.N)).astype('float32'))
         
         """
@@ -39,6 +39,14 @@ class Network_gpu():
         for key, value in items.iteritems():
             if isinstance(value, theano.tensor.sharedvar.SharedVariable):
                 updates[key] = value.get_value()
+        self.__dict__.update(updates)
+
+    def to_gpu(self):
+        items = self.__dict__
+        updates = {}
+        for key, value in items.iteritems():
+            if isinstance(value, np.ndarray):
+                updates[key] = theano.shared(value.astype('float32')
         self.__dict__.update(updates)
         
 class Network():
