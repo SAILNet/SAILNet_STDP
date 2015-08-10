@@ -40,7 +40,7 @@ class Plot():
         plt.title('Receptive Fields' + filenum)
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+str(self.parameters.function)+filenum+'.png', img, cmap=plt.cm.Greys)
     
-    def validation_data(self):        
+    def validation_data(self,contrast = 1.):        
         self.network.parameters.batch_size = 10000
         parameters = self.network.parameters
         data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
@@ -49,13 +49,15 @@ class Plot():
             parameters.N,
             start=35)     
        
-	self.network.to_gpu()	
-	 
+        self.network.to_gpu()	
+        
         data.make_X(self.network) 
+        if contrast != 1.:
+            self.network.X.set_value(self.network.X.get_value()*contrast)
         activity = Activity()
         activity.get_acts(self.network)
 
-	self.network.to_cpu()
+        self.network.to_cpu()
         
     def Plot_EXP_RF(self):
         Exp_RF = self.network.X.T.dot(self.network.Y)
@@ -76,10 +78,10 @@ class Plot():
         plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
     
     def Plot_Rate_Hist(self):
-	spike_sum = np.sum(self.network.Y,axis = 0)
-	rates = spike_sum/len(self.network.Y[:,1])
-	num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
-	num = np.append(np.array([0]),num)
+        spike_sum = np.sum(self.network.Y,axis = 0)
+        rates = spike_sum/len(self.network.Y[:,1])
+        num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
+        num = np.append(np.array([0]),num)
         bin_edges = 10**bin_edges
         plt.plot(bin_edges,num,'o')
         plt.ylim(0,100)
@@ -89,11 +91,11 @@ class Plot():
         plt.savefig(self.directory + '/Images/RateHist.png') 
      
     def Plot_Rate_Hist_LC(self):
-	
-	spike_sum = np.sum(self.network.Y,axis = 0)
-	rates = spike_sum/len(self.network.Y[:,1])
-	num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
-	num = np.append(np.array([0]),num)
+        
+        spike_sum = np.sum(self.network.Y,axis = 0)
+        rates = spike_sum/len(self.network.Y[:,1])
+        num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
+        num = np.append(np.array([0]),num)
         bin_edges = 10**bin_edges
         plt.plot(bin_edges,num,'o')
         plt.ylim(0,100)
@@ -103,14 +105,20 @@ class Plot():
         plt.savefig(self.directory + '/Images/RateHist.png') 
 
     def Plot_Rate_Corr(self):
-	corrcoef = np.array([])
-	Y = self.network.Y
-	num_neurons = len(self.network.parameters.M)
-	for i in range(num_neurons):
-	    for j in range(num_neurons):
-		if i <j:
-		    corrcoef = corrcoef.append(np.corrcoef(Y[:,i],
-
+        self.validation_data(1/3.)        
+        corrcoef = np.array([])
+        Y = self.network.Y
+        num_neurons = len(self.network.parameters.M)
+        for i in range(num_neurons):
+            for j in range(i):
+                corrcoef = np.append(corrcoef,np.corrcoef(Y[:,i],Y[:,j]))
+        plt.hist(corrcoef,bins = 50,range = (-0.05,0.05),normed= True)
+        #plt.ylim(0,300)
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Rate Correlation")
+        plt.ylabel("PDF")
+        plt.savefig(self.directory + '/Images/RateCorrHist.png') 
+    
     def PlotdW(self):
         plt.figure(18)
         plt.plot(self.monitor.mag_dW)
