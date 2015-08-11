@@ -49,10 +49,10 @@ class Activity_gpu():
         Q = network.Q
         theta = network.theta
         W = network.W
-        Y = T.alloc(0,(batch_size,M))
+        Y = T.alloc(0.,batch_size,M)
         Ys = T.zeros_like(Y)
         aas = T.zeros_like(Y)
-        spike_train = T.alloc(0,(batch_size,M,num_iterations))
+        spike_train = T.alloc(0.,batch_size,M,num_iterations)
         Q_norms = (Q*Q).sum(axis=0, keepdims=True)
 
         B = X.dot(Q)

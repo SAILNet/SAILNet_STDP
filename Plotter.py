@@ -21,6 +21,39 @@ class Plot():
         with open(self.fileName,'rb') as f:
             self.network, self.learning_rule, self.monitor = cPickle.load(f)
             
+    def validation_data(self,contrast = 1.):
+        self.network.parameters.batch_size = 1000
+        small_bs = self.network.parameters.batch_size        
+        batch_size = 100000
+        parameters = self.network.parameters
+
+        data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            start=35)     
+            
+        self.network.to_gpu()	
+
+        activity = Activity(self.network)
+
+        self.big_X = np.zeros((batch_size,parameters.N))
+        self.big_Y = np.zeros((batch_size,parameters.M))
+
+        for i in range(batch_size/small_bs):
+            
+            data.make_X(self.network) 
+            if contrast != 1.:
+                self.network.X.set_value(self.network.X.get_value()*contrast)
+            activity.get_acts()
+            
+            self.big_X[i*small_bs:(i+1)*small_bs,:] = self.network.X.get_value()
+            self.big_Y[i*small_bs:(i+1)*small_bs,:] = self.network.Y.get_value()
+        
+        self.network.to_cpu()
+        self.network.Y = self.big_Y
+        self.network.X = self.big_X
+            
     def Plot_RF(self,network_Q = None,filenum = ''):
         if network_Q != None:
             Q = network_Q.get_value()
@@ -39,25 +72,6 @@ class Plot():
         plt.figure()
         plt.title('Receptive Fields' + filenum)
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+str(self.parameters.function)+filenum+'.png', img, cmap=plt.cm.Greys)
-    
-    def validation_data(self,contrast = 1.):        
-        self.network.parameters.batch_size = 10000
-        parameters = self.network.parameters
-        data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
-            1000,
-            parameters.batch_size,
-            parameters.N,
-            start=35)     
-       
-        self.network.to_gpu()	
-        
-        data.make_X(self.network) 
-        if contrast != 1.:
-            self.network.X.set_value(self.network.X.get_value()*contrast)
-        activity = Activity()
-        activity.get_acts(self.network)
-
-        self.network.to_cpu()
         
     def Plot_EXP_RF(self):
         Exp_RF = self.network.X.T.dot(self.network.Y)
@@ -76,48 +90,6 @@ class Plot():
         plt.figure()
         plt.title('Experimental Receptive Fields')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
-    
-    def Plot_Rate_Hist(self):
-        spike_sum = np.sum(self.network.Y,axis = 0)
-        rates = spike_sum/len(self.network.Y[:,1])
-        num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
-        num = np.append(np.array([0]),num)
-        bin_edges = 10**bin_edges
-        plt.plot(bin_edges,num,'o')
-        plt.ylim(0,100)
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.xlabel("Mean Firing Rate")
-        plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHist.png') 
-     
-    def Plot_Rate_Hist_LC(self):
-        
-        spike_sum = np.sum(self.network.Y,axis = 0)
-        rates = spike_sum/len(self.network.Y[:,1])
-        num, bin_edges = np.histogram(rates, range = (0.028,0.08),bins = 50)
-        num = np.append(np.array([0]),num)
-        bin_edges = 10**bin_edges
-        plt.plot(bin_edges,num,'o')
-        plt.ylim(0,100)
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.xlabel("Mean Firing Rate")
-        plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHist.png') 
-
-    def Plot_Rate_Corr(self):
-        self.validation_data(1/3.)        
-        corrcoef = np.array([])
-        Y = self.network.Y
-        num_neurons = len(self.network.parameters.M)
-        for i in range(num_neurons):
-            for j in range(i):
-                corrcoef = np.append(corrcoef,np.corrcoef(Y[:,i],Y[:,j]))
-        plt.hist(corrcoef,bins = 50,range = (-0.05,0.05),normed= True)
-        #plt.ylim(0,300)
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.xlabel("Rate Correlation")
-        plt.ylabel("PDF")
-        plt.savefig(self.directory + '/Images/RateCorrHist.png') 
     
     def PlotdW(self):
         plt.figure(18)
@@ -208,30 +180,6 @@ class Plot():
         plt.title('Image Norm Mean')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/X_norm_bar.png')
- 
-    
-    def Plotcor(self):
-        plt.figure(6)
-        plt.plot(self.correlation, color = "purple")
-        plt.title('Correlation of dW and STDP')
-        plt.xlabel("Number of Trials")
-        plt.savefig(self.directory + '/Images/Correlation_dW_STDP.png')
-    
-    def PlotTimeDep(self):
-        try:
-            plt.figure(7)
-            plt.plot(self.learning_rule.time_dep[25])
-            plt.title(self.fileName[:len(self.fileName)-4] + 'Time Weighting Matrix')
-            plt.savefig(self.directory + '/Images/Weighting_Matrix.png')
-        except(AttributeError):
-            pass
-        
-    def PlotRecError(self):
-        plt.figure(8)
-        plt.plot(self.network.reconstruction_error)
-        plt.title("Mean Squared Error of SAILNet's Reconstruction with 25000 Iterations and STDP Learning Rule")
-        plt.savefig(self.directory + '/Images/Rec_Error.png')
-    
     
     def PlotInhibitHist(self):
         plt.figure(11)
@@ -240,7 +188,7 @@ class Plot():
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log(W_flat)/np.log(10)
         num, bin_edges = np.histogram(W_flat,range = (-6,2), bins = 100, density = True)
-        num = np.append(np.array([0]),num)
+        bin_edges = bin_edges[1:]
         bin_edges = 10**bin_edges
         plt.semilogx(bin_edges,num,'o')
         plt.ylim(0,0.9)
@@ -273,12 +221,41 @@ class Plot():
         #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
         plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
-    
-    def Plot_Mag_W(self):
-        plt.figure(13)
-        plt.title('Magnitude of Lateral Weight Matrix W')
-        plt.plot(self.network.mag_W)
-        plt.savefig(self.directory + '/Images/Magnitude_W.png')
+        
+    def Plot_Rate_Hist(self):
+        rates = np.mean(self.network.Y,axis = 0)
+        num, bin_edges = np.histogram(rates,range = (0.025,0.08), bins = 50)
+        bin_edges = bin_edges[1:]
+        plt.plot(bin_edges,num,'o')
+        #lt.ylim(0,100)
+        #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Mean Firing Rate")
+        plt.ylabel("Number of Cells")
+        plt.savefig(self.directory + '/Images/RateHist.png') 
+     
+    def Plot_Rate_Hist_LC(self):
+        self.validation_data(1/3.)        
+        rates = np.mean(self.network.Y,axis = 0)
+        num, bin_edges = np.histogram(rates,range = (0.025,0.08), bins = 50)
+        bin_edges = bin_edges[1:]
+        plt.plot(bin_edges,num,'o')
+        #plt.ylim(0,100)
+        #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Mean Firing Rate")
+        plt.ylabel("Number of Cells")
+        plt.savefig(self.directory + '/Images/RateHistLC.png') 
+
+    def Plot_Rate_Corr(self):
+        Y = self.network.Y
+        corrcoef = np.corrcoef(Y,rowvar = 0)
+        corrcoef = corrcoef - np.diag(np.diag(corrcoef))
+        corrcoef = np.ravel(corrcoef) #Flattens array
+        plt.hist(corrcoef,bins = 50,range = (-0.05,0.05),normed= True)
+        #plt.ylim(0,300)
+        #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.xlabel("Rate Correlation")
+        plt.ylabel("PDF")
+        plt.savefig(self.directory + '/Images/RateCorrHist.png') 
         
     def RasterPlot(self):
         
@@ -322,24 +299,24 @@ class Plot():
         return latest_spike
         
     def PlotAll(self):
-        plt.figure(self.Plot_RF())
+        """plt.figure(self.Plot_RF())
         plt.figure(self.PlotdW())
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
         plt.figure(self.PlotSNR())
         plt.figure(self.PlotSNR_Norm())
-	plt.figure(self.PlotX_rec())
+        plt.figure(self.PlotX_rec())
         plt.figure(self.PlotQ())
         plt.figure(self.PlotW())
         plt.figure(self.PlotTheta())
-	plt.figure(self.PlotX())
-        #plt.figure(self.Plotcor())
-        #plt.figure(self.PlotTimeDep())
-        #plt.figure(self.PlotRecError())
+        plt.figure(self.PlotX())
         plt.figure(self.PlotInhibitHist())
-        plt.figure(self.PlotInh_vs_RF())
-        #plt.figure(self.Plot_Mag_W())
+        plt.figure(self.PlotInh_vs_RF())"""
+        self.validation_data()
         plt.figure(self.Plot_EXP_RF())
+        plt.figure(self.Plot_Rate_Hist())
+        plt.figure(self.Plot_Rate_Corr())
+        plt.figure(self.Plot_Rate_Hist_LC())
 
 
 if __name__ == "__main__":
