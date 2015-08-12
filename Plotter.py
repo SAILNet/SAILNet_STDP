@@ -299,7 +299,7 @@ class Plot():
         return latest_spike
         
     def PlotAll(self):
-        """plt.figure(self.Plot_RF())
+        plt.figure(self.Plot_RF())
         plt.figure(self.PlotdW())
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
@@ -311,7 +311,7 @@ class Plot():
         plt.figure(self.PlotTheta())
         plt.figure(self.PlotX())
         plt.figure(self.PlotInhibitHist())
-        plt.figure(self.PlotInh_vs_RF())"""
+        plt.figure(self.PlotInh_vs_RF())
         self.validation_data()
         plt.figure(self.Plot_EXP_RF())
         plt.figure(self.Plot_Rate_Hist())

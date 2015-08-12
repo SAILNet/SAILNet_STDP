@@ -1,5 +1,5 @@
 import cPickle
-import os, shutil, time
+import sys, time, argparse
 from Plotter import Plot
 from Learning_Rule import Learning_Rule_gpu as Learning_Rule
 from Parameters import Parameters
@@ -7,8 +7,18 @@ from Network import Network_gpu as Network
 from Activity import Activity_gpu as Activity
 from Data import Data
 from Monitor import Monitor
+from Save import make_folder
 
 parameters = Parameters('parameters.txt')  
+
+if sys.argv[1:]:
+    parser = argparse.ArgumentParser(description='Process Parameters')
+    parser.add_argument('dW_rule',choices = ['dW_SAILnet','dW_identity','dW_time_dep'])
+    parser.add_argument('function',choices = ['None','Unit','Step','Well','Gaussian','STDP'])
+    args = parser.parse_args()
+    parameters.rule = args.dW_rule
+    parameters.function = args.function
+
 network = Network(parameters)
 activity = Activity(network)
 learn = Learning_Rule(network,parameters.rule)
@@ -17,16 +27,8 @@ data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
             35,
             parameters.batch_size,
             parameters.N)
-total_time = 0
-
-saveAttempt = 0
-while os.path.exists('./Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)):
-    saveAttempt += 1
-directory = './Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
-os.makedirs(directory) 
-file(directory + '/Comments.txt','wt').write("Testing different plots of Q,Y and X to understand reconstruction behavior. Made all averages over whole matrices.")
-shutil.copy2("parameters.txt",directory)
-
+#total_time = 0
+directory = make_folder(parameters,"Testing command line arguments")
 plotter = Plot(directory)
  
 for tt in range(network.parameters.num_trials):
