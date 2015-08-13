@@ -24,7 +24,7 @@ class Plot():
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
         small_bs = self.network.parameters.batch_size        
-        batch_size = 100000
+        batch_size = 50000
         parameters = self.network.parameters
 
         data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',

@@ -28,7 +28,7 @@ data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
             parameters.batch_size,
             parameters.N)
 #total_time = 0
-directory = make_folder(parameters,"Testing command line arguments")
+directory = make_folder(parameters,"Running all rules with all plots")
 plotter = Plot(directory)
  
 for tt in range(network.parameters.num_trials):
