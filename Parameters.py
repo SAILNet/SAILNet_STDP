@@ -8,6 +8,8 @@ import ConfigParser
 import numpy as np
 import theano
 
+spike_rules = ['dW_time_dep']
+
 class Parameters():
     
     def __init__(self,parameters_file):
@@ -19,6 +21,10 @@ class Parameters():
         """
         
         self.rule = config.get('LearningRule','dW_rule')
+        if self.rule in spike_rules:
+            self.keep_spikes = True
+        else:
+            self.keep_spikes = False
         self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
