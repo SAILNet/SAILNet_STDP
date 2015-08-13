@@ -37,8 +37,6 @@ class Parameters():
         self.alpha = theano.shared(np.array(config.getfloat("LearningRates",'alpha')).astype('float32'))
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
         self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))
-        self.eta_ave = config.getfloat("LearningRates",'eta_ave')
-        self.lateral_constraint = config.getfloat('LearningRates','lateral_constraint')
         self.M = self.OC*self.N        
         
         
