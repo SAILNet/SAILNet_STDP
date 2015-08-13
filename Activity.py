@@ -52,7 +52,10 @@ class Activity_gpu():
         Y = T.alloc(0.,batch_size,M)
         Ys = T.zeros_like(Y)
         aas = T.zeros_like(Y)
-        spike_train = T.alloc(0.,batch_size,M,num_iterations)
+        keep_spikes = False
+        if hasattr(network, 'spike_train'):
+            keep_spikes = True
+            spike_train = T.alloc(0.,batch_size,M,num_iterations)
         Q_norms = (Q*Q).sum(axis=0, keepdims=True)
 
         B = X.dot(Q)
@@ -67,7 +70,8 @@ class Activity_gpu():
             aas = T.switch(Ys > Th, 1., aas)
             #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
             
-            spike_train = T.set_subtensor(spike_train[:,:,tt], aas)
+            if keep_spikes:
+                spike_train = T.set_subtensor(spike_train[:,:,tt], aas)
             
             #Forces mean to be 0
             Y += aas
@@ -76,7 +80,8 @@ class Activity_gpu():
 
         updates = OrderedDict()
         updates[network.Y] = Y
-        updates[network.spike_train] = spike_train
+        if keep_spikes:
+            updates[network.spike_train] = spike_train
         self.f = theano.function([], [], updates=updates)
         
     def get_acts(self):

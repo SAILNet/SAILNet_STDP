@@ -29,9 +29,10 @@ class Network_gpu():
         """
         
         self.Y = theano.shared(np.zeros((parameters.batch_size,parameters.M)).astype('float32'))
-        self.spike_train = theano.shared(np.zeros((parameters.batch_size,
-                                                   parameters.M,
-                                                   parameters.num_iterations)).astype('float32'))
+        if parameters.keep_spikes:
+            self.spike_train = theano.shared(np.zeros((parameters.batch_size,
+                                                       parameters.M,
+                                                       parameters.num_iterations)).astype('float32'))
         
     def to_cpu(self):
         items = self.__dict__
