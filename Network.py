@@ -14,6 +14,8 @@ class Network_gpu():
         
         self.parameters = parameters
         rng = np.random.RandomState(1246)
+        self.current_trial = 0
+        self.total_trials = 0
      
         """
         Initialize X, W, Q, and theta as Theano Shared Variables
@@ -33,6 +35,16 @@ class Network_gpu():
             self.spike_train = theano.shared(np.zeros((parameters.batch_size,
                                                        parameters.M,
                                                        parameters.num_iterations)).astype('float32'))
+        
+    def continue_learning(self):
+        if self.current_trial < self.parameters.num_trials:
+            return True
+        else:
+            return False
+            
+    def next_trial(self):
+        self.current_trial += 1
+        self.total_trials  += 1
         
     def to_cpu(self):
         items = self.__dict__

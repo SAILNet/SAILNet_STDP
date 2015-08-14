@@ -3,18 +3,16 @@ import theano.tensor as T
 import numpy as np
 
 class Monitor(object):
-    def __init__(self, network, learn):
+    def __init__(self, network):
         self.network = network
-        self.learn = learn
         self.parameters = network.parameters
         self.num_trials = self.parameters.num_trials
         self.SNR = np.zeros(self.num_trials)
         self.SNR_Norm = np.zeros(self.num_trials)
         self.y_bar = np.zeros(self.num_trials)
         self.Cyy_bar = np.zeros(self.num_trials)
-        self.mag_dW = np.zeros(self.num_trials)
-	self.X_bar = np.zeros(self.num_trials)
-	self.X_norm_bar = np.zeros(self.num_trials)
+        self.X_bar = np.zeros(self.num_trials)
+        self.X_norm_bar = np.zeros(self.num_trials)
         self.X_rec_stats = np.zeros((self.num_trials,2))
         self.Q_stats = np.zeros((self.num_trials,2))
         self.W_stats = np.zeros((self.num_trials,2))
@@ -37,8 +35,8 @@ class Monitor(object):
 
         y_bar = network.Y.mean()
         Cyy_bar = (network.Y.T.dot(network.Y)/network.parameters.batch_size).mean()
-	X_norm_bar = X_norm.mean()
-	X_rec_bar = X_rec_norm.mean()
+        X_norm_bar = X_norm.mean()
+        X_rec_bar = X_rec_norm.mean()
         X_rec_std = X_rec_norm.std()
         Q_bar = Q_norm.mean()
         Q_std = Q_norm.std()
@@ -56,7 +54,7 @@ class Monitor(object):
         self.SNR_Norm[tt] = SNR_Norm
         self.y_bar[tt] = y_bar
         self.Cyy_bar[tt] = Cyy_bar
-	self.X_norm_bar[tt] = X_norm_bar
+        self.X_norm_bar[tt] = X_norm_bar
         self.X_rec_stats[tt,0] = X_rec_bar
         self.X_rec_stats[tt,1] = X_rec_std
         self.Q_stats[tt,0] = Q_bar
@@ -64,9 +62,8 @@ class Monitor(object):
         self.W_stats[tt,0] = W_bar
         self.W_stats[tt,1] = W_std
         self.theta_stats[tt,0] = theta_bar
-        self.theta_stats[tt,1] = theta_std        
-        self.mag_dW[tt] = self.learn.mag_dW[0]
+        self.theta_stats[tt,1] = theta_std   
+        self.tt = tt
     
     def cleanup(self):
         self.network = None
-        self.learn = None

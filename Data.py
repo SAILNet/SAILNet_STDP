@@ -9,8 +9,11 @@ import  h5py
 
 
 class Data(object):
-    def __init__(self, filename, num_images, batch_size, dim, start=0, seed=20150602):
-        self.rng = np.random.RandomState(seed)
+    def __init__(self, filename, num_images, batch_size, dim, start=0, seed_or_rng=20150602):
+        if isinstance(seed_or_rng,np.random.RandomState):
+            self.rng = seed_or_rng
+        else:            
+            self.rng = np.random.RandomState(seed_or_rng)
         self.batch_size = batch_size
         self.dim = dim
 

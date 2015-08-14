@@ -36,7 +36,5 @@ class Parameters():
         self.p = config.getfloat("NeuronParameters",'p')
         self.alpha = theano.shared(np.array(config.getfloat("LearningRates",'alpha')).astype('float32'))
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
-        self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))
-        self.M = self.OC*self.N        
-        
+        self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))        
         

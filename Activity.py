@@ -8,43 +8,13 @@ import numpy as np
 import theano
 import theano.tensor as T
 from theano.compat.python2x import OrderedDict
-
-class Activity():
-    
-    def get_acts(self,network):
-        
-        B = network.X.dot(network.Q)
-        Th = np.tile(network.theta,(network.parameters.batch_size,1))
-        Ys = np.zeros((network.parameters.batch_size,network.parameters.M))
-        Y = np.zeros((network.parameters.batch_size,network.parameters.M))
-        aas = np.zeros((network.parameters.batch_size,network.parameters.M))
-        spike_train = np.zeros((network.parameters.batch_size,network.parameters.M,network.parameters.num_iterations))
-        
-        num_iterations = 50
-
-        eta = .1
-        
-        for tt in xrange(num_iterations):
-            Ys = (1.-eta)*Ys+eta*(B-aas.dot(network.W))
-            aas = np.zeros((network.parameters.batch_size,network.parameters.M))
-            #This resets the current activity of the time step to 0's        
-            aas[Ys > Th] = 1.
-            #If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
-            
-            spike_train[:,:,tt]=aas
-            
-            Y += aas
-            Ys[Ys > Th] = 0.
-            
-        network.Y = Y
-        network.spike_train = spike_train
         
 class Activity_gpu():
     
     def __init__(self, network):
-	batch_size = network.parameters.batch_size
+        batch_size = network.parameters.batch_size
         num_iterations = network.parameters.num_iterations
-	M = network.parameters.M
+        M = network.parameters.M
         X = network.X
         Q = network.Q
         theta = network.theta

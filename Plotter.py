@@ -5,12 +5,10 @@ from utils import tile_raster_images
 import os
 from Activity import Activity_gpu as Activity
 from Data import Data
-from Parameters import Parameters
 
 class Plot():
     
     def __init__(self, directory):
-	self.parameters = Parameters(os.path.join(directory,'parameters.txt'))
         self.directory = directory
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
@@ -19,7 +17,8 @@ class Plot():
     def load_network(self):
         self.fileName = self.directory + '/data.pkl'
         with open(self.fileName,'rb') as f:
-            self.network, self.learning_rule, self.monitor = cPickle.load(f)
+            self.network, self.monitor, _ = cPickle.load(f)
+        self.parameters = self.network.parameters
             
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
@@ -58,8 +57,10 @@ class Plot():
         if network_Q != None:
             Q = network_Q.get_value()
             filenum = str(filenum)
+            function = ''
         else:
             Q = self.network.Q
+            function = self.network.parameters.function
             
         im_size, num_dict = Q.shape
 
@@ -71,7 +72,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.figure()
         plt.title('Receptive Fields' + filenum)
-        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+str(self.parameters.function)+filenum+'.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+'.png', img, cmap=plt.cm.Greys)
         
     def Plot_EXP_RF(self):
         Exp_RF = self.network.X.T.dot(self.network.Y)
@@ -97,6 +98,7 @@ class Plot():
         plt.title('Magnitude dW')
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Magnitude_dW.png')
+        plt.close()
         
     def PlotYavg(self):
         plt.figure(4)
@@ -104,13 +106,15 @@ class Plot():
         plt.title("Average Y")
         plt.xlabel("Number of Trials")
         plt.savefig(self.directory + '/Images/Yavg.png')
+        plt.close()
+
     
     def PlotCavg(self):
         plt.figure(5)
         plt.plot(self.monitor.Cyy_bar)
         plt.title("AverageY^2")
-        
         plt.savefig(self.directory + '/Images/Cavg.png')
+        plt.close()
         
     def PlotSNR(self):
         plt.figure(6)
@@ -118,13 +122,15 @@ class Plot():
         plt.title('Signal to Noise Ratio')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/SNR.png')
+        plt.close()
 
     def PlotSNR_Norm(self):
         plt.figure(22)
         plt.plot(self.monitor.SNR_Norm,'b')
         plt.title('Signal to Noise Ratio')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/SNR_Norm.png')        
+        plt.savefig(self.directory + '/Images/SNR_Norm.png')   
+        plt.close()
        
     def PlotQ(self):
         plt.figure(7)
@@ -137,6 +143,7 @@ class Plot():
         plt.title('Q Standard Deviation')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/Q_std.png')
+        plt.close()
 
     def PlotW(self):
         plt.figure(8)
@@ -149,6 +156,7 @@ class Plot():
         plt.title('W Standard Deviation')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/W_std.png')
+        plt.close()
         
     def PlotTheta(self):
         plt.figure(9)
@@ -161,6 +169,7 @@ class Plot():
         plt.title('Theta Standard Deviation')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/theta_std.png')
+        plt.close()
 
     def PlotX_rec(self):
         plt.figure(10)
@@ -173,6 +182,7 @@ class Plot():
         plt.title('Reconstructed Image (Y*Q) Standard Deviation')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/X_rec_std.png')
+        plt.close()
 
     def PlotX(self):
         plt.figure(16)
@@ -180,6 +190,7 @@ class Plot():
         plt.title('Image Norm Mean')
         plt.xlabel('Number of Trials')
         plt.savefig(self.directory + '/Images/X_norm_bar.png')
+        plt.close()
     
     def PlotInhibitHist(self):
         plt.figure(11)
@@ -196,6 +207,7 @@ class Plot():
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
         plt.savefig(self.directory + '/Images/InhibitHist.png')
+        plt.close()
         
     def PlotInh_vs_RF(self):
         plt.figure(12)
@@ -221,6 +233,7 @@ class Plot():
         #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
         plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
+        plt.close()
         
     def Plot_Rate_Hist(self):
         rates = np.mean(self.network.Y,axis = 0)
@@ -232,6 +245,7 @@ class Plot():
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         plt.savefig(self.directory + '/Images/RateHist.png') 
+        plt.close()
      
     def Plot_Rate_Hist_LC(self):
         self.validation_data(1/3.)        
@@ -244,6 +258,7 @@ class Plot():
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         plt.savefig(self.directory + '/Images/RateHistLC.png') 
+        plt.close()
 
     def Plot_Rate_Corr(self):
         Y = self.network.Y
@@ -256,6 +271,7 @@ class Plot():
         plt.xlabel("Rate Correlation")
         plt.ylabel("PDF")
         plt.savefig(self.directory + '/Images/RateCorrHist.png') 
+        plt.close()
         
     def RasterPlot(self):
         
@@ -300,7 +316,6 @@ class Plot():
         
     def PlotAll(self):
         plt.figure(self.Plot_RF())
-        plt.figure(self.PlotdW())
         plt.figure(self.PlotCavg())
         plt.figure(self.PlotYavg())
         plt.figure(self.PlotSNR())

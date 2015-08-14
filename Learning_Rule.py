@@ -43,7 +43,7 @@ class Learning_Rule_gpu(Learning_Rule):
         
         dW = dW_Rule.calc_dW()
         
-        mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+        #mag_dW = T.sqrt(T.sum(T.sqr(dW)))
 
         W = W+dW
         W = W - T.diag(T.diag(W))
@@ -70,10 +70,11 @@ class Learning_Rule_gpu(Learning_Rule):
         updates[network.W] = W
         updates[network.theta] = theta
         
-        self.f = theano.function([], [mag_dW], updates=updates)
+        self.f = theano.function([], [], updates=updates)
         
     def Update(self):
-        self.mag_dW = self.f()
+        self.network.next_trial()
+        self.f()
         
 "SAILNet Rule and Time Dependent Rules for dW"
         
