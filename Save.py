@@ -4,9 +4,7 @@ Created on Tue Aug 11 16:31:40 2015
 
 @author: bernal
 """
-import cPickle
-import os,shutil
-import argparse
+import argparse, cPickle, os, shutil
 from Plotter import Plot
 from Learning_Rule import Learning_Rule
 from Parameters import Parameters
@@ -48,8 +46,11 @@ def make_subfolder(directory,comments):
 
 
 def make_pkl(directory,network,monitor,data_rng):
-    with open(directory +'/data.pkl','wb') as f:
+    temp_file = os.path.join(directory, 'data_temp.pkl')
+    final_file = os.path.join(directory, 'data.pkl')
+    with open(temp_file,'wb') as f:
         cPickle.dump((network,monitor,data_rng),f)
+    shutil.move(temp_file, final_file)
     
 def load_model():    
     parameters = Parameters('sailnet_parameters.txt')          
