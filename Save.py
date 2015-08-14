@@ -84,7 +84,7 @@ def load_model():
     monitor = Monitor(network)
     activity = Activity(network)
     data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
-            35,
+            parameters.num_images,
             parameters.batch_size,
             parameters.N,
             **kwargs)

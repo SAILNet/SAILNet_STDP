@@ -28,6 +28,7 @@ class Parameters():
         self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
+        self.num_images = config.getint("Parameters",'num_images')
         self.num_trials = config.getint("Parameters",'num_trials')
         self.num_iterations = config.getint("Parameters",'num_iterations')
         self.reduced_learning_rate = np.array(config.getfloat("Parameters",'reduced_learning_rate')).astype('float32')
