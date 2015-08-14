@@ -12,10 +12,10 @@ while network.continue_learning():
     #total_time += time.time()- start
     learn.ReduceLearning(tt)
     
-    if tt%50 == 0 and tt != 0:
+    if (tt+1)%50 == 0:
         print('Batch: '+str(tt)+' out of '+ str(parameters.num_trials))
     
-    if tt%500 == 0 and tt != 0:
+    if (tt+1)%500 == 0:
         plotter.Plot_RF(network_Q = network.Q,filenum = tt)
                 
 #print('Time:' + str(total_time))

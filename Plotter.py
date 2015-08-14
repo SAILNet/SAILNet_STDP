@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 import os
-from Activity import Activity_gpu as Activity
+from Activity import Activity
 from Data import Data
 
 class Plot():
@@ -26,7 +26,7 @@ class Plot():
         batch_size = 50000
         parameters = self.network.parameters
 
-        data = Data('/home/jesse/Development/data/vanhateren/whitened_images.h5',
+        data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
             parameters.N,

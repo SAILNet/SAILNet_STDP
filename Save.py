@@ -17,9 +17,12 @@ from Monitor import Monitor
 
 def make_folder(parameters):
     saveAttempt = 0
-    while os.path.exists('./Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)):
+    base_dir = os.path.join(os.environ['OUTPUT_PATH'],
+                            'Trials',
+                            str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_')
+    while os.path.exists(base_dir + str(saveAttempt)):
         saveAttempt += 1
-    directory = './Trials/' +str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_' + str(saveAttempt)
+    directory = base_dir + str(saveAttempt)
     os.makedirs(directory) 
     
     return directory    
