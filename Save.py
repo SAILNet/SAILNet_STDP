@@ -8,10 +8,10 @@ import cPickle
 import os,shutil
 import argparse
 from Plotter import Plot
-from Learning_Rule import Learning_Rule_gpu as Learning_Rule
+from Learning_Rule import Learning_Rule
 from Parameters import Parameters
-from Network import Network_gpu as Network
-from Activity import Activity_gpu as Activity
+from Network import Network 
+from Activity import Activity
 from Data import Data
 from Monitor import Monitor
 

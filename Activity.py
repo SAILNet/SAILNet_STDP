@@ -4,12 +4,11 @@ Created on Mon Mar 09 23:28:22 2015
 
 @author: Greg
 """
-import numpy as np
 import theano
 import theano.tensor as T
 from theano.compat.python2x import OrderedDict
         
-class Activity_gpu():
+class Activity():
     
     def __init__(self, network):
         batch_size = network.parameters.batch_size
