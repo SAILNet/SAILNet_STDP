@@ -28,7 +28,6 @@ def make_folder(parameters):
     return directory    
     
 def make_subfolder(directory,comments):
-    print directory
     dirnames = []
     for d,ds,fs in os.walk(directory):
         dirnames = sorted(ds)
