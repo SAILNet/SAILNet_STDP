@@ -5,13 +5,13 @@ Created on Tue Aug 11 16:31:40 2015
 @author: bernal
 """
 import argparse, cPickle, os, shutil
-from Plotter import Plot
-from Learning_Rule import Learning_Rule
-from Parameters import Parameters
-from Network import Network 
-from Activity import Activity
-from Data import Data
-from Monitor import Monitor
+from plotter import Plot
+from learning_rule import Learning_Rule
+from parameters import Parameters
+from network import Network 
+from activity import Activity
+from data import Data
+from monitor import Monitor
 
 def make_folder(parameters):
     saveAttempt = 0
@@ -80,6 +80,10 @@ def load_model():
         kwargs['seed_or_rng'] = data_rng
         network.to_gpu()
         network.current_trial = 0
+        for attr in ['rule', 'function']:
+            if getattr(network.parameters, attr) != getattr(parameters, attr):
+                raise ValueError('Value of '+attr+' has changed.')
+        network.parameters = parameters
     else:
         network = Network(parameters)
         directory = make_folder(parameters)

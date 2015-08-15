@@ -28,7 +28,3 @@ save.make_pkl(directory,network,monitor,data.rng)
 
 plotter.load_network()
 plotter.PlotAll()
-    
-    
-        
-    
