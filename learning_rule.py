@@ -19,11 +19,15 @@ class Abs_Learning_Rule(object):
         raise NotImplementedError
 
     def ReduceLearning(self,tt):
-        network = self.network
+        parameters = self.network.parameters
+        reduced_learning_rate = parameters.reduced_learning_rate
         if tt >= 5000:
-            network.parameters.gamma.set_value(network.parameters.gamma.get_value()*network.parameters.reduced_learning_rate)
-            network.parameters.beta.set_value(network.parameters.beta.get_value()*network.parameters.reduced_learning_rate)
-            network.parameters.alpha.set_value(network.parameters.alpha.get_value()*network.parameters.reduced_learning_rate)
+            parameters.gamma.set_value(parameters.gamma.get_value() *
+                                       reduced_learning_rate)
+            parameters.beta.set_value(parameters.beta.get_value() *
+                                      reduced_learning_rate)
+            parameters.alpha.set_value(parameters.alpha.get_value() *
+                                       reduced_learning_rate)
             
 class Learning_Rule(Abs_Learning_Rule):
     
