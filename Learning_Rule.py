@@ -123,7 +123,7 @@ class dW_time_dep(Abs_dW):
     
     def __init__(self,network):
         super(dW_time_dep,self).__init__(network)
-        self.time_dep = time_matrix(str_to_fnc[network.parameters.function],self.network.parameters.num_iterations)
+        network.time_dep = time_matrix(str_to_fnc[network.parameters.function],self.network.parameters.num_iterations)
         
     def calc_dW(self):
         spike_train = self.network.spike_train
@@ -134,9 +134,9 @@ class dW_time_dep(Abs_dW):
         dW =  T.zeros_like(self.network.W).astype('float32')
         
         P = p*np.ones(num_iterations,dtype= 'float32')
-        min_constant = np.dot(P,np.dot(self.time_dep.get_value(),P))/num_iterations**2
+        min_constant = np.dot(P,np.dot(network.time_dep.get_value(),P))/num_iterations**2
         
-        dW = T.tensordot(spike_train,self.time_dep,axes=([2],[0]))
+        dW = T.tensordot(spike_train,network.time_dep,axes=([2],[0]))
         dW = T.tensordot(dW, spike_train,axes=([0,2],[0,2]))        
         #for batch in xrange(batch_size):
         #    dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
@@ -146,7 +146,7 @@ class dW_time_dep(Abs_dW):
         
         dW = dW.astype('float32')
 
-        return dW#,self.time_dep
+        return dW
         
 str_to_dW = {'dW_SAILnet': dW_SAILnet,
              'dW_identity': dW_identity,
@@ -201,10 +201,30 @@ def Gaussian(i,j):
     std = 5
     dt = i-j
     return np.exp(-0.5*(dt/std)**2)
-    
-    
+
+def Negative(i,j):
+    return -1
+
+def Linear(i,j):
+    dt = i-j
+    width = 15.
+    if abs(dt) <= width:
+        return dt/width
+    else:
+        return 0
+
+def Double_Gaussian(i,j):
+    std = 1
+    off_set = 5
+    dt = i-j
+    return np.exp(-0.5*((dt+off_set)/std)**2)+ np.exp(-0.5*((dt-off_set)/std)**2)
+
+   
 str_to_fnc = {'STDP': STDP,
               'Unit': Unit,
               'Step': Step,
               'Well': Well,
-              'Gaussian': Gaussian}        
+              'Gaussian': Gaussian,
+              'Negative': Negative,
+              'Linear': Linear,
+              'Double_Gaussian':Double_Gaussian}        

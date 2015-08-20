@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 import os
-from Activity import Activity_gpu as Activity
+from Activity import Activity
 from Data import Data
 
 class Plot():
@@ -72,7 +72,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         plt.figure()
         plt.title('Receptive Fields' + filenum)
-        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+'.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         
     def Plot_EXP_RF(self):
         Exp_RF = self.network.X.T.dot(self.network.Y)
@@ -308,7 +308,6 @@ class Plot():
         spikes = self.network.spike_train
         for batch in range(len(spikes[:,0,0])):
             S = spikes[batch,:,:]
-            print batch
             R,C = np.nonzero(S)
             N,I = np.unique(R,return_index =True)
             latest_spike = np.append(latest_spike,max(C[I]))
@@ -338,4 +337,5 @@ if __name__ == "__main__":
     directory = sys.argv[1]
     plotter = Plot(directory)
     plotter.load_network()
-    plotter.PlotAll()
+    print(plotter.find_last_spike())
+    #plotter.PlotAll()

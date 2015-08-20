@@ -35,7 +35,8 @@ class Network():
             self.spike_train = theano.shared(np.zeros((parameters.batch_size,
                                                        parameters.M,
                                                        parameters.num_iterations)).astype('float32'))
-        
+            self.time_dep = theano.shared(np.zeros((parameters.num_iterations,parameters.num_iterations)),astype('float32'))
+
     def continue_learning(self):
         if self.current_trial < self.parameters.num_trials:
             return True

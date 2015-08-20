@@ -14,6 +14,49 @@ from Network import Network
 from Activity import Activity
 from Data import Data
 from Monitor import Monitor
+    
+def load_model():    
+    parameters = Parameters('sailnet_parameters.txt')          
+
+    parser = argparse.ArgumentParser(description='Process Parameters')
+    parser.add_argument('-f','--folder')                
+    parser.add_argument('dW_rule',nargs='?',choices = ['dW_SAILnet','dW_identity','dW_time_dep'],default = parameters.rule)
+    parser.add_argument('function',nargs ='?',choices = ['None','Unit','Step','Well','Gaussian','STDP','Negative','Linear','Double_Gaussian'],default= parameters.function)
+    parser.add_argument('-n','--num_trials',default=parameters.num_trials,type=int)
+    parser.add_argument('--OC',default=parameters.OC,type=int)
+    parser.add_argument('-c','--comments',default='None')
+    args = parser.parse_args()
+    parameters.OC = args.OC
+    parameters.M = parameters.N*parameters.OC
+    parameters.num_trials = args.num_trials
+    parameters.rule = args.dW_rule
+    parameters.function = args.function
+    parameters.keep_spikes()
+    kwargs = {}
+    if args.folder != None:
+        os.path.exists(args.folder)
+        prev,directory = make_subfolder(args.folder,args.comments)
+        with open(os.path.join(prev,'data.pkl'),'rb') as f:
+            network,_,data_rng = cPickle.load(f)
+        kwargs['seed_or_rng'] = data_rng
+        network.to_gpu()
+        network.current_trial = 0
+    else:
+        network = Network(parameters)
+        directory = make_folder(parameters)
+        prev, directory = make_subfolder(directory,args.comments)
+    
+    learn = Learning_Rule(network,parameters.rule)    
+    monitor = Monitor(network)
+    activity = Activity(network)
+    data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            35,
+            parameters.batch_size,
+            parameters.N,
+            **kwargs)
+    plotter = Plot(directory)
+    
+    return activity,data,directory,learn,monitor,network,parameters,plotter
 
 def make_folder(parameters):
     saveAttempt = 0
@@ -46,45 +89,4 @@ def make_subfolder(directory,comments):
 def make_pkl(directory,network,monitor,data_rng):
     with open(directory +'/data.pkl','wb') as f:
         cPickle.dump((network,monitor,data_rng),f)
-    
-def load_model():    
-    parameters = Parameters('sailnet_parameters.txt')          
 
-    parser = argparse.ArgumentParser(description='Process Parameters')
-    parser.add_argument('-f','--folder')                
-    parser.add_argument('dW_rule',nargs='?',choices = ['dW_SAILnet','dW_identity','dW_time_dep'],default = parameters.rule)
-    parser.add_argument('function',nargs ='?',choices = ['None','Unit','Step','Well','Gaussian','STDP'],default= parameters.function)
-    parser.add_argument('-n','--num_trials',default=parameters.num_trials,type=int)
-    parser.add_argument('--OC',default=parameters.OC,type=int)
-    parser.add_argument('-c','--comments',default='None')
-    args = parser.parse_args()
-    parameters.OC = args.OC
-    parameters.M = parameters.N*parameters.OC
-    parameters.num_trials = args.num_trials
-    parameters.rule = args.dW_rule
-    parameters.function = args.function
-    kwargs = {}
-    if args.folder != None:
-        os.path.exists(args.folder)
-        prev,directory = make_subfolder(args.folder,args.comments)
-        with open(os.path.join(prev,'data.pkl'),'rb') as f:
-            network,_,data_rng = cPickle.load(f)
-        kwargs['seed_or_rng'] = data_rng
-        network.to_gpu()
-        network.current_trial = 0
-    else:
-        network = Network(parameters)
-        directory = make_folder(parameters)
-        prev, directory = make_subfolder(directory,args.comments)
-    
-    learn = Learning_Rule(network,parameters.rule)    
-    monitor = Monitor(network)
-    activity = Activity(network)
-    data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
-            35,
-            parameters.batch_size,
-            parameters.N,
-            **kwargs)
-    plotter = Plot(directory)
-    
-    return activity,data,directory,learn,monitor,network,parameters,plotter
