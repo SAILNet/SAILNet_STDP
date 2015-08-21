@@ -205,15 +205,16 @@ class Plot():
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log(W_flat)/np.log(10)
-        num, bin_edges = np.histogram(W_flat,range = (-6,2), bins = 100, density = True)
+        num, bin_edges = np.histogram(W_flat, bins = 100, density = True)
         bin_edges = bin_edges[1:]
         bin_edges = 10**bin_edges
         plt.semilogx(bin_edges,num,'o')
         plt.ylim(0,0.9)
         plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Inhibitory Strength Histogram')        
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
-        plt.savefig(self.directory + '/Images/InhibitHist.png')
+        plt.savefig(self.directory + '/Images/InhibitHist.pdf')
         plt.close(fig)
         
     def PlotInh_vs_RF(self):
@@ -226,47 +227,42 @@ class Plot():
             Overlap = RF_overlap[pair[0]][pair[1]]
             RF_sample = np.append(RF_sample, np.array([Overlap]))
             w1 = self.network.W[pair[0]][pair[1]]
-            #w2 = self.network.W[pair[1]][pair[0]]
-            #w_avg = (w1+w2)/2
             W_sample = np.append(W_sample,np.array([w1]))
-        #zeros = np.nonzero(W_sample == 0) #Locates zeros
-        #W_sample = np.delete(W_sample, zeros) #Deletes Zeros
-        #RF_sample = np.delete(RF_sample,zeros)
-        #W_sample = np.log(W_sample)/np.log(10)
-        plt.xlim(10**-3,10**1.5)
+        #plt.xlim(10**-3,10**1.5)
         plt.semilogx(W_sample, RF_sample, '.')
         plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Inhibitory Connection Str vs RF Overlap')
         plt.xlabel("Inhibitory Connection Strength")
         #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
-        plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.png')
+        plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.pdf')
         plt.close(fig)
         
     def Plot_Rate_Hist(self):
         fig = plt.figure()
         rates = np.mean(self.network.Y,axis = 0)
-        num, bin_edges = np.histogram(rates,range = (0.025,0.08), bins = 50)
+        num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
         plt.plot(bin_edges,num,'o')
         #lt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHist.png') 
+        plt.savefig(self.directory + '/Images/RateHist.pdf') 
         plt.close(fig)
      
     def Plot_Rate_Hist_LC(self):
         fig = plt.figure()
         self.validation_data(1/3.)        
         rates = np.mean(self.network.Y,axis = 0)
-        num, bin_edges = np.histogram(rates,range = (0.025,0.08), bins = 50)
+        num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
         plt.plot(bin_edges,num,'o')
         #plt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHistLC.png') 
+        plt.savefig(self.directory + '/Images/RateHistLC.pdf') 
         plt.close(fig)
 
     def Plot_Rate_Corr(self):
@@ -275,12 +271,12 @@ class Plot():
         corrcoef = np.corrcoef(Y,rowvar = 0)
         corrcoef = corrcoef - np.diag(np.diag(corrcoef))
         corrcoef = np.ravel(corrcoef) #Flattens array
-        plt.hist(corrcoef,bins = 50,range = (-0.05,0.05),normed= True)
+        plt.hist(corrcoef,bins = 50,normed= True)
         #plt.ylim(0,300)
         #plt.gcf().subplots_adjust(bottom=0.15)
         plt.xlabel("Rate Correlation")
         plt.ylabel("PDF")
-        plt.savefig(self.directory + '/Images/RateCorrHist.png') 
+        plt.savefig(self.directory + '/Images/RateCorrHist.pdf') 
         plt.close(fig)
         
     def RasterPlot(self):
@@ -347,5 +343,10 @@ if __name__ == "__main__":
     directory = sys.argv[1]
     plotter = Plot(directory)
     plotter.load_network()
-    print(plotter.find_last_spike())
+    plotter.validation_data()
     #plotter.PlotAll()
+    plotter.PlotInhibitHist()
+    plotter.PlotInh_vs_RF()
+    plotter.Plot_Rate_Hist()
+    plotter.Plot_Rate_Corr()
+    plotter.Plot_Rate_Hist_LC()    

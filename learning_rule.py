@@ -138,9 +138,9 @@ class dW_time_dep(Abs_dW):
         dW =  T.zeros_like(self.network.W).astype('float32')
         
         P = p*np.ones(num_iterations,dtype= 'float32')
-        min_constant = np.dot(P,np.dot(network.time_dep.get_value(),P))/num_iterations**2
+        min_constant = np.dot(P,np.dot(self.network.time_dep.get_value(),P))/num_iterations**2
         
-        dW = T.tensordot(spike_train,network.time_dep,axes=([2],[0]))
+        dW = T.tensordot(spike_train,self.network.time_dep,axes=([2],[0]))
         dW = T.tensordot(dW, spike_train,axes=([0,2],[0,2]))        
         #for batch in xrange(batch_size):
         #    dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
