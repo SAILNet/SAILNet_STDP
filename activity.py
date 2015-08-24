@@ -13,6 +13,7 @@ class Activity():
     def __init__(self, network):
         batch_size = network.parameters.batch_size
         num_iterations = network.parameters.num_iterations
+        norm_infer = network.parameters.norm_infer
         M = network.parameters.M
         X = network.X
         Q = network.Q
@@ -33,7 +34,10 @@ class Activity():
         eta = .1
 
         for tt in xrange(num_iterations):
-            Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
+            if norm_infer:
+                Ys = (1.-eta*Q_norm)*Ys+eta*(B-aas.dot(W))
+            else:
+                Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
             aas = 0.*aas
             #This resets the current activity of the time step to 0's        
             aas = T.switch(Ys > Th, 1., aas)

@@ -8,6 +8,7 @@ num_images: 35
 num_trials: 200
 num_iterations: 50
 reduced_learning_rate: .9995
+norm_infer: False
 
 [NeuronParameters]
 N: 256
