@@ -89,6 +89,8 @@ def load_model():
         network = Network(parameters)
         directory = make_folder(parameters)
         prev, directory = make_subfolder(directory,args.comments)
+    print(network.parameters.rule)
+    print(network.parameters.function)
     
     learn = Learning_Rule(network,parameters.rule)    
     monitor = Monitor(network)

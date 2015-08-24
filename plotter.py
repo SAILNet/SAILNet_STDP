@@ -199,12 +199,12 @@ class Plot():
         plt.savefig(self.directory + '/Images/X_norm_bar.png')
         plt.close(fig)
     
-    def PlotInhibitHist(self):
+    def PlotInhibitHistLogX(self):
         fig = plt.figure()
         W_flat = np.ravel(self.network.W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        W_flat = np.log(W_flat)/np.log(10)
+        W_flat = np.log10(W_flat)
         num, bin_edges = np.histogram(W_flat, bins = 100, density = True)
         bin_edges = bin_edges[1:]
         bin_edges = 10**bin_edges
@@ -214,6 +214,37 @@ class Plot():
         plt.title('Inhibitory Strength Histogram')        
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF log(connection strength)")
+        plt.savefig(self.directory + '/Images/InhibitHistLogX.pdf')
+        plt.close(fig)
+        
+    def PlotInhibitHistLogY(self):
+        fig = plt.figure()
+        W_flat = np.ravel(self.network.W) #Flattens array
+        zeros = np.nonzero(W_flat == 0) #Locates zeros
+        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
+        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins = 100, density = True)
+        bin_edges = bin_edges[1:]
+        plt.semilogy(bin_edges,num,'o')
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Inhibitory Strength Histogram')        
+        plt.xlabel("Inhibitory Connection Strength")
+        plt.ylabel("PDF log(connection strength)")
+        plt.savefig(self.directory + '/Images/InhibitHistLogY.pdf')
+        plt.close(fig)
+        
+    def PlotInhibitHist(self):
+        fig = plt.figure()
+        W = self.network.W - np.diag(np.diag(self.network.W))
+        W_flat = np.ravel(W) #Flattens array
+        zeros = np.nonzero(W_flat == 0) #Locates zeros
+        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
+        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins = 500,density=True)
+        bin_edges = bin_edges[1:]
+        plt.plot(bin_edges,num,'o')
+        plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Inhibitory Strength Histogram')        
+        plt.xlabel("Inhibitory Connection Strength")
+        plt.ylabel("PDF connection strength")
         plt.savefig(self.directory + '/Images/InhibitHist.pdf')
         plt.close(fig)
         
@@ -330,6 +361,8 @@ class Plot():
         self.PlotW()
         self.PlotTheta()
         self.PlotX()
+        self.PlotInhibitHistLogX() 
+        self.PlotInhibitHistLogY()
         self.PlotInhibitHist()
         self.PlotInh_vs_RF()
         self.validation_data()
@@ -343,10 +376,4 @@ if __name__ == "__main__":
     directory = sys.argv[1]
     plotter = Plot(directory)
     plotter.load_network()
-    plotter.validation_data()
-    #plotter.PlotAll()
-    plotter.PlotInhibitHist()
-    plotter.PlotInh_vs_RF()
-    plotter.Plot_Rate_Hist()
-    plotter.Plot_Rate_Corr()
-    plotter.Plot_Rate_Hist_LC()    
+    plotter.PlotAll()   
