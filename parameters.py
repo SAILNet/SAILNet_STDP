@@ -8,7 +8,7 @@ import ConfigParser
 import numpy as np
 import theano
 
-spike_rules = ['dW_time_dep']
+spike_rules = ['dW_identity','dW_time_dep']
 
 class Parameters():
     
@@ -42,4 +42,10 @@ class Parameters():
         self.alpha = theano.shared(np.array(config.getfloat("LearningRates",'alpha')).astype('float32'))
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
         self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))        
-        
+
+    def keep_spikes(self):
+        if self.rule in spike_rules:
+            self.keep_spikes = True
+        else:
+            self.keep_spikes = False
+ 
