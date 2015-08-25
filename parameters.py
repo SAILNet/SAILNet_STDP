@@ -21,7 +21,7 @@ class Parameters():
         """
         
         self.dW_rule = config.get('LearningRule','dW_rule')
-        if self.rule in spike_rules:
+        if self.dW_rule in spike_rules:
             self.keep_spikes = True
         else:
             self.keep_spikes = False

@@ -13,11 +13,11 @@ from activity import Activity
 from data import Data
 from monitor import Monitor
 
-def make_folder(parameters):
+def make_folder(params):
     saveAttempt = 0
     base_dir = os.path.join(os.environ['OUTPUT_PATH'],
                             'Trials',
-                            str(parameters.rule)+ '_Func' + str(parameters.function) + '_Num'+ str(parameters.num_trials) + '_')
+                            str(params.dW_rule)+ '_Func' + str(params.function) + '_Num'+ str(params.num_trials) + '_')
     while os.path.exists(base_dir + str(saveAttempt)):
         saveAttempt += 1
     directory = base_dir + str(saveAttempt)
@@ -96,36 +96,42 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
         params = network_params
     else:
         params = file_params
-    parameters.OC = args.OC
-    parameters.M = parameters.N*parameters.OC
-    parameters.num_trials = args.num_trials
-    parameters.rule = args.dW_rule
-    parameters.function = args.function
+    params.OC = cmd_line_args.OC or params.OC
+    params.M = params.N*params.OC
+    params.num_trials = cmd_line_args.num_trials or params.num_trials
+    params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
+    params.function = cmd_line_args.function or params.function
+    return params
 
-def load_model():    
+def load_model():
     args = get_args()
     file_params = get_file_params()
     kwargs = {}
     if args.folder != None:
-        os.path.exists(args.folder)
+        assert os.path.exists(args.folder)
         prev, directory = make_subfolder(args.folder,args.comments)
         with open(os.path.join(prev,'data.pkl'),'rb') as f:
-            network,_,data_rng = cPickle.load(f)
+            network, _, data_rng = cPickle.load(f)
         kwargs['seed_or_rng'] = data_rng
         network.to_gpu()
         network.current_trial = 0
-        for attr in ['rule', 'function', 'norm_infer', 'OC', 'neurons', 'p']:
+        parameters = final_parameters(file_params,
+                                      cmd_line_args = args,
+                                      network_params = network.parameters)
+        for attr in ['dW_rule', 'function', 'norm_infer', 'OC', 'N', 'p']:
             if getattr(network.parameters, attr) != getattr(parameters, attr):
                 raise ValueError('Value of '+attr+' has changed.')
         network.parameters = parameters
     else:
+        parameters = final_parameters(file_params,
+                                      cmd_line_args=args)
         network = Network(parameters)
         directory = make_folder(parameters)
         prev, directory = make_subfolder(directory,args.comments)
 
     dump_parameters(directory, network.parameters)
     
-    learn = Learning_Rule(network,parameters.rule)    
+    learn = Learning_Rule(network,parameters.dW_rule)
     monitor = Monitor(network)
     activity = Activity(network)
     data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
