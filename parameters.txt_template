@@ -12,8 +12,10 @@ norm_infer: False
 
 [NeuronParameters]
 N: 256
-OC: 1
+OC1: 1
+OC2: 1
 p: .05
+n_layers: 1
 
 [LearningRates]
 alpha: 1.

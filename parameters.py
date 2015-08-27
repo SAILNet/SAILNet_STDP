@@ -36,8 +36,11 @@ class Parameters():
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
 
         self.N = config.getint("NeuronParameters",'N')
-        self.OC = config.getint("NeuronParameters",'OC')
+        self.OC1 = config.getint("NeuronParameters",'OC1')
+        self.OC2 = config.getint("NeuronParameters",'OC2')
         self.p = config.getfloat("NeuronParameters",'p')
+        self.n_layers = config.getint("NeuronParameters",'n_layers')
+        self.M = (self.N*self.OC1, self.N*self.OC2)
 
         self.alpha = theano.shared(np.array(config.getfloat("LearningRates",'alpha')).astype('float32'))
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))

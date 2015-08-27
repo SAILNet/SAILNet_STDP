@@ -85,8 +85,10 @@ def get_args():
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
 
     parser.add_argument('--neurons', default=None,type=int)
-    parser.add_argument('--OC', default=None,type=int)
+    parser.add_argument('--OC1', default=None,type=int)
+    parser.add_argument('--OC2', default=None,type=int)
     parser.add_argument('-p', default=None, type=float)
+    parser.add_argument('--n_layers', default=None, type=int)
 
     parser.add_argument('-c', '--comments', default='None')
 
@@ -100,8 +102,9 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
         params = network_params
     else:
         params = file_params
-    params.OC = cmd_line_args.OC or params.OC
-    params.M = params.N*params.OC
+    params.OC1 = cmd_line_args.OC1 or params.OC1
+    params.OC2 = cmd_line_args.OC2 or params.OC2
+    params.M = (params.N*params.OC1, params.N*params.OC2)
     params.num_trials = cmd_line_args.num_trials or params.num_trials
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
@@ -122,7 +125,7 @@ def load_model():
         parameters = final_parameters(file_params,
                                       cmd_line_args = args,
                                       network_params = network.parameters)
-        for attr in ['dW_rule', 'function', 'norm_infer', 'OC', 'N', 'p']:
+        for attr in ['dW_rule', 'function', 'norm_infer', 'OC1', 'OC2', 'N', 'p', 'n_layers']:
             if getattr(network.parameters, attr) != getattr(parameters, attr):
                 raise ValueError('Value of '+attr+' has changed.')
         network.parameters = parameters
