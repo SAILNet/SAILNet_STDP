@@ -209,7 +209,7 @@ def Gaussian(i,j):
 def Negative(i,j):
     return -1
 
-def Linear(i,j):
+def Linear15(i,j):
     dt = i-j
     width = 15.
     if abs(dt) <= width:
@@ -230,5 +230,5 @@ str_to_fnc = {'STDP': STDP,
               'Well': Well,
               'Gaussian': Gaussian,
               'Negative': Negative,
-              'Linear': Linear,
+              'Linear15': Linear15,
               'Double_Gaussian':Double_Gaussian}        

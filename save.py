@@ -45,7 +45,11 @@ def make_subfolder(directory,comments):
 def dump_parameters(path, parameters):
     with open(os.path.join(path, 'sailnet_parameters.pkl'),'wb') as f:
         cPickle.dump(parameters, f)
-
+    with open(os.path.join(path, 'sailnet_parameters.pkl'),'rb') as f:
+        parameters = cPickle.load(f)
+    with open(os.path.join(path, 'sailnet_parameters.txt'),'wt') as f:
+        f.write(str(parameters.__dict__))
+ 
 def make_pkl(directory,network,monitor,data_rng):
     temp_file = os.path.join(directory, 'data_temp.pkl')
     final_file = os.path.join(directory, 'data.pkl')
@@ -64,7 +68,7 @@ def get_args():
                         default=None)
     parser.add_argument('function',
                         nargs ='?',
-                        choices=['None','Unit','Step','Well','Gaussian','STDP'],
+                        choices=['None','Unit','Step','Well','Gaussian','STDP','Double_Gaussian','Linear15'],
                         default=None)
 
     parser.add_argument('-b', '--batch_size', default=None, type=int)
