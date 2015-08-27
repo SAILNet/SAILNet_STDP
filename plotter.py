@@ -6,6 +6,8 @@ import numpy as np
 from utils import tile_raster_images
 from activity import Activity
 from data import Data
+from matplotlib.backends.backend_pdf import PdfPages
+
 
 class Plot():
     
@@ -14,6 +16,7 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
             os.makedirs(self.directory+'/Images/RFs')
+        self.pp = PdfPages('plots.pdf')
             
     def load_network(self):
         self.fileName = self.directory + '/data.pkl'
@@ -73,7 +76,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Receptive Fields' + filenum)
-        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.pdf', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
     def Plot_EXP_RF(self):
@@ -92,111 +95,123 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Experimental Receptive Fields')
-        plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Exp_RF.pdf', img, cmap=plt.cm.Greys)
+        plt.close(fig)
+        
+    def plot_training_value(self, layer_num, channel):
+        fig = plt.figure()
+        plt.plot(self.monitor.channels[channel][layer_num])
+        plt.title(channel+' Layer '+str(layer_num))
+        plt.xlabel("Number of Trials")
+        self.pp.savefig()
+        plt.close(fig)
+        
+    def plot_training_mean_std(self, layer_num, channel):
+        fig = plt.figure()
+        mean = self.monitor.channels[channel][layer_num][:,0]
+        std = self.monitor.channels[channel][layer_num][:,1]
+        plt.plot(mean)
+        plt.fill_between(range(len(mean)),mean-std, mean+std,
+                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
+        plt.title(channel+' Layer '+str(layer_num))
+        plt.xlabel('Number of Trials')
+        self.pp.savefig()
         plt.close(fig)
     
-    def PlotdW(self):
+    def PlotdW(self, layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.mag_dW)
+        plt.plot(self.monitor.mag_dW[layer_num])
         plt.title('Magnitude dW')
         plt.xlabel("Number of Trials")
-        plt.savefig(self.directory + '/Images/Magnitude_dW.png')
+        self.pp.savefig()
         plt.close(fig)
         
-    def PlotYavg(self):
+    def PlotYavg(self, layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.y_bar)
+        plt.plot(self.monitor.y_bar[layer_num])
         plt.title("Average Y")
         plt.xlabel("Number of Trials")
-        plt.savefig(self.directory + '/Images/Yavg.png')
+        self.pp.savefig()
         plt.close(fig)
 
     
-    def PlotCavg(self):
+    def PlotCavg(self, layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.Cyy_bar)
+        plt.plot(self.monitor.Cyy_bar[layer_num])
         plt.title("AverageY^2")
-        plt.savefig(self.directory + '/Images/Cavg.png')
+        self.pp.savefig()
         plt.close(fig)
         
-    def PlotSNR(self):
+    def PlotSNR(self, layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.SNR,'g')
+        plt.plot(self.monitor.SNR[layer_num],'g')
         plt.title('Signal to Noise Ratio')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/SNR.png')
+        self.pp.savefig()
         plt.close(fig)
 
-    def PlotSNR_Norm(self):
+    def PlotSNR_Norm(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.SNR_Norm,'b')
-        plt.title('Signal to Noise Ratio')
+        plt.plot(self.monitor.SNR_Norm[layer_num],'b')
+        plt.title('Normalized Signal to Noise Ratio')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/SNR_Norm.png')   
+        self.pp.savefig()
         plt.close(fig)
        
-    def PlotQ(self):
+    def PlotQ(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.Q_stats[:,0])
+        mean = self.monitor.Q_stats[layer_num][:,0]
+        std = self.monitor.Q_stats[layer_num][:,1]
+        plt.plot(mean)
+        plt.fill_between(range(len(mean)),mean-std, mean+std,
+                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
         plt.title('Q Mean')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/Q_mean.png')
-        plt.close(fig)
-        fig = plt.figure()
-        plt.plot(self.monitor.Q_stats[:,1],'b')
-        plt.title('Q Standard Deviation')
-        plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/Q_std.png')
+        self.pp.savefig()
         plt.close(fig)
 
-    def PlotW(self):
+    def PlotW(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.W_stats[:,0],'g')
+        mean = self.monitor.W_stats[layer_num][:,0]
+        std = self.monitor.W_stats[layer_num][:,1]
+        plt.plot(mean)
+        plt.fill_between(range(len(mean)),mean-std, mean+std,
+                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
         plt.title('W Mean')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/W_mean.png')
-        plt.close(fig)
-        fig = plt.figure()
-        plt.plot(self.monitor.W_stats[:,1],'b')
-        plt.title('W Standard Deviation')
-        plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/W_std.png')
+        self.pp.savefig()
         plt.close(fig)
         
-    def PlotTheta(self):
+    def PlotTheta(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.theta_stats[:,0],'g')
+        mean = self.monitor.theta_stats[layer_num][:,0]
+        std = self.monitor.theta_stats[layer_num][:,1]
+        plt.plot(mean)
+        plt.fill_between(range(len(mean)),mean-std, mean+std,
+                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
         plt.title('Theta Mean')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/theta_mean.png')
-        plt.close(fig)
-        fig = plt.figure()
-        plt.plot(self.monitor.theta_stats[:,1],'b')
-        plt.title('Theta Standard Deviation')
-        plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/theta_std.png')
+        self.pp.savefig()
         plt.close(fig)
 
-    def PlotX_rec(self):
+    def PlotX_rec(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.X_rec_stats[:,0],'g')
+        mean = self.monitor.X_rec_stats[layer_num][:,0]
+        std = self.monitor.X_rec_stats[layer_num][:,1]
+        plt.plot(mean)
+        plt.fill_between(range(len(mean)),mean-std, mean+std,
+                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
         plt.title('Reconstructed Image (Y*Q) Mean')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/X_rec_mean.png')
-        plt.close(fig)
-        fig = plt.figure()
-        plt.plot(self.monitor.X_rec_stats[:,1],'b')
-        plt.title('Reconstructed Image (Y*Q) Standard Deviation')
-        plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/X_rec_std.png')
+        self.pp.savefig()
         plt.close(fig)
 
-    def PlotX(self):
+    def PlotX(self,layer_num):
         fig = plt.figure()
-        plt.plot(self.monitor.X_norm_bar,'b')
+        plt.plot(self.monitor.X_norm_bar[layer_num],'b')
         plt.title('Image Norm Mean')
         plt.xlabel('Number of Trials')
-        plt.savefig(self.directory + '/Images/X_norm_bar.png')
+        self.pp.savefig()
         plt.close(fig)
     
     def PlotInhibitHistLogX(self):
@@ -211,10 +226,10 @@ class Plot():
         plt.semilogx(bin_edges,num,'o')
         plt.ylim(0,0.9)
         plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Strength Histogram')        
-        plt.xlabel("Inhibitory Connection Strength")
+        plt.title('Inhibitory Strength Histogram Log X')        
+        plt.xlabel("log(Inhibitory Connection Strength)")
         plt.ylabel("PDF log(connection strength)")
-        plt.savefig(self.directory + '/Images/InhibitHistLogX.pdf')
+        self.pp.savefig()
         plt.close(fig)
         
     def PlotInhibitHistLogY(self):
@@ -226,10 +241,10 @@ class Plot():
         bin_edges = bin_edges[1:]
         plt.semilogy(bin_edges,num,'o')
         plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Strength Histogram')        
+        plt.title('Inhibitory Strength Histogram Log Y')        
         plt.xlabel("Inhibitory Connection Strength")
-        plt.ylabel("PDF log(connection strength)")
-        plt.savefig(self.directory + '/Images/InhibitHistLogY.pdf')
+        plt.ylabel("log (PDF connection strength)")
+        self.pp.savefig()
         plt.close(fig)
         
     def PlotInhibitHist(self):
@@ -245,7 +260,7 @@ class Plot():
         plt.title('Inhibitory Strength Histogram')        
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF connection strength")
-        plt.savefig(self.directory + '/Images/InhibitHist.pdf')
+        self.pp.savefig()
         plt.close(fig)
         
     def PlotInh_vs_RF(self):
@@ -266,7 +281,7 @@ class Plot():
         plt.xlabel("Inhibitory Connection Strength")
         #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
-        plt.savefig(self.directory + '/Images/Inhibitory_vs_RF.pdf')
+        self.pp.savefig()
         plt.close(fig)
         
     def Plot_Rate_Hist(self):
@@ -277,9 +292,10 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #lt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Rate Histogram')
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHist.pdf') 
+        self.pp.savefig()
         plt.close(fig)
      
     def Plot_Rate_Hist_LC(self):
@@ -291,9 +307,10 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #plt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Low Contrast Rate Histogram')
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        plt.savefig(self.directory + '/Images/RateHistLC.pdf') 
+        self.pp.savefig()
         plt.close(fig)
 
     def Plot_Rate_Corr(self):
@@ -305,9 +322,10 @@ class Plot():
         plt.hist(corrcoef,bins = 50,normed= True)
         #plt.ylim(0,300)
         #plt.gcf().subplots_adjust(bottom=0.15)
+        plt.title('Correlation PDF')
         plt.xlabel("Rate Correlation")
         plt.ylabel("PDF")
-        plt.savefig(self.directory + '/Images/RateCorrHist.pdf') 
+        self.pp.savefig()
         plt.close(fig)
         
     def RasterPlot(self):
@@ -351,25 +369,22 @@ class Plot():
         return latest_spike
         
     def PlotAll(self):
-        self.Plot_RF()
-        self.PlotCavg()
-        self.PlotYavg()
-        self.PlotSNR()
-        self.PlotSNR_Norm()
-        self.PlotX_rec()
-        self.PlotQ()
-        self.PlotW()
-        self.PlotTheta()
-        self.PlotX()
-        self.PlotInhibitHistLogX() 
-        self.PlotInhibitHistLogY()
-        self.PlotInhibitHist()
-        self.PlotInh_vs_RF()
-        self.validation_data()
-        self.Plot_EXP_RF()
-        self.Plot_Rate_Hist()
-        self.Plot_Rate_Corr()
-        self.Plot_Rate_Hist_LC()
+        for layer in range(self.network.n_layers):
+            self.Plot_RF()
+            for channel in self.monitor.value_channels:
+                plot_training_values(layer, channel)
+            for channel in self.monitor.mean_std_channels:
+                plot_training_mean_std(layer, channel)
+
+            self.PlotInhibitHistLogX() 
+            self.PlotInhibitHistLogY()
+            self.PlotInhibitHist()
+            self.PlotInh_vs_RF()
+            self.validation_data()
+            self.Plot_EXP_RF()
+            self.Plot_Rate_Hist()
+            self.Plot_Rate_Corr()
+            self.Plot_Rate_Hist_LC()
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ class Network():
         nin = (parameters.N,)+parameters.M
         nout = parameters.M
 
-        for ii in self.n_layers:
+        for ii in range(self.n_layers):
             in_dim = nin[ii]
             out_dim = nout[ii]
             Q = rng.randn(in_dim,out_dim)
@@ -52,7 +52,7 @@ class Network():
                 self.spike_train += (theano.shared(np.zeros((parameters.batch_size,
                                                            out_dim,
                                                            parameters.num_iterations)).astype('float32')),)
-                self.time_dep += (theano.shared(np.zeros((parameters.num_iterations
+                self.time_dep += (theano.shared(np.zeros((parameters.num_iterations,
                                                           parameters.num_iterations)).astype('float32')),)
 
     def continue_learning(self):
