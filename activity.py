@@ -32,10 +32,7 @@ class Activity():
             
             Q_norm = (Q*Q).sum(axis=0, keepdims=True)
     
-            if layer == 0:
-                B = X.dot(Q)
-            else:
-                B = Y.dot(Q)
+            B = X.dot(Q)
             Th = theta.dimshuffle('x', 0)
     
             eta = .1
@@ -57,8 +54,11 @@ class Activity():
                 Y += aas
                 #update total activity
                 Ys = T.switch(Ys > Th, 0., Ys)
-
+            
+            #Setting input of next layer to spikes of current one
+            X = Y
             updates[network.Y[layer]] = Y
+            
             if keep_spikes:
                 updates[network.spike_train] = spike_train
         
