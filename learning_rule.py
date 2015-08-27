@@ -34,45 +34,50 @@ class Learning_Rule(Abs_Learning_Rule):
     def __init__(self, network, dW_rule):
         self.network = network
         parameters = network.parameters
-        Y = network.Y
+        updates = OrderedDict()
         X = network.X
-        Q = network.Q
-        W = network.W
-        theta = network.theta
-        p = parameters.p
         beta = parameters.beta
         gamma = parameters.gamma
         batch_size = parameters.batch_size
-        dW_Rule = str_to_dW[dW_rule](network)
+        p = parameters.p
         
-        dW = dW_Rule.calc_dW()
-        
-        #mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+        for layer_num in range(network.n_layers):
+            Y = network.Y[layer_num]
+            Q = network.Q[layer_num]
+            W = network.W[layer_num]
+            theta = network.theta[layer_num]
 
-        W = W+dW
-        W = W - T.diag(T.diag(W))
-        W = T.switch(W < 0.,0.,W)
-        
-        """
-        Calculate Change in Feed-Forward Weights dQ
-        """        
-        square_act = T.sum(Y*Y,axis=0)
-        mymat = T.diag(square_act)
-        dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-        Q = Q+dQ
-
-        
-        """
-        Calculate Change in Threshold Weights dtheta
-        """        
-        muy = Y.mean(axis=0)
-        dtheta = gamma*(muy - p)
-        theta = (theta+dtheta).astype('float32')
-
-        updates = OrderedDict()
-        updates[network.Q] =Q
-        updates[network.W] = W
-        updates[network.theta] = theta
+            dW_Rule = str_to_dW[dW_rule](network)
+            
+            dW = dW_Rule.calc_dW(layer_num)
+            
+            #mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+    
+            W = W+dW
+            W = W - T.diag(T.diag(W))
+            W = T.switch(W < 0.,0.,W)
+            
+            """
+            Calculate Change in Feed-Forward Weights dQ
+            """        
+            square_act = T.sum(Y*Y,axis=0)
+            mymat = T.diag(square_act)
+            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+            Q = Q+dQ    
+            
+            """
+            Calculate Change in Threshold Weights dtheta
+            """        
+            muy = Y.mean(axis=0)
+            dtheta = gamma*(muy - p)
+            theta = (theta+dtheta).astype('float32')
+    
+            updates[network.Q[layer_num]] =Q
+            updates[network.W[layer_num]] = W
+            updates[network.theta[layer_num]] = theta            
+            
+            #Setting input of next layer to spikes of current one
+            X = Y
         
         self.f = theano.function([], [], updates=updates)
         
@@ -89,9 +94,9 @@ class Abs_dW(object):
 
 class dW_SAILnet(Abs_dW):
     
-    def calc_dW(self):
+    def calc_dW(self,layer_num):
         
-        Y = self.network.Y
+        Y = self.network.Y[layer_num]
         alpha = self.network.parameters.alpha
         batch_size = self.network.parameters.batch_size
         p = self.network.parameters.p
@@ -105,8 +110,8 @@ class dW_SAILnet(Abs_dW):
     
 class dW_identity(Abs_dW):
     
-    def calc_dW(self):
-        spike_train = self.network.spike_train
+    def calc_dW(self,layer_num):
+        spike_train = self.network.spike_train[layer_num]
         batch_size = self.network.parameters.batch_size
         num_iterations = self.network.parameters.num_iterations  
         p = self.network.parameters.p
@@ -129,8 +134,8 @@ class dW_time_dep(Abs_dW):
         super(dW_time_dep,self).__init__(network)
         network.time_dep = time_matrix(str_to_fnc[network.parameters.function],self.network.parameters.num_iterations)
         
-    def calc_dW(self):
-        spike_train = self.network.spike_train
+    def calc_dW(self,layer_num):
+        spike_train = self.network.spike_train[layer_num]
         batch_size = self.network.parameters.batch_size
         num_iterations = self.network.parameters.num_iterations  
         p = self.network.parameters.p
