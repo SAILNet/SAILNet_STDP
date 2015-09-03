@@ -16,7 +16,7 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
             os.makedirs(self.directory+'/Images/RFs')
-        self.pp = PdfPages('plots.pdf')
+        self.pp = PdfPages(self.directory+'/Images/plots.pdf')
             
     def load_network(self):
         self.fileName = self.directory + '/data.pkl'
@@ -43,7 +43,7 @@ class Plot():
         self.big_X = np.zeros((batch_size,parameters.N))
         self.big_Y = ()
         for layer in range(self.network.n_layers):
-            self.big_Y += np.zeros((batch_size,parameters.M[layer]))
+            self.big_Y += (np.zeros((batch_size,parameters.M[layer])),)
 
         for i in range(batch_size/small_bs):
             
@@ -86,7 +86,7 @@ class Plot():
     def Plot_EXP_RF(self,layer=0):
         Exp_RF = self.network.X.T.dot(self.network.Y[layer])
         
-        spike_sum = np.sum(self.network.Y,axis = 0,dtype='f')
+        spike_sum = np.sum(self.network.Y[layer],axis = 0,dtype='f')
         Exp_RF = Exp_RF.dot(np.diag(1/spike_sum))
 
         im_size, num_dict = Exp_RF.shape
@@ -99,7 +99,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Experimental Receptive Fields')
-        plt.imsave(self.directory + '/Images/RFs/Exp_RF.pdf', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
     def plot_training_values(self, layer_num, channel):
@@ -107,7 +107,7 @@ class Plot():
         plt.plot(self.monitor.channels[channel][layer_num])
         plt.title(channel+' Layer '+str(layer_num))
         plt.xlabel("Number of Trials")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def plot_training_mean_std(self, layer_num, channel):
@@ -119,7 +119,7 @@ class Plot():
                          alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
         plt.title(channel+' Layer '+str(layer_num))
         plt.xlabel('Number of Trials')
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
     
     def PlotdW(self, layer_num):
@@ -233,7 +233,7 @@ class Plot():
         plt.title('Inhibitory Strength Histogram Log X')        
         plt.xlabel("log(Inhibitory Connection Strength)")
         plt.ylabel("PDF log(connection strength)")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def PlotInhibitHistLogY(self,layer=0):
@@ -248,7 +248,7 @@ class Plot():
         plt.title('Inhibitory Strength Histogram Log Y')        
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("log (PDF connection strength)")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def PlotInhibitHist(self,layer=0):
@@ -264,7 +264,7 @@ class Plot():
         plt.title('Inhibitory Strength Histogram')        
         plt.xlabel("Inhibitory Connection Strength")
         plt.ylabel("PDF connection strength")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def PlotInh_vs_RF(self,layer=0):
@@ -286,7 +286,7 @@ class Plot():
         plt.xlabel("Inhibitory Connection Strength")
         #plt.ylim(-0.7,0.7)
         plt.ylabel("RF Overlap (Dot product)")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def Plot_Rate_Hist(self,layer=0):
@@ -300,7 +300,7 @@ class Plot():
         plt.title('Rate Histogram')
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
      
     def Plot_Rate_Hist_LC(self,layer=0):
@@ -315,7 +315,7 @@ class Plot():
         plt.title('Low Contrast Rate Histogram')
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
 
     def Plot_Rate_Corr(self,layer=0):
@@ -330,7 +330,7 @@ class Plot():
         plt.title('Correlation PDF')
         plt.xlabel("Rate Correlation")
         plt.ylabel("PDF")
-        self.pp.savefig()
+        self.pp.savefig(fig)
         plt.close(fig)
         
     def RasterPlot(self):
@@ -390,10 +390,11 @@ class Plot():
             self.Plot_Rate_Hist(layer)
             self.Plot_Rate_Corr(layer)
             self.Plot_Rate_Hist_LC(layer)
+            self.pp.close()
 
 
 if __name__ == "__main__":
     directory = sys.argv[1]
     plotter = Plot(directory)
     plotter.load_network()
-    plotter.PlotAll()   
+    plotter.PlotAll()
