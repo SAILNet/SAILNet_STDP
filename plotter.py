@@ -390,7 +390,7 @@ class Plot():
             self.Plot_Rate_Hist(layer)
             self.Plot_Rate_Corr(layer)
             self.Plot_Rate_Hist_LC(layer)
-            self.pp.close()
+        self.pp.close()
 
 
 if __name__ == "__main__":
