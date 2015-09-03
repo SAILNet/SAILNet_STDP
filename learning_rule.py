@@ -124,7 +124,7 @@ class dW_identity(Abs_dW):
         #    dW = dW + T.dot(spike_train[batch], T.transpose(spike_train[batch]))
         
         dW = dW/batch_size
-        dW = alpha*(dW - min_constant)
+        dW = alpha*(p**2*dW/min_constant - p**2)
         
         return dW
         
@@ -151,9 +151,7 @@ class dW_time_dep(Abs_dW):
         #    dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
         
         dW = dW/batch_size  
-        dW = alpha*(dW - min_constant)
-        
-        dW = dW.astype('float32')
+        dW = alpha*(p**2*dW/min_constant - p**2)
 
         return dW
         
