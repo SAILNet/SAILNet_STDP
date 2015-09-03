@@ -29,53 +29,53 @@ class Monitor(object):
             Q = self.network.Q[layer]
             W = self.network.W[layer]
             theta = self.network.theta[layer]
-            y_bar = network.Y.mean()
-            Cyy_bar = (network.Y.T.dot(network.Y)/network.parameters.batch_size).mean()
-            outputs.append([y_bar, Cyy_bar])
+            y_bar = Y.mean()
+            Cyy_bar = (Y.T.dot(Y)/network.parameters.batch_size).mean()
+            outputs.extend([y_bar, Cyy_bar])
 
             X_rec = Y.dot(Q.T)
             X_rec_norm = T.sqrt(T.sum(T.sqr(X_rec),axis =1,keepdims=True))
             X_norm = T.sqrt(T.sum(T.sqr(X),axis =1,keepdims=True))
             X_rec_bar = X_rec_norm.mean()
             X_rec_std = X_rec_norm.std()
-            outputs.append([X_rec_bar, X_rec_std])
+            outputs.extend([X_rec_bar, X_rec_std])
 
             X_bar = X_norm.mean()
             X_std = X_norm.std()
-            outputs.append([X_bar, X_std])
+            outputs.extend([X_bar, X_std])
 
             SNR_Norm = T.mean(T.var(X,axis=0))/T.mean(T.var(X-X_rec*X_norm/X_rec_norm,axis=0))
             SNR = T.mean(T.var(X,axis=0))/T.mean(T.var(X-X_rec_norm,axis=0))
-            outputs.append([SNR, SNR_Norm])
+            outputs.extend([SNR, SNR_Norm])
             
             Q_norm = T.sqrt(T.sum(T.sqr(Q), axis=0))
             Q_bar = Q_norm.mean()
             Q_std = Q_norm.std()
-            outputs.append([Q_bar, Q_std])
+            outputs.extend([Q_bar, Q_std])
 
             W_bar = W.mean()
             W_std = W.std()
-            outputs.append([W_bar, W_std])
+            outputs.extend([W_bar, W_std])
 
             theta_bar = theta.mean()
             theta_std = theta.std()
-            outputs.append([theta_bar, theta_std])
+            outputs.extend([theta_bar, theta_std])
 
         self.f = theano.function([], outputs)
 
 
     def log(self,tt):
-        SNR,SNR_Norm,y_bar,Cyy_bar,X_rec_bar,X_rec_std,Q_bar,Q_std,W_bar,W_std,theta_bar,theta_std,X_norm_bar = self.f()
+        #SNR,SNR_Norm,y_bar,Cyy_bar,X_rec_bar,X_rec_std,Q_bar,Q_std,W_bar,W_std,theta_bar,theta_std,X_norm_bar = self.f()
         results = self.f()
         for layer in range(self.network.n_layers):
-            self.channels['Mean Firing Rate'][layer, tt] = results.pop(0)
+            self.channels['Mean Firing Count'][layer, tt] = results.pop(0)
             self.channels['Mean Covariance'][layer, tt] = results.pop(0)
             self.channels['Reconstruction Norm'][layer, tt, 0] = results.pop(0)
             self.channels['Reconstruction Norm'][layer, tt, 1] = results.pop(0)
             self.channels['Data Norm'][layer, tt, 0] = results.pop(0)
             self.channels['Data Norm'][layer, tt, 1] = results.pop(0)
             self.channels['SNR'][layer, tt] = results.pop(0)
-            self.channels['Normalize SNR'][layer, tt] = results.pop(0)
+            self.channels['Normalized SNR'][layer, tt] = results.pop(0)
             self.channels['Dictionary Norm'][layer, tt, 0] = results.pop(0)
             self.channels['Dictionary Norm'][layer, tt, 1] = results.pop(0)
             self.channels['Inhibitory Weights'][layer, tt, 0] = results.pop(0)

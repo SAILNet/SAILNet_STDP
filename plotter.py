@@ -57,13 +57,14 @@ class Plot():
         self.network.Y = self.big_Y
         self.network.X = self.big_X
             
-    def Plot_RF(self,network_Q = None,filenum = ''):
+    def Plot_RF(self,network_Q = None,layer = 0,filenum = ''):
+                
         if network_Q != None:
-            Q = network_Q.get_value()
+            Q = network_Q[layer].get_value()
             filenum = str(filenum)
             function = ''
         else:
-            Q = self.network.Q
+            Q = self.network.Q[layer]
             function = self.network.parameters.function
             
         im_size, num_dict = Q.shape
@@ -76,11 +77,11 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Receptive Fields' + filenum)
-        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.pdf', img, cmap=plt.cm.Greys)
+        plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
-    def Plot_EXP_RF(self):
-        Exp_RF = self.network.X.T.dot(self.network.Y)
+    def Plot_EXP_RF(self,layer=0):
+        Exp_RF = self.network.X.T.dot(self.network.Y[layer])
         
         spike_sum = np.sum(self.network.Y,axis = 0,dtype='f')
         Exp_RF = Exp_RF.dot(np.diag(1/spike_sum))
@@ -98,7 +99,7 @@ class Plot():
         plt.imsave(self.directory + '/Images/RFs/Exp_RF.pdf', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
-    def plot_training_value(self, layer_num, channel):
+    def plot_training_values(self, layer_num, channel):
         fig = plt.figure()
         plt.plot(self.monitor.channels[channel][layer_num])
         plt.title(channel+' Layer '+str(layer_num))
@@ -371,9 +372,9 @@ class Plot():
     def PlotAll(self):
         for layer in range(self.network.n_layers):
             self.Plot_RF()
-            for channel in self.monitor.value_channels:
+            for channel in self.monitor.training_values:
                 self.plot_training_values(layer, channel)
-            for channel in self.monitor.mean_std_channels:
+            for channel in self.monitor.training_mean_std:
                 self.plot_training_mean_std(layer, channel)
 
             self.PlotInhibitHistLogX() 
