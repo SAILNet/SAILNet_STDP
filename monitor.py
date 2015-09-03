@@ -3,8 +3,8 @@ import theano.tensor as T
 import numpy as np
 
 class Monitor(object):
-    self.training_values = ['Mean Firing Count', 'Mean Correlation', 'SNR', 'Normalized SNR']
-    self.training_mean_std = ['Dictionary Norm', 'Inhibitory Weights', 'Thresholds', 'Data Norm', 'Reconstruction Norm']
+    training_values = ['Mean Firing Count', 'Mean Covariance', 'SNR', 'Normalized SNR']
+    training_mean_std = ['Dictionary Norm', 'Inhibitory Weights', 'Thresholds', 'Data Norm', 'Reconstruction Norm']
     def __init__(self, network):
         self.network = network
         self.parameters = network.parameters
@@ -68,20 +68,20 @@ class Monitor(object):
         SNR,SNR_Norm,y_bar,Cyy_bar,X_rec_bar,X_rec_std,Q_bar,Q_std,W_bar,W_std,theta_bar,theta_std,X_norm_bar = self.f()
         results = self.f()
         for layer in range(self.network.n_layers):
-            self.channels['Mean Firing Rate'][layer, tt] = results.pop()
-            self.channels['Mean Correlation'][layer, tt] = results.pop()
-            self.channels['Reconstruction Norm'][layer, tt, 0] = results.pop()
-            self.channels['Reconstruction Norm'][layer, tt, 1] = results.pop()
-            self.channels['Data Norm'][layer, tt, 0] = results.pop()
-            self.channels['Data Norm'][layer, tt, 1] = results.pop()
-            self.channels['SNR'][layer, tt] = results.pop()
-            self.channels['Normalize SNR'][layer, tt] = results.pop()
-            self.channels['Dictionary Norm'][layer, tt, 0] = results.pop()
-            self.channels['Dictionary Norm'][layer, tt, 1] = results.pop()
-            self.channels['Inhibitory Weights'][layer, tt, 0] = results.pop()
-            self.channels['Inhibitory Weights'][layer, tt, 1] = results.pop()
-            self.channels['Thresholds'][layer, tt, 0] = results.pop()
-            self.channels['Thresholds'][layer, tt, 1] = results.pop()
+            self.channels['Mean Firing Rate'][layer, tt] = results.pop(0)
+            self.channels['Mean Covariance'][layer, tt] = results.pop(0)
+            self.channels['Reconstruction Norm'][layer, tt, 0] = results.pop(0)
+            self.channels['Reconstruction Norm'][layer, tt, 1] = results.pop(0)
+            self.channels['Data Norm'][layer, tt, 0] = results.pop(0)
+            self.channels['Data Norm'][layer, tt, 1] = results.pop(0)
+            self.channels['SNR'][layer, tt] = results.pop(0)
+            self.channels['Normalize SNR'][layer, tt] = results.pop(0)
+            self.channels['Dictionary Norm'][layer, tt, 0] = results.pop(0)
+            self.channels['Dictionary Norm'][layer, tt, 1] = results.pop(0)
+            self.channels['Inhibitory Weights'][layer, tt, 0] = results.pop(0)
+            self.channels['Inhibitory Weights'][layer, tt, 1] = results.pop(0)
+            self.channels['Thresholds'][layer, tt, 0] = results.pop(0)
+            self.channels['Thresholds'][layer, tt, 1] = results.pop(0)
             self.tt = tt
     
     def cleanup(self):

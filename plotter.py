@@ -132,7 +132,7 @@ class Plot():
         plt.title("Average Y")
         plt.xlabel("Number of Trials")
         self.pp.savefig()
-        plt.close(fig)
+        plt.close(fig)[layer_num]
 
     
     def PlotCavg(self, layer_num):
@@ -372,9 +372,9 @@ class Plot():
         for layer in range(self.network.n_layers):
             self.Plot_RF()
             for channel in self.monitor.value_channels:
-                plot_training_values(layer, channel)
+                self.plot_training_values(layer, channel)
             for channel in self.monitor.mean_std_channels:
-                plot_training_mean_std(layer, channel)
+                self.plot_training_mean_std(layer, channel)
 
             self.PlotInhibitHistLogX() 
             self.PlotInhibitHistLogY()
