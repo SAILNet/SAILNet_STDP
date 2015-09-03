@@ -40,7 +40,7 @@ class Network():
             Q = 0.5*Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
             self.Q += (theano.shared(Q.astype('float32')),)
             self.W += (theano.shared(np.zeros((out_dim, out_dim)).astype('float32')),)
-            self.theta = (theano.shared(0.5*np.ones(out_dim).astype('float32')),)
+            self.theta += (theano.shared(0.5*np.ones(out_dim).astype('float32')),)
         
             """
             Save Spikes per Trial and Spike History as Theano Shared Variables
