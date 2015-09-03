@@ -28,7 +28,6 @@ class Network():
         self.Y = ()
         if parameters.keep_spikes:
             self.spike_train = ()
-            self.temp_dep = ()
         self.X = theano.shared(np.zeros((parameters.batch_size,parameters.N)).astype('float32'))
 
         nin = (parameters.N,)+parameters.M
@@ -50,10 +49,11 @@ class Network():
             self.Y += (theano.shared(np.zeros((parameters.batch_size,out_dim)).astype('float32')),)
             if parameters.keep_spikes:
                 self.spike_train += (theano.shared(np.zeros((parameters.batch_size,
-                                                           out_dim,
-                                                           parameters.num_iterations)).astype('float32')),)
-                self.time_dep += (theano.shared(np.zeros((parameters.num_iterations,
-                                                          parameters.num_iterations)).astype('float32')),)
+                                                             out_dim,
+                                                             parameters.num_iterations)).astype('float32')),)
+        if parameters.keep_spikes:
+            self.time_dep = theano.shared(np.zeros((parameters.num_iterations,
+                                                    parameters.num_iterations)).astype('float32'))
 
     def continue_learning(self):
         if self.current_trial < self.parameters.num_trials:

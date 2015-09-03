@@ -28,7 +28,7 @@ class Activity():
             keep_spikes = False
             if hasattr(network, 'spike_train'):
                 keep_spikes = True
-                spike_train = T.alloc(0.,batch_size,M,num_iterations)[layer]
+                spike_train = T.zeros_like(network.spike_train[layer])
             
             Q_norm = (Q*Q).sum(axis=0, keepdims=True)
     
@@ -60,7 +60,7 @@ class Activity():
             updates[network.Y[layer]] = Y
             
             if keep_spikes:
-                updates[network.spike_train] = spike_train
+                updates[network.spike_train[layer]] = spike_train
         
         self.f = theano.function([], [], updates=updates)
         

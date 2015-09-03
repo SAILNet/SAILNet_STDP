@@ -70,9 +70,9 @@ class Learning_Rule(Abs_Learning_Rule):
             """        
             muy = Y.mean(axis=0)
             dtheta = gamma*(muy - p)
-            theta = (theta+dtheta).astype('float32')
+            theta = theta+dtheta
     
-            updates[network.Q[layer_num]] =Q
+            updates[network.Q[layer_num]] = Q
             updates[network.W[layer_num]] = W
             updates[network.theta[layer_num]] = theta            
             
@@ -110,18 +110,15 @@ class dW_SAILnet(Abs_dW):
     
 class dW_identity(Abs_dW):
     
-    def calc_dW(self,layer_num):
+    def calc_dW(self, layer_num):
         spike_train = self.network.spike_train[layer_num]
         batch_size = self.network.parameters.batch_size
         num_iterations = self.network.parameters.num_iterations  
         p = self.network.parameters.p
         alpha = self.network.parameters.alpha        
-        dW =  T.zeros_like(self.network.W).astype('float32')       
         
         min_constant = p**2/num_iterations
         dW = T.tensordot(spike_train, spike_train, axes=([0, 2], [0, 2]))
-        #for batch in xrange(batch_size):
-        #    dW = dW + T.dot(spike_train[batch], T.transpose(spike_train[batch]))
         
         dW = dW/batch_size
         dW = alpha*(p**2*dW/min_constant - p**2)
@@ -140,15 +137,12 @@ class dW_time_dep(Abs_dW):
         num_iterations = self.network.parameters.num_iterations  
         p = self.network.parameters.p
         alpha = self.network.parameters.alpha  
-        dW =  T.zeros_like(self.network.W).astype('float32')
         
         P = p*np.ones(num_iterations,dtype= 'float32')
-        min_constant = np.dot(P,np.dot(self.network.time_dep.get_value(),P))/num_iterations**2
+        min_constant = np.array(np.dot(P,np.dot(self.network.time_dep.get_value(),P))/num_iterations**2, dtype='float32')
         
         dW = T.tensordot(spike_train,self.network.time_dep,axes=([2],[0]))
         dW = T.tensordot(dW, spike_train,axes=([0,2],[0,2]))        
-        #for batch in xrange(batch_size):
-        #    dW = dW + T.dot(spike_train[batch], T.dot(self.time_dep,T.transpose(spike_train[batch])))
         
         dW = dW/batch_size  
         dW = alpha*(p**2*dW/min_constant - p**2)
