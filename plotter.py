@@ -41,7 +41,9 @@ class Plot():
         activity = Activity(self.network)
 
         self.big_X = np.zeros((batch_size,parameters.N))
-        self.big_Y = np.zeros((batch_size,parameters.M))
+        self.big_Y = ()
+        for layer in range(self.network.n_layers):
+            self.big_Y += np.zeros((batch_size,parameters.M[layer]))
 
         for i in range(batch_size/small_bs):
             
@@ -51,7 +53,8 @@ class Plot():
             activity.get_acts()
             
             self.big_X[i*small_bs:(i+1)*small_bs,:] = self.network.X.get_value()
-            self.big_Y[i*small_bs:(i+1)*small_bs,:] = self.network.Y.get_value()
+            for layer in range(self.network.n_layers):
+                self.big_Y[layer][i*small_bs:(i+1)*small_bs,:] = self.network.Y[layer].get_value()
         
         self.network.to_cpu()
         self.network.Y = self.big_Y
@@ -215,9 +218,9 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
     
-    def PlotInhibitHistLogX(self):
+    def PlotInhibitHistLogX(self,layer=0):
         fig = plt.figure()
-        W_flat = np.ravel(self.network.W) #Flattens array
+        W_flat = np.ravel(self.network.W[layer]) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         W_flat = np.log10(W_flat)
@@ -233,9 +236,9 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
         
-    def PlotInhibitHistLogY(self):
+    def PlotInhibitHistLogY(self,layer=0):
         fig = plt.figure()
-        W_flat = np.ravel(self.network.W) #Flattens array
+        W_flat = np.ravel(self.network.W[layer]) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
         num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins = 100, density = True)
@@ -248,9 +251,9 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
         
-    def PlotInhibitHist(self):
+    def PlotInhibitHist(self,layer=0):
         fig = plt.figure()
-        W = self.network.W - np.diag(np.diag(self.network.W))
+        W = self.network.W[layer] - np.diag(np.diag(self.network.W[layer]))
         W_flat = np.ravel(W) #Flattens array
         zeros = np.nonzero(W_flat == 0) #Locates zeros
         W_flat = np.delete(W_flat, zeros) #Deletes Zeros
@@ -264,16 +267,17 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
         
-    def PlotInh_vs_RF(self):
+    def PlotInh_vs_RF(self,layer=0):
         fig = plt.figure()
-        RF_overlap = self.network.Q.T.dot(self.network.Q)
-        pairs = np.random.randint(0,self.network.parameters.M,(5000,2))
+        Q = self.network.Q[layer]
+        RF_overlap = Q.T.dot(Q)
+        pairs = np.random.randint(0,self.network.parameters.M[layer],(5000,2))
         RF_sample = np.array([])
         W_sample = np.array([])
         for pair in pairs:
             Overlap = RF_overlap[pair[0]][pair[1]]
             RF_sample = np.append(RF_sample, np.array([Overlap]))
-            w1 = self.network.W[pair[0]][pair[1]]
+            w1 = self.network.W[layer][pair[0]][pair[1]]
             W_sample = np.append(W_sample,np.array([w1]))
         #plt.xlim(10**-3,10**1.5)
         plt.semilogx(W_sample, RF_sample, '.')
@@ -285,9 +289,9 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
         
-    def Plot_Rate_Hist(self):
+    def Plot_Rate_Hist(self,layer=0):
         fig = plt.figure()
-        rates = np.mean(self.network.Y,axis = 0)
+        rates = np.mean(self.network.Y[layer],axis = 0)
         num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
         plt.plot(bin_edges,num,'o')
@@ -299,10 +303,10 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
      
-    def Plot_Rate_Hist_LC(self):
+    def Plot_Rate_Hist_LC(self,layer=0):
         fig = plt.figure()
         self.validation_data(1/3.)        
-        rates = np.mean(self.network.Y,axis = 0)
+        rates = np.mean(self.network.Y[layer],axis = 0)
         num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
         plt.plot(bin_edges,num,'o')
@@ -314,9 +318,9 @@ class Plot():
         self.pp.savefig()
         plt.close(fig)
 
-    def Plot_Rate_Corr(self):
+    def Plot_Rate_Corr(self,layer=0):
         fig = plt.figure()
-        Y = self.network.Y
+        Y = self.network.Y[layer]
         corrcoef = np.corrcoef(Y,rowvar = 0)
         corrcoef = corrcoef - np.diag(np.diag(corrcoef))
         corrcoef = np.ravel(corrcoef) #Flattens array
@@ -377,15 +381,15 @@ class Plot():
             for channel in self.monitor.training_mean_std:
                 self.plot_training_mean_std(layer, channel)
 
-            self.PlotInhibitHistLogX() 
-            self.PlotInhibitHistLogY()
-            self.PlotInhibitHist()
-            self.PlotInh_vs_RF()
+            self.PlotInhibitHistLogX(layer) 
+            self.PlotInhibitHistLogY(layer)
+            self.PlotInhibitHist(layer)
+            self.PlotInh_vs_RF(layer)
             self.validation_data()
-            self.Plot_EXP_RF()
-            self.Plot_Rate_Hist()
-            self.Plot_Rate_Corr()
-            self.Plot_Rate_Hist_LC()
+            self.Plot_EXP_RF(layer)
+            self.Plot_Rate_Hist(layer)
+            self.Plot_Rate_Corr(layer)
+            self.Plot_Rate_Hist_LC(layer)
 
 
 if __name__ == "__main__":
