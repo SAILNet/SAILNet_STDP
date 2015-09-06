@@ -42,6 +42,7 @@ class Plot():
 
         self.big_X = np.zeros((batch_size,parameters.N))
         self.big_Y = ()
+        
         for layer in range(self.network.n_layers):
             self.big_Y += (np.zeros((batch_size,parameters.M[layer])),)
 

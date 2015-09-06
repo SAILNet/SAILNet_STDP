@@ -19,16 +19,16 @@ class Activity():
 
         for layer in range(network.n_layers):
             M = network.parameters.M[layer]
+            num_iterations = network.parameters.num_iterations
             Q = network.Q[layer]
             theta = network.theta[layer]
             W = network.W[layer]
-            Y = T.alloc(0.,batch_size,M)[layer]
-            Ys = T.zeros_like(Y)[layer]
-            aas = T.zeros_like(Y)[layer]
-            keep_spikes = False
-            if hasattr(network, 'spike_train'):
-                keep_spikes = True
-                spike_train = T.zeros_like(network.spike_train[layer])
+            Y = T.alloc(0.,batch_size,M)
+            Ys = T.zeros_like(Y)
+            aas = T.zeros_like(Y)
+            keep_spikes = network.parameters.keep_spikes
+            if keep_spikes:
+                spike_train = T.alloc(0.,batch_size,M,num_iterations)
             
             Q_norm = (Q*Q).sum(axis=0, keepdims=True)
     
