@@ -374,8 +374,9 @@ class Plot():
         return latest_spike
         
     def PlotAll(self):
+        self.validation_data()
+        self.Plot_RF()
         for layer in range(self.network.n_layers):
-            self.Plot_RF()
             for channel in self.monitor.training_values:
                 self.plot_training_values(layer, channel)
             for channel in self.monitor.training_mean_std:
@@ -385,7 +386,6 @@ class Plot():
             self.PlotInhibitHistLogY(layer)
             self.PlotInhibitHist(layer)
             self.PlotInh_vs_RF(layer)
-            self.validation_data()
             self.Plot_EXP_RF(layer)
             self.Plot_Rate_Hist(layer)
             self.Plot_Rate_Corr(layer)

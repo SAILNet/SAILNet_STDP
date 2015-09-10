@@ -34,6 +34,7 @@ class Parameters():
         reduce_learning_rate = config.getfloat("Parameters",'reduce_learning_rate')
         self.reduce_learning_rate = np.array(reduce_learning_rate).astype('float32')
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
+        self.time = config.getboolean("Parameters", "time")
 
         self.N = config.getint("NeuronParameters",'N')
         self.OC1 = config.getint("NeuronParameters",'OC1')

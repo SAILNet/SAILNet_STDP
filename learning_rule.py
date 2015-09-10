@@ -21,7 +21,7 @@ class Abs_Learning_Rule(object):
     def ReduceLearning(self,tt):
         parameters = self.network.parameters
         reduce_learning_rate = parameters.reduce_learning_rate
-        if tt >= 5000:
+        if tt >= 10000:
             parameters.gamma.set_value(parameters.gamma.get_value() *
                                        reduce_learning_rate)
             parameters.beta.set_value(parameters.beta.get_value() *
