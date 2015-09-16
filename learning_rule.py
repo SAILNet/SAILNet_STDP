@@ -22,7 +22,7 @@ class Abs_Learning_Rule(object):
         parameters = self.network.parameters
         reduce_learning_rate = parameters.reduce_learning_rate
         
-        if tt >= 12000:
+        if tt >= parameters.begin_decay:
             parameters.gamma.set_value(parameters.gamma.get_value() *
                                        reduce_learning_rate)
             parameters.beta.set_value(parameters.beta.get_value() *
@@ -41,12 +41,30 @@ class Learning_Rule(Abs_Learning_Rule):
         gamma = parameters.gamma
         batch_size = parameters.batch_size
         p = parameters.p
+        time_data = parameters.time_data
+        rnd = theano.tensor.shared_randomstreams.RandomStreams()
         
         for layer_num in range(network.n_layers):
             Y = network.Y[layer_num]
             Q = network.Q[layer_num]
             W = network.W[layer_num]
             theta = network.theta[layer_num]
+
+            """
+            Calculate Change in Feed-Forward Weights dQ
+            """        
+            square_act = T.sum(Y*Y,axis=0)
+            mymat = T.diag(square_act)
+            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+            Q = Q+dQ    
+            
+            if time_data:
+                time_overlap = rnd.random_integers(low=0,high=50)
+            
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],
+                                          spike_train[:,:,:(50-time_overlap)])
+                                          ,axis=2)
+                Y = T.sum(spike_train,axis=2)
 
             dW_Rule = str_to_dW[dW_rule](network)
             
@@ -58,82 +76,7 @@ class Learning_Rule(Abs_Learning_Rule):
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0.,0.,W)
             
-            """
-            Calculate Change in Feed-Forward Weights dQ
-            """        
-            square_act = T.sum(Y*Y,axis=0)
-            mymat = T.diag(square_act)
-            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-            Q = Q+dQ    
-            
-            """
-            Calculate Change in Threshold Weights dtheta
-            """        
-            muy = Y.mean(axis=0)
-            dtheta = gamma*(muy - p)
-            theta = theta+dtheta
-    
-            updates[network.Q[layer_num]] = Q
-            updates[network.W[layer_num]] = W
-            updates[network.theta[layer_num]] = theta            
-            
-            #Setting input of next layer to spikes of current one
-            X = Y
-        
-        self.f = theano.function([], [], updates=updates)
-        
-    def Update(self):
-        self.network.next_trial()
-        self.f()
-        
-class movies_learning_rule(Abs_Learning_Rule):
-    
-    def __init__(self, network, dW_rule):
-        self.network = network
-        parameters = network.parameters
-        updates = OrderedDict()
-        X = network.X
-        beta = parameters.beta
-        gamma = parameters.gamma
-        batch_size = parameters.batch_size
-        p = parameters.p
-        num_iterations = parameters.num_iterations
-        
-        for layer_num in range(network.n_layers):
-            Y = network.Y[layer_num]
-            Q = network.Q[layer_num]
-            W = network.W[layer_num]
-            theta = network.theta[layer_num]
-            spike_train = network.spike_train[layer_num]
-            past_spike_train = network.past_spike_train[layer_num]
-            
-            """
-            Calculate Change in Feed-Forward Weights dQ
-            """        
-            square_act = T.sum(Y*Y,axis=0)
-            mymat = T.diag(square_act)
-            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-            Q = Q+dQ    
-                        
-            """
-            Calculate Change in Lateral Inhibition dW
-            """                   
-            #dW and dtheta time windows span half of each frame presentation
-            time_overlap = np.random.randint(0,50)
-            
-            spike_train = T.concatenate((past_spike_train[:,:,-time_overlap:],
-                                          spike_train[:,:,:(50-time_overlap)])
-                                          ,axis=2)
-            Y = T.sum(spike_train,axis=2)
-            
-            dW_Rule = str_to_dW[dW_rule](network)
-            
-            dW = dW_Rule.calc_dW(layer_num)
-            W = W+dW
-            W = W - T.diag(T.diag(W))
-            W = T.switch(W < 0.,0.,W)
-            
-            """
+           """
             Calculate Change in Threshold Weights dtheta
             """        
             muy = Y.mean(axis=0)

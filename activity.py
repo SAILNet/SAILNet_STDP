@@ -19,7 +19,7 @@ class Activity(BaseActivity):
         num_iterations = network.parameters.num_iterations
         keep_spikes = network.parameters.keep_spikes
         norm_infer = network.parameters.norm_infer
-        time = network.parameters.time
+        time_data = network.parameters.time_data
         X = network.X        
         updates = OrderedDict()
 
@@ -66,7 +66,7 @@ class Activity(BaseActivity):
             updates[network.Y[layer]] = Y
             
             if keep_spikes:
-                if time:
+                if time_data:
                     updates[network.spike_train_tm1[layer]] = network.spike_train[layer]
                 updates[network.spike_train[layer]] = spike_train
             if time:

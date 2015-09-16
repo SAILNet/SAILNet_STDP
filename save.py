@@ -74,10 +74,12 @@ def get_args():
                         '--num_iterations',
                         default=None,
                         type=int)
-    parser.add_argument('-r',
-                        '--reduced_learning_rate',
+    parser.add_argument('-d',
+                        '--decay_time',
                         default=None,
                         type=float)
+    parser.add_argument('-s','--start_decay',default=None,type=float)
+    parser.add_argument('-e','--time_data',default=None,type=bool)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
 
     parser.add_argument('--neurons', default=None,type=int)
@@ -85,7 +87,7 @@ def get_args():
     parser.add_argument('--OC2', default=None,type=int)
     parser.add_argument('-p', default=None, type=float)
     parser.add_argument('--n_layers', default=None, type=int)
-
+    
     parser.add_argument('-c', '--comments', default='None')
 
     return parser.parse_args()
