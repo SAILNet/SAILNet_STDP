@@ -9,6 +9,7 @@ num_trials: 200
 num_iterations: 50
 reduce_learning_rate: .9995
 norm_infer: False
+time: False
 
 [NeuronParameters]
 N: 256
