@@ -43,10 +43,6 @@ def make_subfolder(directory,comments):
     return prev,name
 
 def dump_parameters(path, parameters):
-    with open(os.path.join(path, 'sailnet_parameters.pkl'),'wb') as f:
-        cPickle.dump(parameters, f)
-    with open(os.path.join(path, 'sailnet_parameters.pkl'),'rb') as f:
-        parameters = cPickle.load(f)
     with open(os.path.join(path, 'sailnet_parameters.txt'),'wt') as f:
         f.write(str(parameters.__dict__))
  
@@ -108,6 +104,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.num_trials = cmd_line_args.num_trials or params.num_trials
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
+    params.update_keep_spikes()
     return params
 
 def load_model():

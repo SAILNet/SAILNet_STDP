@@ -26,6 +26,8 @@ class Plot():
             
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
+        orig = self.network.parameters.time
+        self.network.parameters.time = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
@@ -42,6 +44,7 @@ class Plot():
 
         self.big_X = np.zeros((batch_size,parameters.N))
         self.big_Y = ()
+        
         for layer in range(self.network.n_layers):
             self.big_Y += (np.zeros((batch_size,parameters.M[layer])),)
 
@@ -59,6 +62,7 @@ class Plot():
         self.network.to_cpu()
         self.network.Y = self.big_Y
         self.network.X = self.big_X
+        self.network.parameters.time = orig
             
     def Plot_RF(self,network_Q = None,layer = 0,filenum = ''):
                 

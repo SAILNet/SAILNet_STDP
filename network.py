@@ -73,6 +73,12 @@ class Network():
             self.time_dep = make_shared((parameters.num_iterations,
                                          parameters.num_iterations))
 
+    def initialize_time(self):
+        if self.time:
+            self.Ys_tm1 = make_shared(0.*self.Ys.tm1.get_value())
+        else:
+            raise ValueError
+
     def continue_learning(self):
         if self.current_trial < self.parameters.num_trials:
             return True

@@ -17,6 +17,7 @@ class Activity(BaseActivity):
     def __init__(self, network):
         batch_size = network.parameters.batch_size
         num_iterations = network.parameters.num_iterations
+        keep_spikes = network.parameters.keep_spikes
         norm_infer = network.parameters.norm_infer
         time = network.parameters.time
         X = network.X        
@@ -33,10 +34,8 @@ class Activity(BaseActivity):
             else:
                 Ys = T.zeros_like(Y)
             aas = T.zeros_like(Y)
-            keep_spikes = False
-            if hasattr(network, 'spike_train'):
-                keep_spikes = True
-                spike_train = T.zeros_like(network.spike_train[layer])
+            if keep_spikes:
+                spike_train = T.alloc(0., batch_size, M, num_iterations)
             
             Q_norm = (Q*Q).sum(axis=0, keepdims=True)
     

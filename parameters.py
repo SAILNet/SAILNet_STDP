@@ -21,10 +21,7 @@ class Parameters():
         """
         
         self.dW_rule = config.get('LearningRule','dW_rule')
-        if self.dW_rule in spike_rules:
-            self.keep_spikes = True
-        else:
-            self.keep_spikes = False
+        self.update_keep_spikes()
         self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
@@ -47,8 +44,8 @@ class Parameters():
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
         self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))        
 
-    def keep_spikes(self):
-        if self.rule in spike_rules:
+    def update_keep_spikes(self):
+        if self.dW_rule in spike_rules:
             self.keep_spikes = True
         else:
             self.keep_spikes = False
