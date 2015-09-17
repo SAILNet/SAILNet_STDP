@@ -30,13 +30,21 @@ class Plot():
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
-
-        data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        
+        if parameters.time_data:
+            data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
             parameters.N,
+            parameters.num_frames,
             start=35)     
-            
+        else:
+            data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            start=35)    
+
         self.network.to_gpu()	
 
         activity = Activity(self.network)

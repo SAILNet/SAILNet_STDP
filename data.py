@@ -53,7 +53,7 @@ class Time_Data(Data):
     def make_X(self, network):
         X = np.empty((self.batch_size, self.dim))
         sz = np.sqrt(self.dim).astype(np.int)
-        if locs is None or self.current_frame >= self.num_frames:
+        #if locs is None or self.current_frame >= self.num_frames:
             
 
         for ii in xrange(self.batch_size):

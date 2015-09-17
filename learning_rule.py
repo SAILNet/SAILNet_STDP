@@ -46,6 +46,8 @@ class Learning_Rule(Abs_Learning_Rule):
         
         for layer_num in range(network.n_layers):
             Y = network.Y[layer_num]
+            spike_train = network.spike_train[layer_num]
+            spike_train_tm1 = network.spike_train_tm1[layer_num]
             Q = network.Q[layer_num]
             W = network.W[layer_num]
             theta = network.theta[layer_num]
@@ -61,9 +63,7 @@ class Learning_Rule(Abs_Learning_Rule):
             if time_data:
                 time_overlap = rnd.random_integers(low=0,high=50)
             
-                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],
-                                          spike_train[:,:,:(50-time_overlap)])
-                                          ,axis=2)
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],spike_train[:,:,:(50-time_overlap)]),axis=2)
                 Y = T.sum(spike_train,axis=2)
 
             dW_Rule = str_to_dW[dW_rule](network)
