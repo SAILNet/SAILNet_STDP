@@ -76,7 +76,7 @@ class Learning_Rule(Abs_Learning_Rule):
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0.,0.,W)
             
-           """
+            """
             Calculate Change in Threshold Weights dtheta
             """        
             muy = Y.mean(axis=0)

@@ -29,7 +29,7 @@ class Activity(BaseActivity):
             theta = network.theta[layer]
             W = network.W[layer]
             Y = T.alloc(0., batch_size, M)
-            if time:
+            if time_data:
                 Ys = network.Ys_tm1[layer]
             else:
                 Ys = T.zeros_like(Y)
@@ -69,7 +69,7 @@ class Activity(BaseActivity):
                 if time_data:
                     updates[network.spike_train_tm1[layer]] = network.spike_train[layer]
                 updates[network.spike_train[layer]] = spike_train
-            if time:
+            if time_data:
                 updates[network.Ys_tm1[layer]] = Ys
         
         self.f = theano.function([], [], updates=updates)

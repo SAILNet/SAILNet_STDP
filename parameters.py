@@ -30,7 +30,7 @@ class Parameters():
         self.num_iterations = config.getint("Parameters",'num_iterations')
         self.begin_decay = config.getint("Parameters",'begin_decay')
         decay_time = config.getfloat("Parameters",'decay_time')
-        self.reduce_learning_rate = np.array(10**(-1./decay_time).astype('float32')
+        self.reduce_learning_rate = np.array(10**(-1./decay_time)).astype('float32')
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
         self.time_data = config.getboolean("Parameters", "time_data")
 

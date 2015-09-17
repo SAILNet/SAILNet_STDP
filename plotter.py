@@ -16,7 +16,6 @@ class Plot():
         if os.path.exists(self.directory+'/Images')==False:       
             os.makedirs(self.directory+'/Images')
             os.makedirs(self.directory+'/Images/RFs')
-        self.pp = PdfPages(self.directory+'/Images/plots.pdf')
             
     def load_network(self):
         self.fileName = self.directory + '/data.pkl'
@@ -26,7 +25,7 @@ class Plot():
             
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
-        orig = self.network.parameters.time
+        orig = self.network.parameters.time_data
         self.network.parameters.time = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
@@ -62,7 +61,7 @@ class Plot():
         self.network.to_cpu()
         self.network.Y = self.big_Y
         self.network.X = self.big_X
-        self.network.parameters.time = orig
+        self.network.parameters.time_data = orig
             
     def Plot_RF(self,network_Q = None,layer = 0,filenum = ''):
                 
@@ -378,23 +377,23 @@ class Plot():
         return latest_spike
         
     def PlotAll(self):
-        self.validation_data()
-        self.Plot_RF()
-        for layer in range(self.network.n_layers):
-            for channel in self.monitor.training_values:
-                self.plot_training_values(layer, channel)
-            for channel in self.monitor.training_mean_std:
-                self.plot_training_mean_std(layer, channel)
+        with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
+            self.validation_data()
+            self.Plot_RF()
+            for layer in range(self.network.n_layers):
+                for channel in self.monitor.training_values:
+                    self.plot_training_values(layer, channel)
+                for channel in self.monitor.training_mean_std:
+                    self.plot_training_mean_std(layer, channel)
 
-            self.PlotInhibitHistLogX(layer) 
-            self.PlotInhibitHistLogY(layer)
-            self.PlotInhibitHist(layer)
-            self.PlotInh_vs_RF(layer)
-            self.Plot_EXP_RF(layer)
-            self.Plot_Rate_Hist(layer)
-            self.Plot_Rate_Corr(layer)
-            self.Plot_Rate_Hist_LC(layer)
-        self.pp.close()
+                self.PlotInhibitHistLogX(layer) 
+                self.PlotInhibitHistLogY(layer)
+                self.PlotInhibitHist(layer)
+                self.PlotInh_vs_RF(layer)
+                self.Plot_EXP_RF(layer)
+                self.Plot_Rate_Hist(layer)
+                self.Plot_Rate_Corr(layer)
+                self.Plot_Rate_Hist_LC(layer)
 
 
 if __name__ == "__main__":

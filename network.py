@@ -34,11 +34,11 @@ class Network():
         self.W = ()
         self.theta = ()
         self.Y = ()
-        if parameters.time:
+        if parameters.time_data:
             self.Ys_tm1 = ()
         if parameters.keep_spikes:
             self.spike_train = ()
-            if parameters.time:
+            if parameters.time_data:
                 self.spike_train_tm1 = ()
         self.X = make_shared((parameters.batch_size,parameters.N))
 
@@ -59,13 +59,13 @@ class Network():
             """
             
             self.Y += (make_shared((parameters.batch_size, out_dim)),)
-            if parameters.time:
+            if parameters.time_data:
                 self.Ys_tm1 += (make_shared((parameters.batch_size, out_dim)),)
             if parameters.keep_spikes:
                 self.spike_train += (make_shared((parameters.batch_size,
                                                   out_dim,
                                                   parameters.num_iterations)),)
-                if parameters.time:
+                if parameters.time_data:
                     self.spike_train_tm1 += (make_shared((parameters.batch_size,
                                                           out_dim,
                                                           parameters.num_iterations)),)
@@ -74,8 +74,9 @@ class Network():
                                          parameters.num_iterations))
 
     def initialize_time(self):
-        if self.time:
-            self.Ys_tm1 = make_shared(0.*self.Ys.tm1.get_value())
+        if self.time_data:
+            self.Ys_tm1.set_value(0.*self.Ys_tm1.get_value())
+            self.spike_train_tm1.set_value(0.*self.spike_train_tm1.get_value())
         else:
             raise ValueError
 

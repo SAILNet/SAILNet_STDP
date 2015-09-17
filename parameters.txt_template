@@ -7,9 +7,10 @@ batch_size: 100
 num_images: 35
 num_trials: 200
 num_iterations: 50
-reduce_learning_rate: .9995
+begin_decay: 12000
+decay_time: 5000
 norm_infer: False
-time: False
+time_data: False
 
 [NeuronParameters]
 N: 256
