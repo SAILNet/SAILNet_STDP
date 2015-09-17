@@ -104,8 +104,11 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.OC2 = cmd_line_args.OC2 or params.OC2
     params.M = (params.N*params.OC1, params.N*params.OC2)
     params.num_trials = cmd_line_args.num_trials or params.num_trials
+    params.start_decay = cmd_line_args.start_decay or params.start_decay
+    params.decay_time = cmd_line_args.decay_time or params.decay_time
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
+    params.time_data = cmd_line_args.time_data or params.time_data
     params.update_keep_spikes()
     return params
 
@@ -124,7 +127,7 @@ def load_model():
         parameters = final_parameters(file_params,
                                       cmd_line_args = args,
                                       network_params = network.parameters)
-        for attr in ['dW_rule', 'function', 'norm_infer', 'OC1', 'OC2', 'N', 'p', 'n_layers']:
+        for attr in ['dW_rule', 'function','time_data','norm_infer', 'OC1', 'OC2', 'N', 'p', 'n_layers']:
             if getattr(network.parameters, attr) != getattr(parameters, attr):
                 raise ValueError('Value of '+attr+' has changed.')
         network.parameters = parameters
