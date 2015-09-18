@@ -10,7 +10,6 @@ from learning_rule import Learning_Rule
 from parameters import Parameters
 from network import Network 
 from activity import Activity
-<<<<<<< HEAD
 from data import Static_Data, Time_Data
 from monitor import Monitor
 
