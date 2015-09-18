@@ -10,7 +10,7 @@ from learning_rule import Learning_Rule
 from parameters import Parameters
 from network import Network 
 from activity import Activity
-from data import Data
+from data import Static_Data, Time_Data
 from monitor import Monitor
 
 def make_folder(params):
@@ -46,7 +46,7 @@ def dump_parameters(path, parameters):
     with open(os.path.join(path, 'sailnet_parameters.txt'),'wt') as f:
         f.write(str(parameters.__dict__))
  
-def make_pkl(directory,network,monitor,data_rng):
+def make_pkl(directory, network, monitor, data_rng):
     temp_file = os.path.join(directory, 'data_temp.pkl')
     final_file = os.path.join(directory, 'data.pkl')
     with open(temp_file,'wb') as f:
@@ -70,6 +70,7 @@ def get_args():
     parser.add_argument('-b', '--batch_size', default=None, type=int)
     parser.add_argument('-i', '--num_images', default=None, type=int)
     parser.add_argument('-n', '--num_trials', default=None, type=int)
+    parser.add_argument('-r', '--num_frames', default=None, type=int)
     parser.add_argument('-t',
                         '--num_iterations',
                         default=None,
@@ -106,6 +107,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.num_trials = cmd_line_args.num_trials or params.num_trials
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
+    params.num_frames = cmd_line_args.num_frames or params.num_frames
     params.update_keep_spikes()
     return params
 
@@ -140,11 +142,21 @@ def load_model():
     learn = Learning_Rule(network,parameters.dW_rule)
     monitor = Monitor(network)
     activity = Activity(network)
-    data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
-            parameters.num_images,
-            parameters.batch_size,
-            parameters.N,
-            **kwargs)
+    
+    if parameters.time_data:
+        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+                         parameters.num_images,
+                         parameters.batch_size,
+                         parameters.N,
+                         parameters.num_frames,
+                         **kwargs)
+    else:
+        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h6'),
+                           parameters.num_images,
+                           parameters.batch_size,
+                           parameters.N,
+                           **kwargs)
+
     plotter = Plot(directory)
     
     return activity,data,directory,learn,monitor,network,parameters,plotter
