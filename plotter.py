@@ -5,33 +5,36 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 from activity import Activity
-from data import Data,Static_Data,Time_Data
+from data import Static_Data, Time_Data
 from matplotlib.backends.backend_pdf import PdfPages
 
 
 class Plot():
     
-    def __init__(self, directory):
+    def __init__(self, directory, seed=20150918):
         self.directory = directory
-        if os.path.exists(self.directory+'/Images')==False:       
+        if not os.path.exists(self.directory+'/Images'):       
             os.makedirs(self.directory+'/Images')
             os.makedirs(self.directory+'/Images/RFs')
+        self.rng = np.random.RandomState(seed)
             
     def load_network(self):
-        self.fileName = self.directory + '/data.pkl'
+        self.fileName = os.path.join(self.directory, 'data.pkl')
         with open(self.fileName,'rb') as f:
             self.network, self.monitor, _ = cPickle.load(f)
         self.parameters = self.network.parameters
             
-    def validation_data(self,contrast = 1.):
+    def validation_data(self, contrast=1.):
         self.network.parameters.batch_size = 1000
-        orig = self.network.parameters.time_data
+        orig_time_data = self.network.parameters.time_data
+        orig_keep_spikes = self.network.parameters.time_data
         self.network.parameters.time_data = False
+        self.network.parameters.keep_spikes = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
         
-        if False:
+        if parameters.time_data:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
@@ -45,33 +48,31 @@ class Plot():
             parameters.N,
             start=35)    
         self.network.to_gpu()	
-
         activity = Activity(self.network)
-
-        self.big_X = np.zeros((batch_size,parameters.N))
+        self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
         self.big_Y = ()
         
         for layer in range(self.network.n_layers):
-            self.big_Y += (np.zeros((batch_size,parameters.M[layer])),)
+            self.big_Y += (np.zeros((batch_size, parameters.M[layer]), dtype='float32'),)
 
-        for i in range(batch_size/small_bs):
-            
+        for ii in range(batch_size/small_bs):
             data.make_X(self.network) 
             if contrast != 1.:
-                self.network.X.set_value(self.network.X.get_value()*contrast)
+                self.network.X.set_value(self.network.X.get_value() *
+                                         np.array(contrast, dtype='float32'))
             activity.get_acts()
             
-            self.big_X[i*small_bs:(i+1)*small_bs,:] = self.network.X.get_value()
+            self.big_X[ii*small_bs:(ii+1)*small_bs,:] = self.network.X.get_value()
             for layer in range(self.network.n_layers):
-                self.big_Y[layer][i*small_bs:(i+1)*small_bs,:] = self.network.Y[layer].get_value()
+                self.big_Y[layer][ii*small_bs:(ii+1)*small_bs,:] = self.network.Y[layer].get_value()
         
         self.network.to_cpu()
         self.network.Y = self.big_Y
         self.network.X = self.big_X
-        self.network.parameters.time_data = orig
+        self.network.parameters.time_data = orig_time_data
+        self.network.parameters.keep_spikes = orig_keep_spikes
             
-    def Plot_RF(self,network_Q = None,layer = 0,filenum = ''):
-                
+    def Plot_RF(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:
             Q = network_Q[layer].get_value()
             filenum = str(filenum)
@@ -132,178 +133,86 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
     
-    def PlotdW(self, layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.mag_dW[layer_num])
-        plt.title('Magnitude dW')
-        plt.xlabel("Number of Trials")
-        self.pp.savefig()
-        plt.close(fig)
-        
-    def PlotYavg(self, layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.y_bar[layer_num])
-        plt.title("Average Y")
-        plt.xlabel("Number of Trials")
-        self.pp.savefig()
-        plt.close(fig)[layer_num]
-
-    
-    def PlotCavg(self, layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.Cyy_bar[layer_num])
-        plt.title("AverageY^2")
-        self.pp.savefig()
-        plt.close(fig)
-        
-    def PlotSNR(self, layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.SNR[layer_num],'g')
-        plt.title('Signal to Noise Ratio')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-
-    def PlotSNR_Norm(self,layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.SNR_Norm[layer_num],'b')
-        plt.title('Normalized Signal to Noise Ratio')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-       
-    def PlotQ(self,layer_num):
-        fig = plt.figure()
-        mean = self.monitor.Q_stats[layer_num][:,0]
-        std = self.monitor.Q_stats[layer_num][:,1]
-        plt.plot(mean)
-        plt.fill_between(range(len(mean)),mean-std, mean+std,
-                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
-        plt.title('Q Mean')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-
-    def PlotW(self,layer_num):
-        fig = plt.figure()
-        mean = self.monitor.W_stats[layer_num][:,0]
-        std = self.monitor.W_stats[layer_num][:,1]
-        plt.plot(mean)
-        plt.fill_between(range(len(mean)),mean-std, mean+std,
-                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
-        plt.title('W Mean')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-        
-    def PlotTheta(self,layer_num):
-        fig = plt.figure()
-        mean = self.monitor.theta_stats[layer_num][:,0]
-        std = self.monitor.theta_stats[layer_num][:,1]
-        plt.plot(mean)
-        plt.fill_between(range(len(mean)),mean-std, mean+std,
-                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
-        plt.title('Theta Mean')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-
-    def PlotX_rec(self,layer_num):
-        fig = plt.figure()
-        mean = self.monitor.X_rec_stats[layer_num][:,0]
-        std = self.monitor.X_rec_stats[layer_num][:,1]
-        plt.plot(mean)
-        plt.fill_between(range(len(mean)),mean-std, mean+std,
-                         alpha=0.5, edgecolor='#CC4F1B', facecolor='#FF9848')
-        plt.title('Reconstructed Image (Y*Q) Mean')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-
-    def PlotX(self,layer_num):
-        fig = plt.figure()
-        plt.plot(self.monitor.X_norm_bar[layer_num],'b')
-        plt.title('Image Norm Mean')
-        plt.xlabel('Number of Trials')
-        self.pp.savefig()
-        plt.close(fig)
-    
     def PlotInhibitHistLogX(self,layer=0):
-        fig = plt.figure()
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
-        zeros = np.nonzero(W_flat == 0) #Locates zeros
-        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
+        W_flat = W_flat[W_flat > 0.]
         W_flat = np.log10(W_flat)
-        num, bin_edges = np.histogram(W_flat, bins = 100, density = True)
+        num, bin_edges = np.histogram(W_flat, bins=100, density=True)
         bin_edges = bin_edges[1:]
         bin_edges = 10**bin_edges
-        plt.semilogx(bin_edges,num,'o')
-        plt.ylim(0,0.9)
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Strength Histogram Log X')        
-        plt.xlabel("log(Inhibitory Connection Strength)")
-        plt.ylabel("PDF log(connection strength)")
-        self.pp.savefig(fig)
-        plt.close(fig)
+        if num.max() > 0.:
+            fig = plt.figure()
+            plt.semilogx(bin_edges, num, 'o')
+            plt.ylim(0,0.9)
+            plt.gcf().subplots_adjust(bottom=0.15)
+            plt.title('Inhibitory Strength Histogram Log X')        
+            plt.xlabel("log(Inhibitory Connection Strength)")
+            plt.ylabel("PDF log(connection strength)")
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def PlotInhibitHistLogY(self,layer=0):
-        fig = plt.figure()
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
-        zeros = np.nonzero(W_flat == 0) #Locates zeros
-        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins = 100, density = True)
+        W_flat = W_flat[W_flat > 0.]
+        num, bin_edges = np.histogram(W_flat,range=(0.00001, 3), bins=100, density=True)
         bin_edges = bin_edges[1:]
-        plt.semilogy(bin_edges,num,'o')
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Strength Histogram Log Y')        
-        plt.xlabel("Inhibitory Connection Strength")
-        plt.ylabel("log (PDF connection strength)")
-        self.pp.savefig(fig)
-        plt.close(fig)
+        if num.max() > 0.:
+            fig = plt.figure()
+            plt.semilogy(bin_edges, num, 'o')
+            plt.gcf().subplots_adjust(bottom=0.15)
+            plt.title('Inhibitory Strength Histogram Log Y')        
+            plt.xlabel("Inhibitory Connection Strength")
+            plt.ylabel("log (PDF connection strength)")
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def PlotInhibitHist(self,layer=0):
-        fig = plt.figure()
-        W = self.network.W[layer] - np.diag(np.diag(self.network.W[layer]))
-        W_flat = np.ravel(W) #Flattens array
-        zeros = np.nonzero(W_flat == 0) #Locates zeros
-        W_flat = np.delete(W_flat, zeros) #Deletes Zeros
-        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins = 500,density=True)
+        W_flat = np.ravel(self.network.W[layer]) #Flattens array
+        W_flat = W_flat[W_flat > 0.]
+        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins=100, density=True)
         bin_edges = bin_edges[1:]
-        plt.plot(bin_edges,num,'o')
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Strength Histogram')        
-        plt.xlabel("Inhibitory Connection Strength")
-        plt.ylabel("PDF connection strength")
-        self.pp.savefig(fig)
-        plt.close(fig)
+        if num.max() > 0.:
+            fig = plt.figure()
+            plt.plot(bin_edges, num, 'o')
+            plt.gcf().subplots_adjust(bottom=0.15)
+            plt.title('Inhibitory Strength Histogram')        
+            plt.xlabel("Inhibitory Connection Strength")
+            plt.ylabel("PDF connection strength")
+            self.pp.savefig(fig)
+            plt.close(fig)
         
-    def PlotInh_vs_RF(self,layer=0):
-        fig = plt.figure()
+    def PlotInh_vs_RF(self, layer=0):
         Q = self.network.Q[layer]
+        W = self.network.W[layer]
+        n_neurons = Q.shape[1]
         RF_overlap = Q.T.dot(Q)
-        pairs = np.random.randint(0,self.network.parameters.M[layer],(5000,2))
+        pairs = 5000
         RF_sample = np.array([])
         W_sample = np.array([])
-        for pair in pairs:
-            Overlap = RF_overlap[pair[0]][pair[1]]
-            RF_sample = np.append(RF_sample, np.array([Overlap]))
-            w1 = self.network.W[layer][pair[0]][pair[1]]
-            W_sample = np.append(W_sample,np.array([w1]))
-        #plt.xlim(10**-3,10**1.5)
-        plt.semilogx(W_sample, RF_sample, '.')
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Inhibitory Connection Str vs RF Overlap')
-        plt.xlabel("Inhibitory Connection Strength")
-        #plt.ylim(-0.7,0.7)
-        plt.ylabel("RF Overlap (Dot product)")
-        self.pp.savefig(fig)
-        plt.close(fig)
+        for ii in range(pairs):
+            pair = self.rng.permutation(n_neurons)[:2]
+            RFO_ij = RF_overlap[pair[0], pair[1]]
+            W_ij = W[pair[0], pair[1]]
+            if W_ij > 0.:
+                RF_sample = np.append(RF_sample, np.array([RFO_ij]))
+                W_sample = np.append(W_sample,np.array([W_ij]))
+        if W_sample.size > 0:
+            fig = plt.figure()
+            #plt.xlim(10**-3,10**1.5)
+            plt.semilogx(W_sample, RF_sample, '.')
+            #plt.gcf().subplots_adjust(bottom=0.15)
+            plt.title('Inhibitory Connection Str vs RF Overlap')
+            plt.xlabel("Log Inhibitory Connection Strength")
+            #plt.ylim(-0.7,0.7)
+            plt.ylabel("RF Overlap (Dot product)")
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def Plot_Rate_Hist(self,layer=0):
-        fig = plt.figure()
         rates = np.mean(self.network.Y[layer],axis = 0)
         num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
+        fig = plt.figure()
         plt.plot(bin_edges,num,'o')
         #lt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
@@ -328,21 +237,24 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def Plot_Rate_Corr(self,layer=0):
-        fig = plt.figure()
+    def Plot_Rate_Corr(self, layer=0):
         Y = self.network.Y[layer]
+        n_neurons = Y.shape[1]
         corrcoef = np.corrcoef(Y,rowvar = 0)
-        corrcoef = corrcoef - np.diag(np.diag(corrcoef))
-        corrcoef = np.ravel(corrcoef) #Flattens array
-        if corrcoef.max() > corrcoef.min():
-             plt.hist(corrcoef, 50, normed= True)
-        #plt.ylim(0,300)
-        #plt.gcf().subplots_adjust(bottom=0.15)
-             plt.title('Correlation PDF')
-             plt.xlabel("Rate Correlation")
-             plt.ylabel("PDF")
-             self.pp.savefig(fig)
-        plt.close(fig)
+        corrcoef_flat = np.array([])
+        for ii in range(n_neurons-1):
+            corrcoef_flat = np.append(corrcoef_flat,corrcoef[ii,ii+1:])
+        corrcoef_flat = corrcoef_flat[np.logical_not(np.isnan(corrcoef_flat))]
+        if corrcoef_flat.size > 0.:
+            fig = plt.figure()
+            plt.hist(corrcoef_flat, 50, normed= True)
+            #plt.ylim(0,300)
+            #plt.gcf().subplots_adjust(bottom=0.15)
+            plt.title('Correlation PDF')
+            plt.xlabel("Rate Correlation")
+            plt.ylabel("PDF")
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def RasterPlot(self):
         
@@ -385,20 +297,20 @@ class Plot():
         return latest_spike
 
     def Layer_2_connection_strengths_to_Layer_1(self):
-	nL1=10
-	nL2=15
+	nL1 = 10
+	nL2 = 15
         N = self.network.parameters.N
-	Q1,Q2=self.network.Q
-	indxs=np.zeros((nL2,nL1))
+	Q1, Q2 = self.network.Q
+	indxs = np.zeros((nL2, nL1))
 	for n in range(nL2):
 	    v=Q2[:,n]
 	    for c in range(nL1):
-        	idx=np.argmax(v)
-	        indxs[n,c]=idx
-	        v[idx]=0
+        	idx = np.argmax(v)
+	        indxs[n,c] = idx
+	        v[idx] = 0
 	L2C=np.zeros((nL1*nL2,N))
-	for i,n in enumerate(indxs.ravel()):
-	    L2C[i]=Q1[:,n]
+	for ii, n in enumerate(indxs.ravel()):
+	    L2C[ii]=Q1[:, n]
 
 	fig=plt.figure()
 	side = int(np.sqrt(N))
@@ -412,18 +324,17 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-
-	Y1,Y2=self.network.Y
-	sort_idxs=np.argsort(Y2.sum(axis=0))[::-1][:nL2]
-        for n in sort_idxs:
-            v=Q2[:,n]
+	Y2 = self.network.Y[1]
+	sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        for n, idx in enumerate(sort_idxs):
+            v = Q2[:, n]
             for c in range(nL1):
-                idx=np.argmax(v)
-                indxs[n,c]=idx
-                v[idx]=0
-        L2C=np.zeros((nL1*nL2,N))
-        for i,n in enumerate(indxs.ravel()):
-            L2C[i]=Q1[:,n]
+                idx = np.argmax(v)
+                indxs[n,c] = idx
+                v[idx] = 0
+        L2C=np.zeros((nL1*nL2, N))
+        for ii, n in enumerate(indxs.ravel()):
+            L2C[ii]=Q1[:, n]
 
         fig=plt.figure()
         side = int(np.sqrt(N))
@@ -455,8 +366,8 @@ class Plot():
                 self.Plot_Rate_Hist(layer)
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Rate_Hist_LC(layer)
-            #self.Layer_2_connection_strengths_to_Layer_1()
-
+            if self.network.n_layers > 1:
+                self.Layer_2_connection_strengths_to_Layer_1()
 
 if __name__ == "__main__":
     directory = sys.argv[1]

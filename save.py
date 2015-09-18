@@ -142,14 +142,14 @@ def load_model():
                                       cmd_line_args=args)
         network = Network(parameters)
         directory = make_folder(parameters)
-        prev, directory = make_subfolder(directory,args.comments)
+        prev, directory = make_subfolder(directory, args.comments)
 
-    dump_parameters(directory, network.parameters)
+    dump_parameters(directory, parameters)
     
-    learn = Learning_Rule(network,parameters.dW_rule)
+    learn = Learning_Rule(network)
     monitor = Monitor(network)
     activity = Activity(network)
-    if False:
+    if parameters.time_data:
         data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
                          parameters.num_images,
                          parameters.batch_size,
