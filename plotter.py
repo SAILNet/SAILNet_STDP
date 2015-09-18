@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 from activity import Activity
-from data import Data
+from data import Data,Static_Data,Time_Data
 from matplotlib.backends.backend_pdf import PdfPages
 
 
@@ -31,7 +31,7 @@ class Plot():
         batch_size = 50000
         parameters = self.network.parameters
         
-        if parameters.time_data:
+        if False:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
