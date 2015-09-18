@@ -63,11 +63,11 @@ class Time_Data(Data):
                 assert self.dirs is None
                 assert self.locs is None
             # Choose random locations and directions
-            self.ims = rng.permutation(self.num_images)[:self.batch_size]
-            self.locs = self.rng.randint(self.BUFF, imsize-self.BUFF,
+            self.ims = self.rng.permutation(self.num_images)[:self.batch_size]
+            self.locs = self.rng.randint(self.BUFF, self.imsize-self.BUFF,
                                          size=(self.batch_size, 2))
             # One of 9 directions
-            self.dirs = rng.randint(-1, 2, size=(self.batch_size, 2))
+            self.dirs = self.rng.randint(-1, 2, size=(self.batch_size, 2))
         else:
             # Take step in direction
             self.locs += self.dirs

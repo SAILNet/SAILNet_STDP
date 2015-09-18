@@ -26,7 +26,7 @@ class Plot():
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
         orig = self.network.parameters.time_data
-        self.network.parameters.time = False
+        self.network.parameters.time_data = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
@@ -44,7 +44,6 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             start=35)    
-
         self.network.to_gpu()	
 
         activity = Activity(self.network)
@@ -456,7 +455,7 @@ class Plot():
                 self.Plot_Rate_Hist(layer)
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Rate_Hist_LC(layer)
-            self.Layer_2_connection_strengths_to_Layer_1()
+            #self.Layer_2_connection_strengths_to_Layer_1()
 
 
 if __name__ == "__main__":

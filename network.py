@@ -74,9 +74,10 @@ class Network():
                                          parameters.num_iterations))
 
     def initialize_time(self):
-        if self.time_data:
-            self.Ys_tm1.set_value(0.*self.Ys_tm1.get_value())
-            self.spike_train_tm1.set_value(0.*self.spike_train_tm1.get_value())
+        if self.parameters.time_data:
+            for layer_num in range(self.n_layers):
+                self.Ys_tm1[layer_num].set_value(0.*self.Ys_tm1[layer_num].get_value())
+                self.spike_train_tm1[layer_num].set_value(0.*self.spike_train_tm1[layer_num].get_value())
         else:
             raise ValueError
 

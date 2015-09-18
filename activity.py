@@ -20,9 +20,8 @@ class Activity(BaseActivity):
         keep_spikes = network.parameters.keep_spikes
         norm_infer = network.parameters.norm_infer
         time_data = network.parameters.time_data
-        X = network.X        
+        X = network.X
         updates = OrderedDict()
-
         for layer in range(network.n_layers):
             M = network.parameters.M[layer]
             Q = network.Q[layer]

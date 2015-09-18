@@ -81,7 +81,6 @@ def get_args():
                         type=float)
     parser.add_argument('-s','--begin_decay',default=None,type=float)
     parser.add_argument('-e','--time_data',default=None,type=bool)
-    parser.add_argument('-l','--num_frames',default=None,type=float)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
     parser.add_argument('-k','--keep_spikes',default=None, type=bool)
 
@@ -150,7 +149,7 @@ def load_model():
     learn = Learning_Rule(network,parameters.dW_rule)
     monitor = Monitor(network)
     activity = Activity(network)
-    if parameters.time_data:
+    if False:
         data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
                          parameters.num_images,
                          parameters.batch_size,
@@ -158,7 +157,7 @@ def load_model():
                          parameters.num_frames,
                          **kwargs)
     else:
-        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h6'),
+        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
                            parameters.num_images,
                            parameters.batch_size,
                            parameters.N,
