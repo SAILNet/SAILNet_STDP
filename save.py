@@ -81,6 +81,7 @@ def get_args():
                         type=float)
     parser.add_argument('-s','--begin_decay',default=None,type=float)
     parser.add_argument('-e','--time_data',default=None,type=bool)
+    parser.add_argument('-o','--static_data_control',default=False,type=bool)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
     parser.add_argument('-k','--keep_spikes',default=None, type=bool)
 
@@ -112,6 +113,8 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.function = cmd_line_args.function or params.function
     params.num_frames = cmd_line_args.num_frames or params.num_frames
     params.time_data = cmd_line_args.time_data or params.time_data
+    params.static_data_control = cmd_line_args.static_data_control
+
     if cmd_line_args.keep_spikes is None:
         params.update_keep_spikes()
     else:
@@ -149,7 +152,7 @@ def load_model():
     learn = Learning_Rule(network)
     monitor = Monitor(network)
     activity = Activity(network)
-    if parameters.time_data:
+    if parameters.time_data and not(parameters.static_data_control):
         data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
                          parameters.num_images,
                          parameters.batch_size,
