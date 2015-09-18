@@ -11,6 +11,7 @@ begin_decay: 12000
 decay_time: 5000
 norm_infer: False
 time_data: False
+num_frames: 20
 
 [NeuronParameters]
 N: 256

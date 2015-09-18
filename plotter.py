@@ -30,13 +30,21 @@ class Plot():
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
-
-        data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        
+        if parameters.time_data:
+            data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
             parameters.N,
+            parameters.num_frames,
             start=35)     
-            
+        else:
+            data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            start=35)    
+
         self.network.to_gpu()	
 
         activity = Activity(self.network)
@@ -101,8 +109,8 @@ class Plot():
                                  tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
-        plt.title('Experimental Receptive Fields')
-        plt.imsave(self.directory + '/Images/RFs/Exp_RF.png', img, cmap=plt.cm.Greys)
+        plt.title('Experimental Receptive Fields Layer '+str(layer))
+        plt.imsave(self.directory + '/Images/RFs/Exp_RF_'+str(layer)+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
     def plot_training_values(self, layer_num, channel):
@@ -327,13 +335,14 @@ class Plot():
         corrcoef = np.corrcoef(Y,rowvar = 0)
         corrcoef = corrcoef - np.diag(np.diag(corrcoef))
         corrcoef = np.ravel(corrcoef) #Flattens array
-        plt.hist(corrcoef,bins = 50,normed= True)
+        if corrcoef.max() > corrcoef.min():
+             plt.hist(corrcoef, 50, normed= True)
         #plt.ylim(0,300)
         #plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Correlation PDF')
-        plt.xlabel("Rate Correlation")
-        plt.ylabel("PDF")
-        self.pp.savefig(fig)
+             plt.title('Correlation PDF')
+             plt.xlabel("Rate Correlation")
+             plt.ylabel("PDF")
+             self.pp.savefig(fig)
         plt.close(fig)
         
     def RasterPlot(self):
@@ -375,10 +384,63 @@ class Plot():
             N,I = np.unique(R,return_index =True)
             latest_spike = np.append(latest_spike,max(C[I]))
         return latest_spike
+
+    def Layer_2_connection_strengths_to_Layer_1(self):
+	nL1=10
+	nL2=15
+        N = self.network.parameters.N
+	Q1,Q2=self.network.Q
+	indxs=np.zeros((nL2,nL1))
+	for n in range(nL2):
+	    v=Q2[:,n]
+	    for c in range(nL1):
+        	idx=np.argmax(v)
+	        indxs[n,c]=idx
+	        v[idx]=0
+	L2C=np.zeros((nL1*nL2,N))
+	for i,n in enumerate(indxs.ravel()):
+	    L2C[i]=Q1[:,n]
+
+	fig=plt.figure()
+	side = int(np.sqrt(N))
+	img = tile_raster_images(L2C, img_shape = (side,side),
+				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
+				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+	plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
+	plt.title('Layer 2 connection strengths to Layer 1')
+	plt.xlabel('Layer 1 Receptive Fields')
+	plt.ylabel('Layer 2 Neurons')
+        self.pp.savefig(fig)
+        plt.close(fig)
+
+
+	Y1,Y2=self.network.Y
+	sort_idxs=np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        for n in sort_idxs:
+            v=Q2[:,n]
+            for c in range(nL1):
+                idx=np.argmax(v)
+                indxs[n,c]=idx
+                v[idx]=0
+        L2C=np.zeros((nL1*nL2,N))
+        for i,n in enumerate(indxs.ravel()):
+            L2C[i]=Q1[:,n]
+
+        fig=plt.figure()
+        side = int(np.sqrt(N))
+        img = tile_raster_images(L2C, img_shape = (side,side),
+				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
+				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+        plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
+        plt.title('Sorted Layer 2 connection strengths to Layer 1')
+        plt.xlabel('Layer 1 Receptive Fields')
+        self.pp.savefig(fig)
+        plt.close(fig)
+
         
     def PlotAll(self):
+        self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
-            self.validation_data()
             self.Plot_RF()
             for layer in range(self.network.n_layers):
                 for channel in self.monitor.training_values:
@@ -394,6 +456,7 @@ class Plot():
                 self.Plot_Rate_Hist(layer)
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Rate_Hist_LC(layer)
+            self.Layer_2_connection_strengths_to_Layer_1()
 
 
 if __name__ == "__main__":

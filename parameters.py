@@ -28,6 +28,7 @@ class Parameters():
         self.num_images = config.getint("Parameters",'num_images')
         self.num_trials = config.getint("Parameters",'num_trials')
         self.num_iterations = config.getint("Parameters",'num_iterations')
+        self.num_frames = config.getint("Parameters","num_frames")
         self.begin_decay = config.getint("Parameters",'begin_decay')
         decay_time = config.getfloat("Parameters",'decay_time')
         self.reduce_learning_rate = np.array(10**(-1./decay_time)).astype('float32')
