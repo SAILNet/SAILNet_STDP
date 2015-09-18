@@ -10,7 +10,7 @@ from learning_rule import Learning_Rule
 from parameters import Parameters
 from network import Network 
 from activity import Activity
-from data import Data
+from data import Data,Static_Data,Time_Data
 from monitor import Monitor
 
 def make_folder(params):
@@ -43,10 +43,6 @@ def make_subfolder(directory,comments):
     return prev,name
 
 def dump_parameters(path, parameters):
-    with open(os.path.join(path, 'sailnet_parameters.pkl'),'wb') as f:
-        cPickle.dump(parameters, f)
-    with open(os.path.join(path, 'sailnet_parameters.pkl'),'rb') as f:
-        parameters = cPickle.load(f)
     with open(os.path.join(path, 'sailnet_parameters.txt'),'wt') as f:
         f.write(str(parameters.__dict__))
  
@@ -78,18 +74,22 @@ def get_args():
                         '--num_iterations',
                         default=None,
                         type=int)
-    parser.add_argument('-r',
-                        '--reduced_learning_rate',
+    parser.add_argument('-d',
+                        '--decay_time',
                         default=None,
                         type=float)
+    parser.add_argument('-s','--begin_decay',default=None,type=float)
+    parser.add_argument('-e','--time_data',default=None,type=bool)
+    parser.add_argument('-l','--num_frames',default=None,type=float)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
+    parser.add_argument('-k','--keep_spikes',default=None, type=bool)
 
     parser.add_argument('--neurons', default=None,type=int)
     parser.add_argument('--OC1', default=None,type=int)
     parser.add_argument('--OC2', default=None,type=int)
     parser.add_argument('-p', default=None, type=float)
     parser.add_argument('--n_layers', default=None, type=int)
-
+    
     parser.add_argument('-c', '--comments', default='None')
 
     return parser.parse_args()
@@ -106,8 +106,15 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.OC2 = cmd_line_args.OC2 or params.OC2
     params.M = (params.N*params.OC1, params.N*params.OC2)
     params.num_trials = cmd_line_args.num_trials or params.num_trials
+    params.num_frames = cmd_line_args.num_frames or params.num_frames
+    params.begin_decay = cmd_line_args.begin_decay or params.begin_decay
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
+    params.time_data = cmd_line_args.time_data or params.time_data
+    if cmd_line_args.keep_spikes is None:
+        params.update_keep_spikes()
+    else:
+        params.keep_spikes = cmd_line_args.keep_spikes
     return params
 
 def load_model():
@@ -125,7 +132,7 @@ def load_model():
         parameters = final_parameters(file_params,
                                       cmd_line_args = args,
                                       network_params = network.parameters)
-        for attr in ['dW_rule', 'function', 'norm_infer', 'OC1', 'OC2', 'N', 'p', 'n_layers']:
+        for attr in ['dW_rule', 'function','time_data','norm_infer', 'OC1', 'OC2', 'N', 'p', 'n_layers']:
             if getattr(network.parameters, attr) != getattr(parameters, attr):
                 raise ValueError('Value of '+attr+' has changed.')
         network.parameters = parameters
@@ -141,11 +148,10 @@ def load_model():
     learn = Learning_Rule(network,parameters.dW_rule)
     monitor = Monitor(network)
     activity = Activity(network)
-    data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
-            parameters.num_images,
-            parameters.batch_size,
-            parameters.N,
-            **kwargs)
+    if False:
+        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'), parameters.num_images, parameters.batch_size, parameters.N,parameters.num_frames,**kwargs)
+    else:
+        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'), parameters.num_images, parameters.batch_size, parameters.N,**kwargs)
     plotter = Plot(directory)
     
     return activity,data,directory,learn,monitor,network,parameters,plotter

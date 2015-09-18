@@ -21,19 +21,19 @@ class Parameters():
         """
         
         self.dW_rule = config.get('LearningRule','dW_rule')
-        if self.dW_rule in spike_rules:
-            self.keep_spikes = True
-        else:
-            self.keep_spikes = False
+        self.update_keep_spikes()
         self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
         self.num_images = config.getint("Parameters",'num_images')
         self.num_trials = config.getint("Parameters",'num_trials')
         self.num_iterations = config.getint("Parameters",'num_iterations')
-        reduce_learning_rate = config.getfloat("Parameters",'reduce_learning_rate')
-        self.reduce_learning_rate = np.array(reduce_learning_rate).astype('float32')
+        self.num_frames = config.getint("Parameters","num_frames")
+        self.begin_decay = config.getint("Parameters",'begin_decay')
+        decay_time = config.getfloat("Parameters",'decay_time')
+        self.reduce_learning_rate = np.array(10**(-1./decay_time)).astype('float32')
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
+        self.time_data = config.getboolean("Parameters", "time_data")
 
         self.N = config.getint("NeuronParameters",'N')
         self.OC1 = config.getint("NeuronParameters",'OC1')
@@ -46,8 +46,8 @@ class Parameters():
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
         self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))        
 
-    def keep_spikes(self):
-        if self.rule in spike_rules:
+    def update_keep_spikes(self):
+        if self.dW_rule in spike_rules:
             self.keep_spikes = True
         else:
             self.keep_spikes = False

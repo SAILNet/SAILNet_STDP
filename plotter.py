@@ -25,22 +25,33 @@ class Plot():
             
     def validation_data(self,contrast = 1.):
         self.network.parameters.batch_size = 1000
+        orig = self.network.parameters.time_data
+        self.network.parameters.time = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         parameters = self.network.parameters
-
-        data = Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        
+        if parameters.time_data:
+            data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
             parameters.N,
+            parameters.num_frames,
             start=35)     
-            
+        else:
+            data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            start=35)    
+
         self.network.to_gpu()	
 
         activity = Activity(self.network)
 
         self.big_X = np.zeros((batch_size,parameters.N))
         self.big_Y = ()
+        
         for layer in range(self.network.n_layers):
             self.big_Y += (np.zeros((batch_size,parameters.M[layer])),)
 
@@ -58,6 +69,7 @@ class Plot():
         self.network.to_cpu()
         self.network.Y = self.big_Y
         self.network.X = self.big_X
+        self.network.parameters.time_data = orig
             
     def Plot_RF(self,network_Q = None,layer = 0,filenum = ''):
                 
@@ -428,8 +440,8 @@ class Plot():
         
     def PlotAll(self):
         self.validation_data()
-        self.Plot_RF()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
+            self.Plot_RF()
             for layer in range(self.network.n_layers):
                 for channel in self.monitor.training_values:
                     self.plot_training_values(layer, channel)

@@ -21,7 +21,8 @@ class Abs_Learning_Rule(object):
     def ReduceLearning(self,tt):
         parameters = self.network.parameters
         reduce_learning_rate = parameters.reduce_learning_rate
-        if tt >= 5000:
+        
+        if tt >= parameters.begin_decay:
             parameters.gamma.set_value(parameters.gamma.get_value() *
                                        reduce_learning_rate)
             parameters.beta.set_value(parameters.beta.get_value() *
@@ -40,12 +41,30 @@ class Learning_Rule(Abs_Learning_Rule):
         gamma = parameters.gamma
         batch_size = parameters.batch_size
         p = parameters.p
+        time_data = parameters.time_data
+        rnd = theano.tensor.shared_randomstreams.RandomStreams()
         
         for layer_num in range(network.n_layers):
             Y = network.Y[layer_num]
+            spike_train = network.spike_train[layer_num]
+            spike_train_tm1 = network.spike_train_tm1[layer_num]
             Q = network.Q[layer_num]
             W = network.W[layer_num]
             theta = network.theta[layer_num]
+
+            """
+            Calculate Change in Feed-Forward Weights dQ
+            """        
+            square_act = T.sum(Y*Y,axis=0)
+            mymat = T.diag(square_act)
+            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+            Q = Q+dQ    
+            
+            if time_data:
+                time_overlap = rnd.random_integers(low=0,high=50)
+            
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],spike_train[:,:,:(50-time_overlap)]),axis=2)
+                Y = T.sum(spike_train,axis=2)
 
             dW_Rule = str_to_dW[dW_rule](network)
             
@@ -56,14 +75,6 @@ class Learning_Rule(Abs_Learning_Rule):
             W = W+dW
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0.,0.,W)
-            
-            """
-            Calculate Change in Feed-Forward Weights dQ
-            """        
-            square_act = T.sum(Y*Y,axis=0)
-            mymat = T.diag(square_act)
-            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-            Q = Q+dQ    
             
             """
             Calculate Change in Threshold Weights dtheta

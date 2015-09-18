@@ -9,6 +9,14 @@ import theano
 
 shared_type = theano.tensor.sharedvar.SharedVariable
 
+def make_shared(shape_or_array, val=0.):
+    if isinstance(shape_or_array, (tuple, int)):
+        return theano.shared(val*np.ones(shape_or_array).astype('float32'))
+    elif isinstance(shape_or_array, np.ndarray):
+        return theano.shared(shape_or_array.astype('float32'))
+    else:
+        raise ValueError
+
 class Network():
     
     def __init__(self, parameters):
@@ -26,9 +34,13 @@ class Network():
         self.W = ()
         self.theta = ()
         self.Y = ()
+        if parameters.time_data:
+            self.Ys_tm1 = ()
         if parameters.keep_spikes:
             self.spike_train = ()
-        self.X = theano.shared(np.zeros((parameters.batch_size,parameters.N)).astype('float32'))
+            if parameters.time_data:
+                self.spike_train_tm1 = ()
+        self.X = make_shared((parameters.batch_size,parameters.N))
 
         nin = (parameters.N,)+parameters.M
         nout = parameters.M
@@ -38,22 +50,35 @@ class Network():
             out_dim = nout[ii]
             Q = rng.randn(in_dim,out_dim)
             Q = 0.5*Q.dot(np.diag(1./np.sqrt(np.diag(Q.T.dot(Q)))))
-            self.Q += (theano.shared(Q.astype('float32')),)
-            self.W += (theano.shared(np.zeros((out_dim, out_dim)).astype('float32')),)
-            self.theta += (theano.shared(0.5*np.ones(out_dim).astype('float32')),)
+            self.Q += (make_shared(Q),)
+            self.W += (make_shared((out_dim, out_dim)),)
+            self.theta += (make_shared(out_dim, val=.5),)
         
             """
             Save Spikes per Trial and Spike History as Theano Shared Variables
             """
             
-            self.Y += (theano.shared(np.zeros((parameters.batch_size,out_dim)).astype('float32')),)
+            self.Y += (make_shared((parameters.batch_size, out_dim)),)
+            if parameters.time_data:
+                self.Ys_tm1 += (make_shared((parameters.batch_size, out_dim)),)
             if parameters.keep_spikes:
-                self.spike_train += (theano.shared(np.zeros((parameters.batch_size,
-                                                             out_dim,
-                                                             parameters.num_iterations)).astype('float32')),)
+                self.spike_train += (make_shared((parameters.batch_size,
+                                                  out_dim,
+                                                  parameters.num_iterations)),)
+                if parameters.time_data:
+                    self.spike_train_tm1 += (make_shared((parameters.batch_size,
+                                                          out_dim,
+                                                          parameters.num_iterations)),)
         if parameters.keep_spikes:
-            self.time_dep = theano.shared(np.zeros((parameters.num_iterations,
-                                                    parameters.num_iterations)).astype('float32'))
+            self.time_dep = make_shared((parameters.num_iterations,
+                                         parameters.num_iterations))
+
+    def initialize_time(self):
+        if self.time_data:
+            self.Ys_tm1.set_value(0.*self.Ys_tm1.get_value())
+            self.spike_train_tm1.set_value(0.*self.spike_train_tm1.get_value())
+        else:
+            raise ValueError
 
     def continue_learning(self):
         if self.current_trial < self.parameters.num_trials:
@@ -80,7 +105,7 @@ class Network():
         updates = {}
         for key, value in items.iteritems():
             if isinstance(value, np.ndarray):
-                updates[key] = theano.shared(value.astype('float32'))
+                updates[key] = make_shared(value)
             elif isinstance(value, tuple) and all(isinstance(v, np.ndarray) for v in value):
-                updates[key] = tuple(theano.shared(v.astype('float32')) for v in value)
+                updates[key] = tuple(make_shared(v) for v in value)
         self.__dict__.update(updates)
