@@ -84,17 +84,22 @@ class Plot():
         im_size, num_dict = Q.shape
 
         side = int(np.round(np.sqrt(im_size)))
+        im_rows = int(np.sqrt(num_dict))
+        if im_rows**2 < num_dict:
+            im_cols = im_rows+1
+        else:
+            im_cols = im_rows
         OC = num_dict/im_size
 
-        img = tile_raster_images(Q.T, img_shape = (side,side),
-                                 tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
+        img = tile_raster_images(Q.T, img_shape=(side, side),
+                                 tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Receptive Fields' + filenum)
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
-    def Plot_EXP_RF(self,layer=0):
+    def Plot_EXP_RF(self, layer=0):
         Exp_RF = self.network.X.T.dot(self.network.Y[layer])
         
         spike_sum = np.sum(self.network.Y[layer],axis = 0,dtype='f')
@@ -103,10 +108,15 @@ class Plot():
         im_size, num_dict = Exp_RF.shape
 
         side = int(np.round(np.sqrt(im_size)))
+        im_rows = int(np.sqrt(num_dict))
+        if im_rows**2 < num_dict:
+            im_cols = im_rows+1
+        else:
+            im_cols = im_rows
         OC = num_dict/im_size
 
-        img = tile_raster_images(Exp_RF.T, img_shape = (side,side),
-                                 tile_shape = (2*side,side*OC/2), tile_spacing=(1, 1),
+        img = tile_raster_images(Exp_RF.T, img_shape=(side,side),
+                                 tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Experimental Receptive Fields Layer '+str(layer))
@@ -196,7 +206,7 @@ class Plot():
             if W_ij > 0.:
                 RF_sample = np.append(RF_sample,RFO_ij)
                 W_sample = np.append(W_sample,W_ij)
-        if W_sample.size > 0:
+        if W_sample.size > 0 and not np.any(np.isnan(RF_sample)):
             fig = plt.figure()
             #plt.xlim(10**-3,10**1.5)
             plt.semilogx(W_sample, RF_sample, '.')

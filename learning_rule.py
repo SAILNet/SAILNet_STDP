@@ -78,7 +78,7 @@ class Learning_Rule(Abs_Learning_Rule):
     
             W = W+dW
             W = W - T.diag(T.diag(W))
-            W = T.switch(W < 0.,0.,W)
+            W = T.switch(W < 0., 0., W)
             
             """
             Calculate Change in Threshold Weights dtheta
@@ -86,6 +86,7 @@ class Learning_Rule(Abs_Learning_Rule):
             muy = Y.mean(axis=0)
             dtheta = gamma*(muy - p)
             theta = theta+dtheta
+            theta = T.switch(theta < 0., 0., theta)
     
             updates[network.Q[layer_num]] = Q
             updates[network.W[layer_num]] = W

@@ -25,7 +25,7 @@ while network.continue_learning():
 network.to_cpu()
 monitor.cleanup()
 print('Saving...')
-save.make_pkl(directory,network,monitor,data.rng)
+save.make_pkl(directory, network, monitor, data.rng)
 
 print('Plotting...')
 plotter.load_network()

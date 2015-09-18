@@ -49,8 +49,8 @@ def dump_parameters(path, parameters):
 def make_pkl(directory, network, monitor, data_rng):
     temp_file = os.path.join(directory, 'data_temp.pkl')
     final_file = os.path.join(directory, 'data.pkl')
-    with open(temp_file,'wb') as f:
-        cPickle.dump((network,monitor,data_rng),f)
+    with open(temp_file, 'wb') as f:
+        cPickle.dump((network, monitor, data_rng), f)
     shutil.move(temp_file, final_file)
 
 def get_args():
