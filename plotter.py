@@ -194,8 +194,8 @@ class Plot():
             RFO_ij = RF_overlap[pair[0], pair[1]]
             W_ij = W[pair[0], pair[1]]
             if W_ij > 0.:
-                RF_sample = np.append(RF_sample, np.array([RFO_ij]))
-                W_sample = np.append(W_sample,np.array([W_ij]))
+                RF_sample = np.append(RF_sample,RFO_ij)
+                W_sample = np.append(W_sample,W_ij)
         if W_sample.size > 0:
             fig = plt.figure()
             #plt.xlim(10**-3,10**1.5)
