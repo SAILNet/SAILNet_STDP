@@ -11,7 +11,8 @@ shared_type = theano.tensor.sharedvar.SharedVariable
 
 def make_shared(shape_or_array, val=0.):
     if isinstance(shape_or_array, (tuple, int)):
-        return theano.shared(val*np.ones(shape_or_array).astype('float32'))
+        return theano.shared(np.array(val, dtype='float32') *
+                             np.ones(shape_or_array).astype('float32'))
     elif isinstance(shape_or_array, np.ndarray):
         return theano.shared(shape_or_array.astype('float32'))
     else:
@@ -22,6 +23,8 @@ class Network():
     def __init__(self, parameters):
         
         self.parameters = parameters
+        time_data = parameters.time_data
+        keep_spikes = parameters.keep_spikes
         rng = np.random.RandomState(1246)
         self.current_trial = 0
         self.total_trials = 0
@@ -34,13 +37,13 @@ class Network():
         self.W = ()
         self.theta = ()
         self.Y = ()
-        if parameters.time_data:
+        if time_data:
             self.Ys_tm1 = ()
-        if parameters.keep_spikes:
+        if keep_spikes:
             self.spike_train = ()
-            if parameters.time_data:
+            if time_data:
                 self.spike_train_tm1 = ()
-        self.X = make_shared((parameters.batch_size,parameters.N))
+        self.X = make_shared((parameters.batch_size, parameters.N))
 
         nin = (parameters.N,)+parameters.M
         nout = parameters.M
@@ -59,24 +62,27 @@ class Network():
             """
             
             self.Y += (make_shared((parameters.batch_size, out_dim)),)
-            if parameters.time_data:
+            if time_data:
                 self.Ys_tm1 += (make_shared((parameters.batch_size, out_dim)),)
-            if parameters.keep_spikes:
+            if keep_spikes:
                 self.spike_train += (make_shared((parameters.batch_size,
                                                   out_dim,
                                                   parameters.num_iterations)),)
-                if parameters.time_data:
+                if time_data:
                     self.spike_train_tm1 += (make_shared((parameters.batch_size,
                                                           out_dim,
                                                           parameters.num_iterations)),)
-        if parameters.keep_spikes:
+        if keep_spikes:
             self.time_dep = make_shared((parameters.num_iterations,
                                          parameters.num_iterations))
 
     def initialize_time(self):
-        if self.time_data:
-            self.Ys_tm1.set_value(0.*self.Ys_tm1.get_value())
-            self.spike_train_tm1.set_value(0.*self.spike_train_tm1.get_value())
+        if self.parameters.time_data:
+            for layer in range(self.n_layers):
+                Ys_tm1 = self.Ys_tm1[layer]
+                spike_train_tm1 = self.spike_train_tm1[layer]
+                Ys_tm1.set_value(0.*Ys_tm1.get_value())
+                spike_train_tm1.set_value(0.*spike_train_tm1.get_value())
         else:
             raise ValueError
 

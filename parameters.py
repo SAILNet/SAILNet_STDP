@@ -12,7 +12,7 @@ spike_rules = ['dW_identity','dW_time_dep']
 
 class Parameters():
     
-    def __init__(self,parameters_file):
+    def __init__(self, parameters_file):
         config = ConfigParser.ConfigParser()
         config.read(parameters_file)
         
@@ -21,7 +21,6 @@ class Parameters():
         """
         
         self.dW_rule = config.get('LearningRule','dW_rule')
-        self.update_keep_spikes()
         self.function = config.get('LearningRule','function')
 
         self.batch_size = config.getint("Parameters",'batch_size')
@@ -35,6 +34,7 @@ class Parameters():
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
         self.time_data = config.getboolean("Parameters", "time_data")
 
+
         self.N = config.getint("NeuronParameters",'N')
         self.OC1 = config.getint("NeuronParameters",'OC1')
         self.OC2 = config.getint("NeuronParameters",'OC2')
@@ -46,8 +46,10 @@ class Parameters():
         self.beta = theano.shared(np.array(config.getfloat("LearningRates",'beta')).astype('float32'))
         self.gamma = theano.shared(np.array(config.getfloat("LearningRates",'gamma')).astype('float32'))        
 
+        self.update_keep_spikes()
+
     def update_keep_spikes(self):
-        if self.dW_rule in spike_rules:
+        if (self.dW_rule in spike_rules) or self.time_data:
             self.keep_spikes = True
         else:
             self.keep_spikes = False

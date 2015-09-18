@@ -32,22 +32,25 @@ class Abs_Learning_Rule(object):
             
 class Learning_Rule(Abs_Learning_Rule):
     
-    def __init__(self, network, dW_rule):
+    def __init__(self, network):
         self.network = network
         parameters = network.parameters
-        updates = OrderedDict()
+        dW_rule = parameters.dW_rule
         X = network.X
         beta = parameters.beta
         gamma = parameters.gamma
         batch_size = parameters.batch_size
         p = parameters.p
         time_data = parameters.time_data
-        rnd = theano.tensor.shared_randomstreams.RandomStreams()
+        num_iterations = parameters.num_iterations
+        rng = theano.tensor.shared_randomstreams.RandomStreams()
+
+        updates = OrderedDict()
+
+        dW_Rule = str_to_dW[dW_rule](network)
         
         for layer_num in range(network.n_layers):
             Y = network.Y[layer_num]
-            spike_train = network.spike_train[layer_num]
-            spike_train_tm1 = network.spike_train_tm1[layer_num]
             Q = network.Q[layer_num]
             W = network.W[layer_num]
             theta = network.theta[layer_num]
@@ -61,16 +64,17 @@ class Learning_Rule(Abs_Learning_Rule):
             Q = Q+dQ    
             
             if time_data:
-                time_overlap = rnd.random_integers(low=0,high=50)
+                spike_train = network.spike_train[layer_num]
+                spike_train_tm1 = network.spike_train_tm1[layer_num]
+                time_overlap = rng.random_integers(low=0, high=num_iterations)
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],
+                                             spike_train[:,:,:(num_iterations-time_overlap)]),
+                                             axis=2)
+                Y = T.sum(spike_train, axis=2)
             
-                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],spike_train[:,:,:(50-time_overlap)]),axis=2)
-                Y = T.sum(spike_train,axis=2)
-
-            dW_Rule = str_to_dW[dW_rule](network)
-            
-            dW = dW_Rule.calc_dW(layer_num)
-            
-            #mag_dW = T.sqrt(T.sum(T.sqr(dW)))
+                dW = dW_Rule.calc_dW(layer_num, Y)
+            else:
+                dW = dW_Rule.calc_dW(layer_num)
     
             W = W+dW
             W = W - T.diag(T.diag(W))
@@ -100,14 +104,14 @@ class Learning_Rule(Abs_Learning_Rule):
         
 class Abs_dW(object):
     
-    def __init__(self,network):
+    def __init__(self, network):
         self.network = network
 
 class dW_SAILnet(Abs_dW):
     
-    def calc_dW(self,layer_num):
-        
-        Y = self.network.Y[layer_num]
+    def calc_dW(self, layer_num, Y=None):
+        if Y is None:
+            Y = self.network.Y[layer_num]
         alpha = self.network.parameters.alpha
         batch_size = self.network.parameters.batch_size
         p = self.network.parameters.p
@@ -121,7 +125,7 @@ class dW_SAILnet(Abs_dW):
     
 class dW_identity(Abs_dW):
     
-    def calc_dW(self, layer_num):
+    def calc_dW(self, layer_num, Y=None):
         spike_train = self.network.spike_train[layer_num]
         batch_size = self.network.parameters.batch_size
         num_iterations = self.network.parameters.num_iterations  
@@ -138,11 +142,11 @@ class dW_identity(Abs_dW):
         
 class dW_time_dep(Abs_dW):
     
-    def __init__(self,network):
-        super(dW_time_dep,self).__init__(network)
+    def __init__(self, network):
+        super(dW_time_dep, self).__init__(network)
         network.time_dep = time_matrix(str_to_fnc[network.parameters.function],self.network.parameters.num_iterations)
         
-    def calc_dW(self,layer_num):
+    def calc_dW(self, layer_num, Y=None):
         spike_train = self.network.spike_train[layer_num]
         batch_size = self.network.parameters.batch_size
         num_iterations = self.network.parameters.num_iterations  

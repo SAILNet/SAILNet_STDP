@@ -10,7 +10,6 @@ from learning_rule import Learning_Rule
 from parameters import Parameters
 from network import Network 
 from activity import Activity
-<<<<<<< HEAD
 from data import Static_Data, Time_Data
 from monitor import Monitor
 
@@ -82,7 +81,6 @@ def get_args():
                         type=float)
     parser.add_argument('-s','--begin_decay',default=None,type=float)
     parser.add_argument('-e','--time_data',default=None,type=bool)
-    parser.add_argument('-l','--num_frames',default=None,type=float)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
     parser.add_argument('-k','--keep_spikes',default=None, type=bool)
 
@@ -144,11 +142,11 @@ def load_model():
                                       cmd_line_args=args)
         network = Network(parameters)
         directory = make_folder(parameters)
-        prev, directory = make_subfolder(directory,args.comments)
+        prev, directory = make_subfolder(directory, args.comments)
 
-    dump_parameters(directory, network.parameters)
+    dump_parameters(directory, parameters)
     
-    learn = Learning_Rule(network,parameters.dW_rule)
+    learn = Learning_Rule(network)
     monitor = Monitor(network)
     activity = Activity(network)
     if parameters.time_data:
