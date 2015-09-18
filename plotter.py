@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from utils import tile_raster_images
 from activity import Activity
-from data import Static_Data
+from data import Static_Data, Time_Data
 from matplotlib.backends.backend_pdf import PdfPages
 
 
