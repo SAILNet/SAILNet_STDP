@@ -31,7 +31,7 @@ class Static_Data(Data):
         for ii in xrange(self.batch_size):
             r = self.BUFF+int((self.imsize-sz-2.*self.BUFF)*self.rng.rand())
             c = self.BUFF+int((self.imsize-sz-2.*self.BUFF)*self.rng.rand())
-            myimage = self.images[int(self.num_images*self.rng.rand()),r:r+sz,c:c+sz].ravel()
+            myimage = self.images[int(self.num_images*self.rng.rand()), r:r+sz,c:c+sz].ravel()
             #takes a chunck from a random image, size of 16X16 patch at a random location       
                 
             X[ii] = myimage
@@ -39,6 +39,7 @@ class Static_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
+	assert not np.any(np.isnan(X))
 	network.X.set_value(X.astype('float32'))
 
 class Time_Data(Data):
@@ -63,7 +64,10 @@ class Time_Data(Data):
                 assert self.dirs is None
                 assert self.locs is None
             # Choose random locations and directions
-            self.ims = self.rng.permutation(self.num_images)[:self.batch_size]
+            if self.num_images >= self.batch_size:
+                self.ims = self.rng.permutation(self.num_images)[:self.batch_size]
+            else:
+                self.ims = self.rng.randint(0, self.num_images, self.batch_size)
             self.locs = self.rng.randint(self.BUFF, self.imsize-self.BUFF-sz,
                                          size=(self.batch_size, 2))
             # One of 9 directions
@@ -79,5 +83,6 @@ class Time_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
-	network.X.set_value(X.astype('float32'))
+	assert not np.any(np.isnan(X))
+        network.X.set_value(X.astype('float32'))
         self.current_frame += 1

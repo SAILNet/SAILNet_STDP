@@ -80,7 +80,6 @@ class Plot():
         else:
             Q = self.network.Q[layer]
             function = self.network.parameters.function
-            
         im_size, num_dict = Q.shape
 
         side = int(np.round(np.sqrt(im_size)))
