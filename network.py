@@ -38,6 +38,7 @@ class Network():
         self.theta = ()
         self.Y = ()
         if time_data:
+            self.aas_tm1 = ()
             self.Ys_tm1 = ()
         if keep_spikes:
             self.spike_train = ()
@@ -63,6 +64,7 @@ class Network():
             
             self.Y += (make_shared((parameters.batch_size, out_dim)),)
             if time_data:
+                self.aas_tm1 += (make_shared((parameters.batch_size, out_dim)),)
                 self.Ys_tm1 += (make_shared((parameters.batch_size, out_dim)),)
             if keep_spikes:
                 self.spike_train += (make_shared((parameters.batch_size,

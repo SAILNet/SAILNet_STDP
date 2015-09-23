@@ -30,9 +30,10 @@ class Activity(BaseActivity):
             Y = T.alloc(0., batch_size, M)
             if time_data:
                 Ys = network.Ys_tm1[layer]
+                aas = network.aas_tm1[layer]
             else:
                 Ys = T.zeros_like(Y)
-            aas = T.zeros_like(Y)
+                aas = T.zeros_like(Y)
             if keep_spikes:
                 spike_train = T.alloc(0., batch_size, M, num_iterations)
             
@@ -48,9 +49,11 @@ class Activity(BaseActivity):
                     Ys = (1.-eta*Q_norm)*Ys+eta*(B-aas.dot(W))
                 else:
                     Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
+
                 aas = 0.*aas
                 # This resets the current activity of the time step to 0's        
                 aas = T.switch(Ys > Th, 1., aas)
+
                 # If the activity of a given neuron is above the threshold, set it to 1 a.k.a. fire.
                 
                 if keep_spikes:
@@ -70,9 +73,9 @@ class Activity(BaseActivity):
                 updates[network.spike_train[layer]] = spike_train
             if time_data:
                 updates[network.Ys_tm1[layer]] = Ys
+                updates[network.aas_tm1[layer]] = aas
         
         self.f = theano.function([], [], updates=updates)
         
     def get_acts(self):
         self.f()
-        

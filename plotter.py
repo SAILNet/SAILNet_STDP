@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import network as nw
 from utils import tile_raster_images
 from activity import Activity
 from data import Static_Data, Time_Data
@@ -25,14 +26,23 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1.):
-        self.network.parameters.batch_size = 1000
-        orig_time_data = self.network.parameters.time_data
-        orig_keep_spikes = self.network.parameters.time_data
-        self.network.parameters.time_data = False
-        self.network.parameters.keep_spikes = False
+        parameters = self.network.parameters        
+        parameters.batch_size = 1000
+        orig_time_data = parameters.time_data
+        orig_keep_spikes = parameters.keep_spikes
+        parameters.time_data = False
+        parameters.keep_spikes = True
+        if orig_keep_spikes == False:
+            self.network.spike_train = ()
+            nout = parameters.M
+            for ii in np.arange(self.network.n_layers):
+                out_dim = nout[ii]
+                self.network.spike_train += (nw.make_shared((parameters.batch_size,
+                                                  out_dim,
+                                                  parameters.num_iterations)),)
+                                                  
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
-        parameters = self.network.parameters
         
         if parameters.time_data:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
@@ -47,7 +57,8 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             start=35)    
-        self.network.to_gpu()	
+            
+        self.network.to_gpu()
         activity = Activity(self.network)
         self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
         self.big_Y = ()
@@ -163,7 +174,7 @@ class Plot():
     def PlotInhibitHistLogY(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
-        num, bin_edges = np.histogram(W_flat,range=(0.00001, 3), bins=100, density=True)
+        num, bin_edges = np.histogram(W_flat, bins=100, density=True)
         bin_edges = bin_edges[1:]
         if num.max() > 0.:
             fig = plt.figure()
@@ -178,7 +189,7 @@ class Plot():
     def PlotInhibitHist(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
-        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins=100, density=True)
+        num, bin_edges = np.histogram(W_flat, bins=100, density=True)
         bin_edges = bin_edges[1:]
         if num.max() > 0.:
             fig = plt.figure()
@@ -264,36 +275,46 @@ class Plot():
             plt.ylabel("PDF")
             self.pp.savefig(fig)
             plt.close(fig)
+    
+    def Plot_Rate_vs_Time(self,layer):
+        spike_train = self.network.spike_train[layer]        
+        rates = spike_train.mean(0).mean(0)
+        fig = plt.figure()
+        plt.plot(rates)
+        plt.title('Mean Firing Rates vs Time')
+        plt.ylabel('Mean Firing Rates')
+        plt.xlabel('Number of Iterations')
+        self.pp.savefig(fig)
+        plt.close(fig)
         
-    def RasterPlot(self):
-        
-        spikes = self.network.spike_train[5][:][:]
+    def Plot_Raster(self,layer):
+        spike_train = self.network.spike_train[layer]
+        spikes = spike_train[5]
         
         check = np.nonzero(spikes)
+        spikes = spikes[check[0]]
         
-        reducedSpikes = np.zeros([len(check[0]),50])
+        spike_sum = np.sum(spikes,axis = 1)
+        max_args = np.argsort(spike_sum)[::-1]
+        max_args = max_args[0:len(spike_sum)//1.2]
         
-        neuron = 0
-        for j in check[0]:
+        rand_args = np.random.randint(0,len(max_args),10)
+                
+        spikes_subset = spikes[max_args[rand_args]]
+
+        fig = plt.figure()
+        plt.gca()
+        colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
+        for i,neuron in enumerate(spikes_subset):
+            neuron = np.nonzero(neuron)[0]
+            plt.vlines(neuron, i +.5, i +1.2,colors[i])            
+        plt.ylim(.5,len(spikes_subset)+0.5)         
         
-            reducedSpikes[neuron] = spikes[j]
-            neuron += 1
-        
-        plt.figure()
-        count1 = 0
-        for neuron in(reducedSpikes):
-            count =0
-            for timestep in neuron:
-                if timestep != 0:
-                    plt.vlines(count, count1 +.5, count1 +1.4)            
-                count += 1  
-            count1 += 1
-            
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.xlabel('time',**{'size':'25'})
-        plt.ylabel('Neuron',**{'size':'25'})
-        
-        return reducedSpikes
+        plt.title('Raster Plot',{'fontsize':'25'})
+        plt.xlabel('time')
+        plt.ylabel('Neuron')
+        self.pp.savefig(fig)
+        plt.close(fig)
         
     def find_last_spike(self):
         latest_spike = np.array([])
@@ -374,6 +395,8 @@ class Plot():
                 self.Plot_EXP_RF(layer)
                 self.Plot_Rate_Hist(layer)
                 self.Plot_Rate_Corr(layer)
+                self.Plot_Raster(layer)
+                self.Plot_Rate_vs_Time(layer)
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()
