@@ -95,6 +95,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Receptive Fields' + filenum)
+        plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
@@ -119,6 +120,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Experimental Receptive Fields Layer '+str(layer))
+        plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF_'+str(layer)+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
@@ -306,53 +308,76 @@ class Plot():
         return latest_spike
 
     def Layer_2_connection_strengths_to_Layer_1(self):
-	nL1 = 10
+        nL1 = 10
 	nL2 = 15
         N = self.network.parameters.N
 	Q1, Q2 = self.network.Q
 	indxs = np.zeros((nL2, nL1))
+        min_con_shown = np.inf*np.ones(nL2)
 	for n in range(nL2):
-	    v=Q2[:,n]
+	    v = Q2[:, n].copy()
 	    for c in range(nL1):
         	idx = np.argmax(v)
-	        indxs[n,c] = idx
+                if min_con_shown[n] > v[idx]:
+                    min_con_shown[n] = v[idx]
+	        indxs[n, c] = idx
 	        v[idx] = 0
-	L2C=np.zeros((nL1*nL2,N))
+	L2C = np.zeros((nL1*nL2, N))
 	for ii, n in enumerate(indxs.ravel()):
-	    L2C[ii]=Q1[:, n]
+            ii_2 = int(ii/nL1)
+            rf = Q1[:, n]/(Q1[:, n]**2).sum()
+            rf = rf-rf.min()
+            rf = rf/rf.max()
+	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
+            print ii_2, np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2])
 
 	fig=plt.figure()
 	side = int(np.sqrt(N))
 	img = tile_raster_images(L2C, img_shape = (side,side),
-				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
-				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+                                 tile_shape = (nL2, nL1), tile_spacing=(4, 1),
+                                 scale_rows_to_unit_interval=False,
+                                 output_pixel_vals=False)
 	plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-	plt.title('Layer 2 connection strengths to Layer 1')
+	#plt.title('Layer 2 Connection Strengths to Layer 1')
 	plt.xlabel('Layer 1 Receptive Fields')
 	plt.ylabel('Layer 2 Neurons')
+        plt.xticks([])
+        plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
 	Y2 = self.network.Y[1]
 	sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        min_con_shown = np.inf*np.ones(nL2)
         for n, idx in enumerate(sort_idxs):
-            v = Q2[:, n]
+            v = Q2[:, idx].copy()
             for c in range(nL1):
                 idx = np.argmax(v)
+                if min_con_shown[n] > v[idx]:
+                    min_con_shown[n] = v[idx]
                 indxs[n,c] = idx
                 v[idx] = 0
         L2C=np.zeros((nL1*nL2, N))
         for ii, n in enumerate(indxs.ravel()):
-            L2C[ii]=Q1[:, n]
+            ii_2 = int(ii/nL1)
+            rf = Q1[:, n]/(Q1[:, n]**2).sum()
+            rf = rf-rf.min()
+            rf = rf/rf.max()
+            L2C[ii] = np.power(np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2]), .25)*rf
+            print ii_2, np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2])
 
         fig=plt.figure()
         side = int(np.sqrt(N))
         img = tile_raster_images(L2C, img_shape = (side,side),
-				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
-				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+                                 tile_shape = (nL2, nL1), tile_spacing=(4, 1),
+                                 scale_rows_to_unit_interval=False,
+                                 output_pixel_vals=False)
         plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-        plt.title('Sorted Layer 2 connection strengths to Layer 1')
+        #plt.title('Sort Layer 2 Connection Strengths to Layer 1')
         plt.xlabel('Layer 1 Receptive Fields')
+	plt.ylabel('Sorted Layer 2 Neurons')
+        plt.xticks([])
+        plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
