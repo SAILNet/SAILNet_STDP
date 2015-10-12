@@ -17,8 +17,6 @@ class Monitor(object):
             self.channels[channel] = np.zeros((n_layers, num_trails))
         for channel in self.training_mean_std:
             self.channels[channel] = np.zeros((n_layers, num_trails, 2))
-        
-        self.firing_corr_t_tm1 = []
 
         outputs = []
 
@@ -63,13 +61,7 @@ class Monitor(object):
             theta_std = theta.std()
             outputs.extend([theta_bar, theta_std])
 
-            if self.parameters.time_data = True:
-                Y_tm1 = self.network.Y_tm1[layer]
-                firing_corr_t_tm1 = Y.dot(Y_tm1)
-                outputs.extend([firing_corr_t_tm1])
-            
         self.f = theano.function([], outputs)
-
 
     def log(self,tt):
         #SNR,SNR_Norm,y_bar,Cyy_bar,X_rec_bar,X_rec_std,Q_bar,Q_std,W_bar,W_std,theta_bar,theta_std,X_norm_bar = self.f()
@@ -90,8 +82,6 @@ class Monitor(object):
             self.channels['Thresholds'][layer, tt, 0] = results.pop(0)
             self.channels['Thresholds'][layer, tt, 1] = results.pop(0)
             self.tt = tt
-            if self.parameters.time_data:
-                self.firing_corr_t_tm1[tt] = results.pop(0)
 
     def cleanup(self):
         self.network = None
