@@ -63,7 +63,7 @@ class Learning_Rule(Abs_Learning_Rule):
             dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
             Q = Q+dQ    
             
-            if time_data:
+            if time_data and not parameters.static_learning_control:
                 spike_train = network.spike_train[layer_num]
                 spike_train_tm1 = network.spike_train_tm1[layer_num]
                 time_overlap = rng.random_integers(low=0, high=num_iterations)
