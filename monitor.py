@@ -66,7 +66,6 @@ class Monitor(object):
                 firing_corr_t_tm1 = Y.dot(Y_tm1)
                 outputs.extend([firing_corr_t_tm1])
             
-
         self.f = theano.function([], outputs)
 
 
