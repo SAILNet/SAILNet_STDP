@@ -61,9 +61,11 @@ class Monitor(object):
             theta_std = theta.std()
             outputs.extend([theta_bar, theta_std])
 
-            Y_tm1 = self.network.Y_tm1[layer]
-            X_tm1 = self.network.X_tm1
-
+            if time_data = True:
+                Y_tm1 = self.network.Y_tm1[layer]
+                firing_corr_t_tm1 = Y.dot(Y_tm1)
+                outputs.extend([firing_corr_t_tm1])
+            
 
         self.f = theano.function([], outputs)
 
@@ -87,6 +89,7 @@ class Monitor(object):
             self.channels['Thresholds'][layer, tt, 0] = results.pop(0)
             self.channels['Thresholds'][layer, tt, 1] = results.pop(0)
             self.tt = tt
-    
+            self.firing_corr_t_tm1 = results.pop(0)
+
     def cleanup(self):
         self.network = None
