@@ -58,8 +58,14 @@ class Learning_Rule(Abs_Learning_Rule):
             """
             Calculate Change in Feed-Forward Weights dQ
             """        
-            
-            if time_data and not parameters.static_learning_control:
+            if not parameters.static_learning0 and layer_num == 0:
+                time_learning = True
+            elif not parameters.static_learning1 and layer_num == 1:
+                time_learning = True
+            else:
+                time_learning = False
+
+            if time_data and time_learning:
                 X_tm1 = network.X_tm1
                 spike_train = network.spike_train[layer_num]
                 spike_train_tm1 = network.spike_train_tm1[layer_num]
