@@ -108,7 +108,7 @@ class Learning_Rule(Abs_Learning_Rule):
             X = Y
             if time_data:
                 X = network.Y[layer_num]
-                X_tm1 = spike_train_tm1.sum(axis=2)
+                X_tm1 = network.spike_train_tm1[layer_num].sum(axis=2)
         
         self.f = theano.function([], [], updates=updates)
         
