@@ -61,6 +61,10 @@ class Monitor(object):
             theta_std = theta.std()
             outputs.extend([theta_bar, theta_std])
 
+            Y_tm1 = self.network.Y_tm1[layer]
+            X_tm1 = self.network.X_tm1
+
+
         self.f = theano.function([], outputs)
 
 

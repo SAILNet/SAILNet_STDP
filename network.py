@@ -38,12 +38,14 @@ class Network():
         self.theta = ()
         self.Y = ()
         if time_data:
+            self.X_tm1 = make_shared((parameters.batch_size, parameters.N))
             self.aas_tm1 = ()
             self.Ys_tm1 = ()
         if keep_spikes:
             self.spike_train = ()
             if time_data:
                 self.spike_train_tm1 = ()
+
         self.X = make_shared((parameters.batch_size, parameters.N))
 
         nin = (parameters.N,)+parameters.M

@@ -84,5 +84,9 @@ class Time_Data(Data):
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
 	assert not np.any(np.isnan(X))
+        if self.current_frame != 0:
+            network.X_tm1.set_value(network.X.get_value())
+        else:
+            network.X_tm1.set_value(X.astype('float32'))
         network.X.set_value(X.astype('float32'))
         self.current_frame += 1

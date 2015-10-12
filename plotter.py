@@ -30,7 +30,8 @@ class Plot():
         parameters.batch_size = 1000
         orig_time_data = parameters.time_data
         orig_keep_spikes = parameters.keep_spikes
-        parameters.time_data = False
+        parameters.time_data = True
+        parameters.static_data_control = True
         parameters.keep_spikes = True
         if orig_keep_spikes == False:
             self.network.spike_train = ()
@@ -44,7 +45,7 @@ class Plot():
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         
-        if parameters.time_data:
+        if parameters.time_data and not parameters.static_data_control:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,

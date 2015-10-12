@@ -58,23 +58,28 @@ class Learning_Rule(Abs_Learning_Rule):
             """
             Calculate Change in Feed-Forward Weights dQ
             """        
-            square_act = T.sum(Y*Y,axis=0)
-            mymat = T.diag(square_act)
-            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-            Q = Q+dQ    
             
             if time_data and not parameters.static_learning_control:
+                X_tm1 = network.X_tm1
                 spike_train = network.spike_train[layer_num]
                 spike_train_tm1 = network.spike_train_tm1[layer_num]
                 time_overlap = rng.random_integers(low=0, high=num_iterations)
-                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],
-                                             spike_train[:,:,:(num_iterations-time_overlap)]),
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:]                                            ,spike_train[:,:,:(num_iterations-time_overlap)]),
                                              axis=2)
                 Y = T.sum(spike_train, axis=2)
-            
+                square_act = T.sum(Y*Y,axis=0)
+                mymat = T.diag(square_act)
+                X = ((time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations).astype('float32')
+                dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+                Q = Q+dQ    
+
                 dW = dW_Rule.calc_dW(layer_num, Y)
             else:
                 dW = dW_Rule.calc_dW(layer_num)
+                square_act = T.sum(Y*Y,axis=0)
+                mymat = T.diag(square_act)
+                dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+                Q = Q+dQ    
     
             W = W+dW
             W = W - T.diag(T.diag(W))
@@ -87,7 +92,7 @@ class Learning_Rule(Abs_Learning_Rule):
             dtheta = gamma*(muy - p)
             theta = theta+dtheta
             theta = T.switch(theta < 0., 0., theta)
-    
+
             updates[network.Q[layer_num]] = Q
             updates[network.W[layer_num]] = W
             updates[network.theta[layer_num]] = theta            

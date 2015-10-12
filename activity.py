@@ -15,6 +15,7 @@ class BaseActivity(object):
 class Activity(BaseActivity):
     
     def __init__(self, network):
+        self.trial_num = 0
         batch_size = network.parameters.batch_size
         num_iterations = network.parameters.num_iterations
         keep_spikes = network.parameters.keep_spikes
@@ -28,7 +29,7 @@ class Activity(BaseActivity):
             theta = network.theta[layer]
             W = network.W[layer]
             Y = T.alloc(0., batch_size, M)
-            if time_data:
+            if time_data and self.trial_num != 0:
                 Ys = network.Ys_tm1[layer]
                 aas = network.aas_tm1[layer]
             else:
@@ -78,4 +79,5 @@ class Activity(BaseActivity):
         self.f = theano.function([], [], updates=updates)
         
     def get_acts(self):
+        self.trial_num += 1
         self.f()
