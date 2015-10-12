@@ -301,23 +301,24 @@ class Plot():
         max_args = np.argsort(spike_sum)[::-1]
         max_args = max_args[0:len(spike_sum)//1.2]
         
-        rand_args = np.random.randint(0,len(max_args),10)
-                
-        spikes_subset = spikes[max_args[rand_args]]
+        if len(max_args) > 0:
+            rand_args = np.random.randint(0,len(max_args),10)
+                    
+            spikes_subset = spikes[max_args[rand_args]]
 
-        fig = plt.figure()
-        plt.gca()
-        colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
-        for i,neuron in enumerate(spikes_subset):
-            neuron = np.nonzero(neuron)[0]
-            plt.vlines(neuron, i +.5, i +1.2,colors[i])            
-        plt.ylim(.5,len(spikes_subset)+0.5)         
-        
-        plt.title('Raster Plot',{'fontsize':'25'})
-        plt.xlabel('time')
-        plt.ylabel('Neuron')
-        self.pp.savefig(fig)
-        plt.close(fig)
+            fig = plt.figure()
+            plt.gca()
+            colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
+            for i,neuron in enumerate(spikes_subset):
+                neuron = np.nonzero(neuron)[0]
+                plt.vlines(neuron, i +.5, i +1.2,colors[i])            
+            plt.ylim(.5,len(spikes_subset)+0.5)         
+            
+            plt.title('Raster Plot',{'fontsize':'25'})
+            plt.xlabel('time')
+            plt.ylabel('Neuron')
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def find_last_spike(self):
         latest_spike = np.array([])
