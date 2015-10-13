@@ -25,6 +25,9 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1.):
+        parameters = self.network.parameters
+        print parameters.__dict__
+        print self.network.__dict__
         self.network.parameters.batch_size = 1000
         orig_time_data = self.network.parameters.time_data
         orig_keep_spikes = self.network.parameters.time_data
@@ -32,7 +35,6 @@ class Plot():
         self.network.parameters.keep_spikes = False
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
-        parameters = self.network.parameters
         
         if parameters.time_data:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
