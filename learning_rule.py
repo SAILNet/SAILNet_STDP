@@ -37,8 +37,10 @@ class Learning_Rule(Abs_Learning_Rule):
         parameters = network.parameters
         dW_rule = parameters.dW_rule
         X = network.X
+        alpha = parameters.alpha
         beta = parameters.beta
         gamma = parameters.gamma
+        decay_w = parameters.decay_w
         batch_size = parameters.batch_size
         p = parameters.p
         time_data = parameters.time_data
@@ -89,6 +91,8 @@ class Learning_Rule(Abs_Learning_Rule):
                 Q = Q+dQ    
     
             W = W+dW
+            if decay_w:
+                W = (1.-alpha/100.) * W
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0., 0., W)
             
