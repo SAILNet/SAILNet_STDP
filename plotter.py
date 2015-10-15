@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import network as nw
 from utils import tile_raster_images
 from activity import Activity
 from data import Static_Data, Time_Data
@@ -25,18 +26,27 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1.):
-        parameters = self.network.parameters
-        print parameters.__dict__
-        print self.network.__dict__
-        self.network.parameters.batch_size = 1000
-        orig_time_data = self.network.parameters.time_data
-        orig_keep_spikes = self.network.parameters.time_data
-        self.network.parameters.time_data = False
-        self.network.parameters.keep_spikes = False
+
+        parameters = self.network.parameters        
+        parameters.batch_size = 1000
+        orig_time_data = parameters.time_data
+        orig_keep_spikes = parameters.keep_spikes
+        parameters.time_data = True
+        parameters.static_data_control = True
+        parameters.keep_spikes = True
+        if orig_keep_spikes == False:
+            self.network.spike_train = ()
+            nout = parameters.M
+            for ii in np.arange(self.network.n_layers):
+                out_dim = nout[ii]
+                self.network.spike_train += (nw.make_shared((parameters.batch_size,
+                                                  out_dim,
+                                                  parameters.num_iterations)),)
+                                                  
         small_bs = self.network.parameters.batch_size        
         batch_size = 50000
         
-        if parameters.time_data:
+        if parameters.time_data and not parameters.static_data_control:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
             parameters.batch_size,
@@ -49,7 +59,8 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             start=35)    
-        self.network.to_gpu()	
+            
+        self.network.to_gpu()
         activity = Activity(self.network)
         self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
         self.big_Y = ()
@@ -97,6 +108,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Receptive Fields' + filenum)
+        plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
@@ -121,6 +133,7 @@ class Plot():
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
         plt.title('Experimental Receptive Fields Layer '+str(layer))
+        plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF_'+str(layer)+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
@@ -165,7 +178,7 @@ class Plot():
     def PlotInhibitHistLogY(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
-        num, bin_edges = np.histogram(W_flat,range=(0.00001, 3), bins=100, density=True)
+        num, bin_edges = np.histogram(W_flat, bins=100, density=True)
         bin_edges = bin_edges[1:]
         if num.max() > 0.:
             fig = plt.figure()
@@ -180,7 +193,7 @@ class Plot():
     def PlotInhibitHist(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
-        num, bin_edges = np.histogram(W_flat,range=(0.00001,3), bins=100, density=True)
+        num, bin_edges = np.histogram(W_flat, bins=100, density=True)
         bin_edges = bin_edges[1:]
         if num.max() > 0.:
             fig = plt.figure()
@@ -266,36 +279,47 @@ class Plot():
             plt.ylabel("PDF")
             self.pp.savefig(fig)
             plt.close(fig)
+    
+    def Plot_Rate_vs_Time(self,layer):
+        spike_train = self.network.spike_train[layer]        
+        rates = spike_train.mean(0).mean(0)
+        fig = plt.figure()
+        plt.plot(rates)
+        plt.title('Mean Firing Rates vs Time')
+        plt.ylabel('Mean Firing Rates')
+        plt.xlabel('Number of Iterations')
+        self.pp.savefig(fig)
+        plt.close(fig)
         
-    def RasterPlot(self):
-        
-        spikes = self.network.spike_train[5][:][:]
+    def Plot_Raster(self,layer):
+        spike_train = self.network.spike_train[layer]
+        spikes = spike_train[5]
         
         check = np.nonzero(spikes)
+        spikes = spikes[check[0]]
         
-        reducedSpikes = np.zeros([len(check[0]),50])
+        spike_sum = np.sum(spikes,axis = 1)
+        max_args = np.argsort(spike_sum)[::-1]
+        max_args = max_args[0:len(spike_sum)//1.2]
         
-        neuron = 0
-        for j in check[0]:
-        
-            reducedSpikes[neuron] = spikes[j]
-            neuron += 1
-        
-        plt.figure()
-        count1 = 0
-        for neuron in(reducedSpikes):
-            count =0
-            for timestep in neuron:
-                if timestep != 0:
-                    plt.vlines(count, count1 +.5, count1 +1.4)            
-                count += 1  
-            count1 += 1
+        if len(max_args) > 0:
+            rand_args = np.random.randint(0,len(max_args),10)
+                    
+            spikes_subset = spikes[max_args[rand_args]]
+
+            fig = plt.figure()
+            plt.gca()
+            colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
+            for i,neuron in enumerate(spikes_subset):
+                neuron = np.nonzero(neuron)[0]
+                plt.vlines(neuron, i +.5, i +1.2,colors[i])            
+            plt.ylim(.5,len(spikes_subset)+0.5)         
             
-        plt.gcf().subplots_adjust(bottom=0.15)
-        plt.xlabel('time',**{'size':'25'})
-        plt.ylabel('Neuron',**{'size':'25'})
-        
-        return reducedSpikes
+            plt.title('Raster Plot',{'fontsize':'25'})
+            plt.xlabel('time')
+            plt.ylabel('Neuron')
+            self.pp.savefig(fig)
+            plt.close(fig)
         
     def find_last_spike(self):
         latest_spike = np.array([])
@@ -308,53 +332,76 @@ class Plot():
         return latest_spike
 
     def Layer_2_connection_strengths_to_Layer_1(self):
-	nL1 = 10
+        nL1 = 10
 	nL2 = 15
         N = self.network.parameters.N
 	Q1, Q2 = self.network.Q
 	indxs = np.zeros((nL2, nL1))
+        min_con_shown = np.inf*np.ones(nL2)
 	for n in range(nL2):
-	    v=Q2[:,n]
+	    v = Q2[:, n].copy()
 	    for c in range(nL1):
         	idx = np.argmax(v)
-	        indxs[n,c] = idx
+                if min_con_shown[n] > v[idx]:
+                    min_con_shown[n] = v[idx]
+	        indxs[n, c] = idx
 	        v[idx] = 0
-	L2C=np.zeros((nL1*nL2,N))
+	L2C = np.zeros((nL1*nL2, N))
 	for ii, n in enumerate(indxs.ravel()):
-	    L2C[ii]=Q1[:, n]
+            ii_2 = int(ii/nL1)
+            rf = Q1[:, n]/(Q1[:, n]**2).sum()
+            rf = rf-rf.min()
+            rf = rf/rf.max()
+	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
+            print ii_2, np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2])
 
 	fig=plt.figure()
 	side = int(np.sqrt(N))
 	img = tile_raster_images(L2C, img_shape = (side,side),
-				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
-				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+                                 tile_shape = (nL2, nL1), tile_spacing=(4, 1),
+                                 scale_rows_to_unit_interval=False,
+                                 output_pixel_vals=False)
 	plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-	plt.title('Layer 2 connection strengths to Layer 1')
+	#plt.title('Layer 2 Connection Strengths to Layer 1')
 	plt.xlabel('Layer 1 Receptive Fields')
 	plt.ylabel('Layer 2 Neurons')
+        plt.xticks([])
+        plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
 	Y2 = self.network.Y[1]
 	sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        min_con_shown = np.inf*np.ones(nL2)
         for n, idx in enumerate(sort_idxs):
-            v = Q2[:, n]
+            v = Q2[:, idx].copy()
             for c in range(nL1):
                 idx = np.argmax(v)
+                if min_con_shown[n] > v[idx]:
+                    min_con_shown[n] = v[idx]
                 indxs[n,c] = idx
                 v[idx] = 0
         L2C=np.zeros((nL1*nL2, N))
         for ii, n in enumerate(indxs.ravel()):
-            L2C[ii]=Q1[:, n]
+            ii_2 = int(ii/nL1)
+            rf = Q1[:, n]/(Q1[:, n]**2).sum()
+            rf = rf-rf.min()
+            rf = rf/rf.max()
+            L2C[ii] = np.power(np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2]), .25)*rf
+            print ii_2, np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2])
 
         fig=plt.figure()
         side = int(np.sqrt(N))
         img = tile_raster_images(L2C, img_shape = (side,side),
-				 tile_shape = (nL1,nL2), tile_spacing=(2, 2),
-				 scale_rows_to_unit_interval=True, output_pixel_vals=True)
+                                 tile_shape = (nL2, nL1), tile_spacing=(4, 1),
+                                 scale_rows_to_unit_interval=False,
+                                 output_pixel_vals=False)
         plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-        plt.title('Sorted Layer 2 connection strengths to Layer 1')
+        #plt.title('Sort Layer 2 Connection Strengths to Layer 1')
         plt.xlabel('Layer 1 Receptive Fields')
+	plt.ylabel('Sorted Layer 2 Neurons')
+        plt.xticks([])
+        plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
@@ -376,6 +423,8 @@ class Plot():
                 self.Plot_EXP_RF(layer)
                 self.Plot_Rate_Hist(layer)
                 self.Plot_Rate_Corr(layer)
+                self.Plot_Raster(layer)
+                self.Plot_Rate_vs_Time(layer)
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()

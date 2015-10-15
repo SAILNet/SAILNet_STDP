@@ -44,6 +44,8 @@ class Learning_Rule(Abs_Learning_Rule):
         time_data = parameters.time_data
         num_iterations = parameters.num_iterations
         rng = theano.tensor.shared_randomstreams.RandomStreams()
+        if time_data:
+            X_tm1 = network.X_tm1
 
         updates = OrderedDict()
 
@@ -58,23 +60,33 @@ class Learning_Rule(Abs_Learning_Rule):
             """
             Calculate Change in Feed-Forward Weights dQ
             """        
-            square_act = T.sum(Y*Y,axis=0)
-            mymat = T.diag(square_act)
-            dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
-            Q = Q+dQ    
-            
-            if time_data:
+            if not parameters.static_learning0 and layer_num == 0:
+                time_learning = True
+            elif not parameters.static_learning1 and layer_num == 1:
+                time_learning = True
+            else:
+                time_learning = False
+
+            if time_data and time_learning:
                 spike_train = network.spike_train[layer_num]
                 spike_train_tm1 = network.spike_train_tm1[layer_num]
                 time_overlap = rng.random_integers(low=0, high=num_iterations)
-                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:],
-                                             spike_train[:,:,:(num_iterations-time_overlap)]),
+                spike_train = T.concatenate((spike_train_tm1[:,:,-time_overlap:]                                            ,spike_train[:,:,:(num_iterations-time_overlap)]),
                                              axis=2)
                 Y = T.sum(spike_train, axis=2)
-            
+                square_act = T.sum(Y*Y,axis=0)
+                mymat = T.diag(square_act)
+                X = ((time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations).astype('float32')
+                dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+                Q = Q+dQ    
+
                 dW = dW_Rule.calc_dW(layer_num, Y)
             else:
                 dW = dW_Rule.calc_dW(layer_num)
+                square_act = T.sum(Y*Y,axis=0)
+                mymat = T.diag(square_act)
+                dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
+                Q = Q+dQ    
     
             W = W+dW
             W = W - T.diag(T.diag(W))
@@ -87,13 +99,16 @@ class Learning_Rule(Abs_Learning_Rule):
             dtheta = gamma*(muy - p)
             theta = theta+dtheta
             theta = T.switch(theta < 0., 0., theta)
-    
+
             updates[network.Q[layer_num]] = Q
             updates[network.W[layer_num]] = W
             updates[network.theta[layer_num]] = theta            
             
             #Setting input of next layer to spikes of current one
             X = Y
+            if time_data:
+                X = network.Y[layer_num]
+                X_tm1 = network.spike_train_tm1[layer_num].sum(axis=2)
         
         self.f = theano.function([], [], updates=updates)
         

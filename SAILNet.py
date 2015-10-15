@@ -18,12 +18,13 @@ while network.continue_learning():
     if (tt+1)%500 == 0:
         plotter.Plot_RF(network_Q = network.Q,filenum = tt)
     if (tt+1)%1000 == 0:
-        save.make_pkl(directory,network,monitor,data.rng)
-                
+        save.make_pkl(directory,network,monitor,data.rng)                
 #print('Time:' + str(total_time))
 
 network.to_cpu()
 monitor.cleanup()
+print(network.X)
+print(network.X_tm1)
 print('Saving...')
 save.make_pkl(directory, network, monitor, data.rng)
 

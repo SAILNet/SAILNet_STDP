@@ -63,7 +63,6 @@ class Monitor(object):
 
         self.f = theano.function([], outputs)
 
-
     def log(self,tt):
         #SNR,SNR_Norm,y_bar,Cyy_bar,X_rec_bar,X_rec_std,Q_bar,Q_std,W_bar,W_std,theta_bar,theta_std,X_norm_bar = self.f()
         results = self.f()
@@ -83,6 +82,6 @@ class Monitor(object):
             self.channels['Thresholds'][layer, tt, 0] = results.pop(0)
             self.channels['Thresholds'][layer, tt, 1] = results.pop(0)
             self.tt = tt
-    
+
     def cleanup(self):
         self.network = None

@@ -82,6 +82,8 @@ def get_args():
     parser.add_argument('-s','--begin_decay',default=None,type=float)
     parser.add_argument('-e','--time_data',default=None,type=bool)
     parser.add_argument('-o','--static_data_control',default=False,type=bool)
+    parser.add_argument('-j', '--static_learning0', default=False, type=bool)
+    parser.add_argument('-g', '--static_learning1', default=False, type=bool)
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
     parser.add_argument('-k','--keep_spikes',default=None, type=bool)
 
@@ -96,7 +98,7 @@ def get_args():
     return parser.parse_args()
 
 def get_file_params(params_file='sailnet_parameters.txt'):
-    return Parameters('sailnet_parameters.txt')          
+    return Parameters('sailnet_parameters.txt')
 
 def final_parameters(file_params, cmd_line_args=None, network_params=None):
     if network_params is not None:
@@ -114,6 +116,8 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.num_frames = cmd_line_args.num_frames or params.num_frames
     params.time_data = cmd_line_args.time_data or params.time_data
     params.static_data_control = cmd_line_args.static_data_control
+    params.static_learning0 = cmd_line_args.static_learning0
+    params.static_learning1 = cmd_line_args.static_learning1
 
     if cmd_line_args.keep_spikes is None:
         params.update_keep_spikes()
