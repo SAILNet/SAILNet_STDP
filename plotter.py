@@ -26,6 +26,7 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1.):
+
         parameters = self.network.parameters        
         parameters.batch_size = 1000
         orig_time_data = parameters.time_data
