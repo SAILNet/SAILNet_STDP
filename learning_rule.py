@@ -76,7 +76,8 @@ class Learning_Rule(Abs_Learning_Rule):
                 Y = T.sum(spike_train, axis=2)
                 square_act = T.sum(Y*Y,axis=0)
                 mymat = T.diag(square_act)
-                X = ((time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations).astype('float32')
+                time_overlap = time_overlap.astype("float32")
+                X = (time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations
                 dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
                 Q = Q+dQ    
 
