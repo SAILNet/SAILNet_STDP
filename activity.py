@@ -20,6 +20,8 @@ class Activity(BaseActivity):
         num_iterations = network.parameters.num_iterations
         keep_spikes = network.parameters.keep_spikes
         norm_infer = network.parameters.norm_infer
+        firing_decay = network.parameters.firing_decay
+        #firing_decay = False
         time_data = network.parameters.time_data
         X = network.X
         updates = OrderedDict()
@@ -48,6 +50,8 @@ class Activity(BaseActivity):
             for tt in xrange(num_iterations):
                 if norm_infer:
                     Ys = (1.-eta*Q_norm)*Ys+eta*(B-aas.dot(W))
+                elif firing_decay:
+                    Ys = (1.-eta)*Ys+eta*(B-Y.dot(W))
                 else:
                     Ys = (1.-eta)*Ys+eta*(B-aas.dot(W))
 

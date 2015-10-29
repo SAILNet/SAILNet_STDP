@@ -256,6 +256,12 @@ def Double_Gaussian(i,j):
     dt = i-j
     return np.exp(-0.5*((dt+off_set)/std)**2)+ np.exp(-0.5*((dt-off_set)/std)**2)
 
+def Border_Gaussian(i,j):
+    std = 5
+    std2 = 2
+    dt = i-j
+    return np.exp(-0.5*(dt/std)**2)-0.2*(np.exp(-0.5*(dt+std/std2)**2)-np.exp(-0.5*(dt-std/std2)**2))
+
    
 str_to_fnc = {'STDP': STDP,
               'Unit': Unit,
@@ -264,4 +270,5 @@ str_to_fnc = {'STDP': STDP,
               'Gaussian': Gaussian,
               'Negative': Negative,
               'Linear15': Linear15,
-              'Double_Gaussian':Double_Gaussian}        
+              'Double_Gaussian':Double_Gaussian,
+              'Border_Gaussian':Border_Gaussian}        

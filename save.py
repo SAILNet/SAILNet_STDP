@@ -64,7 +64,7 @@ def get_args():
                         default=None)
     parser.add_argument('function',
                         nargs ='?',
-                        choices=['None','Unit','Step','Well','Gaussian','STDP','Double_Gaussian','Linear15'],
+                        choices=['None','Unit','Step','Well','Gaussian','STDP','Double_Gaussian','Linear15','Border_Gaussian'],
                         default=None)
 
     parser.add_argument('-b', '--batch_size', default=None, type=int)
@@ -87,6 +87,7 @@ def get_args():
     parser.add_argument('-m', '--norm_infer', default=None, type=bool)
     parser.add_argument('-k','--keep_spikes',default=None, type=bool)
     parser.add_argument('-w', '--decay_w', default=False, type=bool)
+    parser.add_argument('-y', '--firing_decay', default=False, type=bool)
 
     parser.add_argument('--neurons', default=None,type=int)
     parser.add_argument('--OC1', default=None,type=int)
@@ -117,11 +118,10 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.num_frames = cmd_line_args.num_frames or params.num_frames
     params.time_data = cmd_line_args.time_data or params.time_data
     params.static_data_control = cmd_line_args.static_data_control
-    params.static_learning0 = (cmd_line_args.static_learning0 or
-                               params.static_learning0)
-    params.static_learning1 = (cmd_line_args.static_learning1 or
-                               params.static_learning1)
+    params.static_learning0 = cmd_line_args.static_learning0
+    params.static_learning1 = cmd_line_args.static_learning1
     params.decay_w = cmd_line_args.decay_w or params.decay_w
+    params.firing_decay = cmd_line_args.firing_decay
 
     if cmd_line_args.keep_spikes is None:
         params.update_keep_spikes()
