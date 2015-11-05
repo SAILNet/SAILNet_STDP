@@ -86,11 +86,11 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self):
+    def frame_spike_correlation(self, layer=0):
         small_bs = 250
         large_bs = 5000
         self.validation_data(1.,small_bs,large_bs)
-        organized_spikes = self.network.Y.reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
+        organized_spikes = self.network.Y[layer].reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
         avg_distances = np.zeros((20,len(organized_spikes)))
         for index,saccade in enumerate(organized_spikes):
             for i in range(20):
