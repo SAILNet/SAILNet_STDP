@@ -25,14 +25,14 @@ class Plot():
             self.network, self.monitor, _ = cPickle.load(f)
         self.parameters = self.network.parameters
             
-    def validation_data(self, contrast=1.):
+    def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
 
         parameters = self.network.parameters        
-        parameters.batch_size = 1000
+        parameters.batch_size = small_batch_size
         orig_time_data = parameters.time_data
         orig_keep_spikes = parameters.keep_spikes
-        parameters.time_data = True
-        parameters.static_data_control = True
+        #parameters.time_data = True
+        #parameters.static_data_control = True
         parameters.keep_spikes = True
         if orig_keep_spikes == False:
             self.network.spike_train = ()
@@ -44,7 +44,7 @@ class Plot():
                                                   parameters.num_iterations)),)
                                                   
         small_bs = self.network.parameters.batch_size        
-        batch_size = 50000
+        batch_size = large_batch_size
         
         if parameters.time_data and not parameters.static_data_control:
             data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
@@ -85,6 +85,28 @@ class Plot():
         self.network.parameters.time_data = orig_time_data
         self.network.parameters.keep_spikes = orig_keep_spikes
             
+
+    def frame_spike_correlation(self):
+        small_bs = 250
+        large_bs = 5000
+        self.validation_data(1.,small_bs,large_bs)
+        organized_spikes = self.network.Y.reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
+        avg_distances = np.zeros((20,len(organized_spikes)))
+        for index,saccade in enumerate(organized_spikes):
+            for i in range(20):
+                diff_spikes = saccade[i+1] - saccade[0]
+                diff_spikes = np.linalg.norm(diff_spikes,axis = 1)
+                avg_diff_spikes = np.mean(diff_spikes)
+                avg_distances[i,index] = avg_diff_spikes
+        avg_distances = np.mean(avg_distances,axis=1)
+        plt.plot(avg_distances)
+        plt.title("Spike Distance vs. Pixel Distance")
+        plt.xlabel('Step Number')
+        plt.ylabel('Spike Difference Norm') 
+        self.pp.savefig()
+        plt.close()
+
+
     def Plot_RF(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:
             Q = network_Q[layer].get_value()
@@ -320,7 +342,7 @@ class Plot():
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
             plt.close(fig)
-        
+
     def find_last_spike(self):
         latest_spike = np.array([])
         spikes = self.network.spike_train
@@ -423,6 +445,7 @@ class Plot():
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Raster(layer)
                 self.Plot_Rate_vs_Time(layer)
+                self.frame_spike_correlation()
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()

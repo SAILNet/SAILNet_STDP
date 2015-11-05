@@ -37,8 +37,10 @@ class Learning_Rule(Abs_Learning_Rule):
         parameters = network.parameters
         dW_rule = parameters.dW_rule
         X = network.X
+        alpha = parameters.alpha
         beta = parameters.beta
         gamma = parameters.gamma
+        decay_w = parameters.decay_w
         batch_size = parameters.batch_size
         p = parameters.p
         time_data = parameters.time_data
@@ -76,7 +78,8 @@ class Learning_Rule(Abs_Learning_Rule):
                 Y = T.sum(spike_train, axis=2)
                 square_act = T.sum(Y*Y,axis=0)
                 mymat = T.diag(square_act)
-                X = ((time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations).astype('float32')
+                time_overlap = time_overlap.astype("float32")
+                X = (time_overlap*X_tm1+(num_iterations-time_overlap)*X)/num_iterations
                 dQ = beta*(X.T.dot(Y) - (Q.dot(mymat)))/batch_size        
                 Q = Q+dQ    
 
@@ -89,6 +92,8 @@ class Learning_Rule(Abs_Learning_Rule):
                 Q = Q+dQ    
     
             W = W+dW
+            if decay_w:
+                W = (1.-alpha/100.) * W
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0., 0., W)
             
@@ -251,6 +256,12 @@ def Double_Gaussian(i,j):
     dt = i-j
     return np.exp(-0.5*((dt+off_set)/std)**2)+ np.exp(-0.5*((dt-off_set)/std)**2)
 
+def Border_Gaussian(i,j):
+    std = 5
+    std2 = 2
+    dt = i-j
+    return np.exp(-0.5*(dt/std)**2)-0.2*(np.exp(-0.5*(dt+std/std2)**2)-np.exp(-0.5*(dt-std/std2)**2))
+
    
 str_to_fnc = {'STDP': STDP,
               'Unit': Unit,
@@ -259,4 +270,5 @@ str_to_fnc = {'STDP': STDP,
               'Gaussian': Gaussian,
               'Negative': Negative,
               'Linear15': Linear15,
-              'Double_Gaussian':Double_Gaussian}        
+              'Double_Gaussian':Double_Gaussian,
+              'Border_Gaussian':Border_Gaussian}        

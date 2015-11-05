@@ -23,8 +23,6 @@ while network.continue_learning():
 
 network.to_cpu()
 monitor.cleanup()
-print(network.X)
-print(network.X_tm1)
 print('Saving...')
 save.make_pkl(directory, network, monitor, data.rng)
 
