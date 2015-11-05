@@ -315,30 +315,32 @@ class Plot():
         
     def Plot_Raster(self,layer):
         spike_train = self.network.spike_train[layer]
-        spikes = spike_train[5]
+        num_on = 0
+        idx = 0
         
-        check = np.nonzero(spikes)
-        spikes = spikes[check[0]]
+        for ii in xrange(spike_train.shape[0]):
+            if np.count_nonzero(spike_train[ii].sum(axis=1)) > num_on:
+                idx = ii
+        spikes = spike_train[idx]
+        spike_sum = spikes.sum(axis=1)
+        num_on = np.count_nonzero(spike_sum)
         
-        spike_sum = np.sum(spikes,axis = 1)
         max_args = np.argsort(spike_sum)[::-1]
-        max_args = max_args[0:len(spike_sum)//1.2]
+        max_args = max_args[:num_on]
         
-        if len(max_args) > 0:
-            rand_args = np.random.randint(0,len(max_args),10)
-                    
-            spikes_subset = spikes[max_args[rand_args]]
+        if num_on > 0:
+            rand_args = self.rng.permutation(num_on)[:min(num_on, 10)]
+            spikes_subset = spikes[rand_args]
 
             fig = plt.figure()
-            plt.gca()
             colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
             for i,neuron in enumerate(spikes_subset):
                 neuron = np.nonzero(neuron)[0]
                 plt.vlines(neuron, i +.5, i +1.2,colors[i])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
             
-            plt.title('Raster Plot',{'fontsize':'25'})
-            plt.xlabel('time')
+            plt.title('Raster Plot Layer '+layer,{'fontsize':'25'})
+            plt.xlabel('Time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
             plt.close(fig)
