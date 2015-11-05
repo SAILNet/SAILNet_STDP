@@ -291,14 +291,14 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
         
-    def Plot_Raster(self,layer):
+    def Plot_Raster(self, layer):
         spike_train = self.network.spike_train[layer]
         spikes = spike_train[5]
         
         check = np.nonzero(spikes)
         spikes = spikes[check[0]]
         
-        spike_sum = np.sum(spikes,axis = 1)
+        spike_sum = np.sum(spikes, axis=1)
         max_args = np.argsort(spike_sum)[::-1]
         max_args = max_args[0:len(spike_sum)//1.2]
         
@@ -314,8 +314,8 @@ class Plot():
                 neuron = np.nonzero(neuron)[0]
                 plt.vlines(neuron, i +.5, i +1.2,colors[i])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
-            
-            plt.title('Raster Plot',{'fontsize':'25'})
+
+            plt.title('Raster Plot '+str(layer),{'fontsize':'25'})
             plt.xlabel('time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
@@ -353,7 +353,6 @@ class Plot():
             rf = rf-rf.min()
             rf = rf/rf.max()
 	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
-            print ii_2, np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2])
 
 	fig=plt.figure()
 	side = int(np.sqrt(N))
@@ -388,7 +387,6 @@ class Plot():
             rf = rf-rf.min()
             rf = rf/rf.max()
             L2C[ii] = np.power(np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2]), .25)*rf
-            print ii_2, np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2])
 
         fig=plt.figure()
         side = int(np.sqrt(N))
