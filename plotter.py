@@ -26,7 +26,6 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
-
         parameters = self.network.parameters        
         parameters.batch_size = small_batch_size
         orig_time_data = parameters.time_data
@@ -89,10 +88,13 @@ class Plot():
     def frame_spike_correlation(self, layer=0):
         small_bs = 250
         large_bs = 5000
-        self.validation_data(1.,small_bs,large_bs)
-        organized_spikes = self.network.Y[layer].reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
-        avg_distances = np.zeros((20,len(organized_spikes)))
-        for index,saccade in enumerate(organized_spikes):
+        M = self.network.parameters.M[layer]
+        self.validation_data(1., small_bs, large_bs)
+        Y = self.network.Y[layer]
+        print Y.shape
+        organized_spikes = Y.reshape((large_bs/(small_bs*20),20,small_bs,M))
+        avg_distances = np.zeros((20, len(organized_spikes)))
+        for index, saccade in enumerate(organized_spikes):
             for i in range(20):
                 diff_spikes = saccade[i+1] - saccade[0]
                 diff_spikes = np.linalg.norm(diff_spikes,axis = 1)
@@ -313,7 +315,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
         
-    def Plot_Raster(self,layer):
+    def Plot_Raster(self, layer):
         spike_train = self.network.spike_train[layer]
         num_on = 0
         idx = 0
