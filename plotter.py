@@ -339,7 +339,7 @@ class Plot():
                 plt.vlines(neuron, i +.5, i +1.2,colors[i])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
             
-            plt.title('Raster Plot Layer '+layer,{'fontsize':'25'})
+            plt.title('Raster Plot Layer '+str(layer),{'fontsize':'25'})
             plt.xlabel('Time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
