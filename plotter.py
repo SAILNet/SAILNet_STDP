@@ -321,8 +321,10 @@ class Plot():
         idx = 0
         
         for ii in xrange(spike_train.shape[0]):
-            if np.count_nonzero(spike_train[ii].sum(axis=1)) > num_on:
+            this_on = np.count_nonzero(spike_train[ii].sum(axis=1))
+            if this_on > num_on:
                 idx = ii
+                num_on = this_on
         spikes = spike_train[idx]
         spike_sum = spikes.sum(axis=1)
         num_on = np.count_nonzero(spike_sum)
@@ -332,7 +334,7 @@ class Plot():
         
         if num_on > 0:
             rand_args = self.rng.permutation(num_on)[:min(num_on, 10)]
-            spikes_subset = spikes[rand_args]
+            spikes_subset = spikes[max_args[rand_args]]
 
             fig = plt.figure()
             colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
