@@ -20,7 +20,10 @@ class Activity(BaseActivity):
         num_iterations = network.parameters.num_iterations
         keep_spikes = network.parameters.keep_spikes
         norm_infer = network.parameters.norm_infer
-        firing_decay = network.parameters.firing_decay
+        if hasattr(network.parameters, 'firing_decay'):
+            firing_decay = network.parameters.firing_decay
+        else:
+            firing_decay = False
         #firing_decay = False
         time_data = network.parameters.time_data
         X = network.X

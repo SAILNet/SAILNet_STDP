@@ -26,7 +26,6 @@ class Plot():
         self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
-
         parameters = self.network.parameters        
         parameters.batch_size = small_batch_size
         orig_time_data = parameters.time_data
@@ -86,13 +85,16 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self):
+    def frame_spike_correlation(self, layer=0):
         small_bs = 250
         large_bs = 5000
-        self.validation_data(1.,small_bs,large_bs)
-        organized_spikes = self.network.Y.reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
-        avg_distances = np.zeros((20,len(organized_spikes)))
-        for index,saccade in enumerate(organized_spikes):
+        M = self.network.parameters.M[layer]
+        self.validation_data(1., small_bs, large_bs)
+        Y = self.network.Y[layer]
+        print Y.shape
+        organized_spikes = Y.reshape((large_bs/(small_bs*20),20,small_bs,M))
+        avg_distances = np.zeros((20, len(organized_spikes)))
+        for index, saccade in enumerate(organized_spikes):
             for i in range(20):
                 diff_spikes = saccade[i+1] - saccade[0]
                 diff_spikes = np.linalg.norm(diff_spikes,axis = 1)
@@ -315,30 +317,32 @@ class Plot():
         
     def Plot_Raster(self, layer):
         spike_train = self.network.spike_train[layer]
-        spikes = spike_train[5]
+        num_on = 0
+        idx = 0
         
-        check = np.nonzero(spikes)
-        spikes = spikes[check[0]]
+        for ii in xrange(spike_train.shape[0]):
+            if np.count_nonzero(spike_train[ii].sum(axis=1)) > num_on:
+                idx = ii
+        spikes = spike_train[idx]
+        spike_sum = spikes.sum(axis=1)
+        num_on = np.count_nonzero(spike_sum)
         
-        spike_sum = np.sum(spikes, axis=1)
         max_args = np.argsort(spike_sum)[::-1]
-        max_args = max_args[0:len(spike_sum)//1.2]
+        max_args = max_args[:num_on]
         
-        if len(max_args) > 0:
-            rand_args = np.random.randint(0,len(max_args),10)
-                    
-            spikes_subset = spikes[max_args[rand_args]]
+        if num_on > 0:
+            rand_args = self.rng.permutation(num_on)[:min(num_on, 10)]
+            spikes_subset = spikes[rand_args]
 
             fig = plt.figure()
-            plt.gca()
             colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
             for i,neuron in enumerate(spikes_subset):
                 neuron = np.nonzero(neuron)[0]
                 plt.vlines(neuron, i +.5, i +1.2,colors[i])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
-
-            plt.title('Raster Plot '+str(layer),{'fontsize':'25'})
-            plt.xlabel('time')
+            
+            plt.title('Raster Plot Layer '+str(layer),{'fontsize':'25'})
+            plt.xlabel('Time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
             plt.close(fig)
@@ -445,7 +449,7 @@ class Plot():
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Raster(layer)
                 self.Plot_Rate_vs_Time(layer)
-                self.frame_spike_correlation()
+                #self.frame_spike_correlation()
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()

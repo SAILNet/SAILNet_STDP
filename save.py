@@ -120,7 +120,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.static_data_control = cmd_line_args.static_data_control
     params.static_learning0 = cmd_line_args.static_learning0
     params.static_learning1 = cmd_line_args.static_learning1
-    params.decay_w = cmd_line_args.decay_w or params.decay_w
+    params.decay_w = cmd_line_args.decay_w
     params.firing_decay = cmd_line_args.firing_decay
 
     if cmd_line_args.keep_spikes is None:
