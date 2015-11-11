@@ -86,15 +86,15 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self):
+    def frame_spike_correlation(self,layer):
         small_bs = 250
         large_bs = 5000
         self.validation_data(1.,small_bs,large_bs)
-        organized_spikes = self.network.Y.reshape((large_bs/(small_bs*20),20,small_bs,self.network.M))
+        organized_spikes = self.network.Y[layer].reshape((large_bs/(small_bs*20),20,small_bs,self.network.parameters.M[layer]))
         avg_distances = np.zeros((20,len(organized_spikes)))
         for index,saccade in enumerate(organized_spikes):
             for i in range(20):
-                diff_spikes = saccade[i+1] - saccade[0]
+                diff_spikes = saccade[i] - saccade[0]
                 diff_spikes = np.linalg.norm(diff_spikes,axis = 1)
                 avg_diff_spikes = np.mean(diff_spikes)
                 avg_distances[i,index] = avg_diff_spikes
@@ -231,7 +231,8 @@ class Plot():
         Q = self.network.Q[layer]
         W = self.network.W[layer]
         n_neurons = Q.shape[1]
-        RF_overlap = Q.T.dot(Q)
+        Q_normalized = Q/np.linalg.norm(Q,axis = 0)
+        RF_overlap = Q_normalized.T.dot(Q_normalized)
         pairs = 5000
         RF_sample = np.array([])
         W_sample = np.array([])
@@ -429,7 +430,7 @@ class Plot():
 
         
     def PlotAll(self):
-        self.validation_data()
+        #self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
             self.Plot_RF()
             for layer in range(self.network.n_layers):
@@ -447,7 +448,7 @@ class Plot():
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Raster(layer)
                 self.Plot_Rate_vs_Time(layer)
-                self.frame_spike_correlation()
+                self.frame_spike_correlation(layer)
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()
