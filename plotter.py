@@ -85,7 +85,9 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self, layer=0):
+    def frame_spike_correlation(self, layer=0):i
+
+        #Calculate the average distance between the spikes occuring for different image presentations within a saccade when using time data
         small_bs = 250
         large_bs = 5000
         M = self.network.parameters.M[layer]
@@ -108,6 +110,30 @@ class Plot():
         self.pp.savefig()
         plt.close()
 
+    def image_autocorrelation(self, layer=0):
+        small_bs = 250
+        large_bs = 5000
+        N = self.network.parameters.N
+        self.validation_data(1., small_bs, large_bs)
+        X = self.network.X
+        organized_images = X.reshape((large_bs/(small_bs*20),20,small_bs,N))
+        overall_autocorrelation = np.zeros((20, len(organized_images)))
+        for index, saccade in enumerate(organized_images):
+            for i in range(20):
+                mean_0 = np.mean(saccade[0],axis = 1)
+                std_0 = np.std(saccade[0], axis = 1)
+                mean_i = np.mean(saccade[i], axis =1)
+                std_i = np.std(saccade[i],axis =1)
+                autocorrelation = np.mean((saccade[i]-mean_i)*(saccade[0]-mean_0)/(std_0*std_i),axis = 1)
+                avg_autocorrelation = np.mean(autocorrelation)
+                overall_autocorrelation[i,index] = avg_autocorrelation
+        overall_autocorrelation = np.mean(avg_distances,axis=1)
+        plt.plot(overall_autocorrelation)
+        plt.title("Spike Distance vs. Pixel Distance")
+        plt.xlabel('Step Number')
+        plt.ylabel('Spike Difference Norm') 
+        self.pp.savefig()
+        plt.close()
 
     def Plot_RF(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:

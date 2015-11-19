@@ -93,7 +93,7 @@ class Learning_Rule(Abs_Learning_Rule):
     
             W = W+dW
             if decay_w:
-                W = (1.-alpha/100.) * W
+                W = (1.-alpha/2000.) * W
             W = W - T.diag(T.diag(W))
             W = T.switch(W < 0., 0., W)
             
