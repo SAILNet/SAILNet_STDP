@@ -431,6 +431,8 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
+
+
         
     def PlotAll(self):
         self.validation_data()
@@ -455,6 +457,27 @@ class Plot():
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()
+		self.Layer2_Layer1_Weights
+
+    def Layer2_Layer1_Weights(self):
+	Q1, Q2 = self.network.Q
+	n=10
+	L0,L1=Q2.shape
+	z=np.zeros_like(Q2)
+	for n in range(L1):
+	   a=Q2[:,n]
+	   z[:,n]=np.sort(a)[::-1]
+	M=z/np.amax(z,axis=0,keepdims=True)
+	mean=np.mean(M,axis=1)
+	std=np.std(M,axis=1)
+	
+	fig=plt.figure()
+	plt.errorbar(range(n),mean,yerr=std)
+	plt.title('Layer 2 Layer 1 Weights')
+	plt.xlabel('neurons')
+	plt.ylabel('normalized weights')
+	self.pp.savefig(fig)
+	plt.close(fig)
 
 if __name__ == "__main__":
     directory = sys.argv[1]
