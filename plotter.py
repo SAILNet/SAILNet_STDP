@@ -85,7 +85,9 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self, layer=0):
+    def frame_spike_correlation(self, layer=0):i
+
+        #Calculate the average distance between the spikes occuring for different image presentations within a saccade when using time data
         small_bs = 250
         large_bs = 5000
         M = self.network.parameters.M[layer]
@@ -96,7 +98,7 @@ class Plot():
         avg_distances = np.zeros((20, len(organized_spikes)))
         for index, saccade in enumerate(organized_spikes):
             for i in range(20):
-                diff_spikes = saccade[i+1] - saccade[0]
+                diff_spikes = saccade[i] - saccade[0]
                 diff_spikes = np.linalg.norm(diff_spikes,axis = 1)
                 avg_diff_spikes = np.mean(diff_spikes)
                 avg_distances[i,index] = avg_diff_spikes
@@ -108,6 +110,30 @@ class Plot():
         self.pp.savefig()
         plt.close()
 
+    def image_autocorrelation(self, layer=0):
+        small_bs = 250
+        large_bs = 5000
+        N = self.network.parameters.N
+        self.validation_data(1., small_bs, large_bs)
+        X = self.network.X
+        organized_images = X.reshape((large_bs/(small_bs*20),20,small_bs,N))
+        overall_autocorrelation = np.zeros((20, len(organized_images)))
+        for index, saccade in enumerate(organized_images):
+            for i in range(20):
+                mean_0 = np.mean(saccade[0],axis = 1)
+                std_0 = np.std(saccade[0], axis = 1)
+                mean_i = np.mean(saccade[i], axis =1)
+                std_i = np.std(saccade[i],axis =1)
+                autocorrelation = np.mean((saccade[i]-mean_i)*(saccade[0]-mean_0)/(std_0*std_i),axis = 1)
+                avg_autocorrelation = np.mean(autocorrelation)
+                overall_autocorrelation[i,index] = avg_autocorrelation
+        overall_autocorrelation = np.mean(avg_distances,axis=1)
+        plt.plot(overall_autocorrelation)
+        plt.title("Spike Distance vs. Pixel Distance")
+        plt.xlabel('Step Number')
+        plt.ylabel('Spike Difference Norm') 
+        self.pp.savefig()
+        plt.close()
 
     def Plot_RF(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:
@@ -233,7 +259,8 @@ class Plot():
         Q = self.network.Q[layer]
         W = self.network.W[layer]
         n_neurons = Q.shape[1]
-        RF_overlap = Q.T.dot(Q)
+        Q_normalized = Q/np.linalg.norm(Q,axis = 0)
+        RF_overlap = Q_normalized.T.dot(Q_normalized)
         pairs = 5000
         RF_sample = np.array([])
         W_sample = np.array([])
@@ -435,7 +462,7 @@ class Plot():
 
         
     def PlotAll(self):
-        self.validation_data()
+        #self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
             self.Plot_RF()
             for layer in range(self.network.n_layers):
@@ -453,7 +480,7 @@ class Plot():
                 self.Plot_Rate_Corr(layer)
                 self.Plot_Raster(layer)
                 self.Plot_Rate_vs_Time(layer)
-                #self.frame_spike_correlation()
+                #self.frame_spike_correlation(layer)
                 self.Plot_Rate_Hist_LC(layer)
             if self.network.n_layers > 1:
                 self.Layer_2_connection_strengths_to_Layer_1()
