@@ -161,7 +161,7 @@ class Plot():
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
-    def Plot_EXP_RF(self, layer=0):
+    def plot_exper_rf(self, layer=0):
         Exp_RF = self.network.X.T.dot(self.network.Y[layer])
         
         spike_sum = np.sum(self.network.Y[layer],axis = 0,dtype='f')
@@ -206,7 +206,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
     
-    def PlotInhibitHistLogX(self,layer=0):
+    def plot_inhib_hist_logx(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         W_flat = np.log10(W_flat)
@@ -224,7 +224,7 @@ class Plot():
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInhibitHistLogY(self,layer=0):
+    def plot_inhib_hist_logy(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         num, bin_edges = np.histogram(W_flat, bins=100, density=True)
@@ -239,7 +239,7 @@ class Plot():
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInhibitHist(self,layer=0):
+    def plot_inhib_hist(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         num, bin_edges = np.histogram(W_flat, bins=100, density=True)
@@ -254,7 +254,7 @@ class Plot():
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInh_vs_RF(self, layer=0):
+    def plot_inhib_vs_rf(self, layer=0):
         Q = self.network.Q[layer]
         W = self.network.W[layer]
         n_neurons = Q.shape[1]
@@ -282,7 +282,7 @@ class Plot():
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def Plot_Rate_Hist(self,layer=0):
+    def plot_rate_hist(self,layer=0):
         rates = np.mean(self.network.Y[layer],axis = 0)
         num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
@@ -296,7 +296,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
      
-    def Plot_Rate_Hist_LC(self,layer=0):
+    def plot_rate_hist_LC(self,layer=0):
         fig = plt.figure()
         self.validation_data(1/3.)        
         rates = np.mean(self.network.Y[layer],axis = 0)
@@ -311,7 +311,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def Plot_Rate_Corr(self, layer=0):
+    def plot_rate_corr(self, layer=0):
         Y = self.network.Y[layer]
         n_neurons = Y.shape[1]
         corrcoef = np.corrcoef(Y,rowvar = 0)
@@ -330,7 +330,7 @@ class Plot():
             self.pp.savefig(fig)
             plt.close(fig)
     
-    def Plot_Rate_vs_Time(self,layer=0):
+    def plot_rate_vs_time(self, layer=0):
         spike_train = self.network.spike_train[layer]        
         rates = spike_train.mean(0).mean(0)
         fig = plt.figure()
@@ -341,12 +341,12 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
         
-    def Plot_Raster(self, layer=0):
+    def plot_raster(self, layer=0):
         spike_train = self.network.spike_train[layer]
         num_on = 0
         idx = 0
         
-        for ii in xrange(spike_train.shape[0]):
+        for ii in range(spike_train.shape[0]):
             this_on = np.count_nonzero(spike_train[ii].sum(axis=1))
             if this_on > num_on:
                 idx = ii
@@ -364,9 +364,9 @@ class Plot():
 
             fig = plt.figure()
             colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
-            for i,neuron in enumerate(spikes_subset):
+            for ii, neuron in enumerate(spikes_subset):
                 neuron = np.nonzero(neuron)[0]
-                plt.vlines(neuron, i +.5, i +1.2,colors[i])            
+                plt.vlines(neuron, ii +.5, ii +1.2, colors[ii])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
             
             plt.title('Raster Plot Layer: Layer '+str(layer),{'fontsize':'25'})
@@ -385,7 +385,7 @@ class Plot():
             latest_spike = np.append(latest_spike,max(C[I]))
         return latest_spike
 
-    def Layer_2_connection_strengths_to_Layer_1(self):
+    def plot_L1_group_rfs(self):
         nL1 = 10
 	nL2 = 15
         N = self.network.parameters.N
@@ -457,7 +457,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def Layer2_Layer1_Weights(self):
+    def plot_L0_L1_ff_weights(self):
         Q1, Q2 = self.network.Q
         n=10
         L0,L1=Q2.shape
@@ -480,7 +480,7 @@ class Plot():
 
         
     def PlotAll(self):
-        #self.validation_data()
+        self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
             self.Plot_RF()
             for layer in range(self.network.n_layers):
@@ -489,20 +489,20 @@ class Plot():
                 for channel in self.monitor.training_mean_std:
                     self.plot_training_mean_std(layer, channel)
 
-                self.PlotInhibitHistLogX(layer) 
-                self.PlotInhibitHistLogY(layer)
-                self.PlotInhibitHist(layer)
-                self.PlotInh_vs_RF(layer)
-                self.Plot_EXP_RF(layer)
-                self.Plot_Rate_Hist(layer)
-                self.Plot_Rate_Corr(layer)
-                self.Plot_Raster(layer)
-                self.Plot_Rate_vs_Time(layer)
+                self.plot_inhib_hist_logx(layer) 
+                self.plot_inhib_hist_logy(layer)
+                self.plot_inhib_hist(layer)
+                self.plot_inhib_vs_rf(layer)
+                self.plot_exper_rf(layer)
+                self.plot_rate_hist(layer)
+                self.plot_rate_corr(layer)
+                self.plot_raster(layer)
+                self.plot_rate_vs_time(layer)
                 #self.frame_spike_correlation(layer)
-                self.Plot_Rate_Hist_LC(layer)
+                self.plot_rate_hist_LC(layer)
             if self.network.n_layers > 1:
-                self.Layer_2_connection_strengths_to_Layer_1()
-		self.Layer2_Layer1_Weights()
+                self.plot_L1_group_rfs()
+		self.plot_L0_L1_ff_weights()
 
 
 if __name__ == "__main__":
