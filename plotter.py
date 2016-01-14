@@ -462,12 +462,12 @@ class Plot():
         n=10
         L0,L1=Q2.shape
         z=np.zeros_like(Q2)
-        for n in range(L1):
-            a=Q2[:,n]
-            z[:,n]=np.sort(a)[::-1]
+        for ii in range(L1):
+            a=Q2[:,ii]
+            z[:,ii]=np.sort(a)[::-1]
         M=z/np.amax(z,axis=0,keepdims=True)
-        mean=np.mean(M,axis=1)
-        std=np.std(M,axis=1)
+        mean=np.mean(M,axis=1)[:n]
+        std=np.std(M,axis=1)[:n]
 
         fig=plt.figure()
         plt.errorbar(range(n),mean,yerr=std)
