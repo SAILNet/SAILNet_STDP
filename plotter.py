@@ -103,7 +103,7 @@ class Plot():
                 avg_distances[i,index] = avg_diff_spikes
         avg_distances = np.mean(avg_distances,axis=1)
         plt.plot(avg_distances)
-        plt.title("Spike Distance vs. Pixel Distance")
+        plt.title("Spike Distance vs. Pixel Distance: Layer "+str(layer))
         plt.xlabel('Step Number')
         plt.ylabel('Spike Difference Norm') 
         self.pp.savefig()
@@ -128,7 +128,7 @@ class Plot():
                 overall_autocorrelation[i,index] = avg_autocorrelation
         overall_autocorrelation = np.mean(avg_distances,axis=1)
         plt.plot(overall_autocorrelation)
-        plt.title("Spike Distance vs. Pixel Distance")
+        plt.title("Spike Distance vs. Pixel Distance: Layer "+str(layer))
         plt.xlabel('Step Number')
         plt.ylabel('Spike Difference Norm') 
         self.pp.savefig()
@@ -156,7 +156,7 @@ class Plot():
                                  tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
-        plt.title('Receptive Fields' + filenum)
+        plt.title('Receptive Fields: Layer '+str(layer) + '_' + filenum)
         plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
@@ -181,7 +181,7 @@ class Plot():
                                  tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
-        plt.title('Experimental Receptive Fields Layer '+str(layer))
+        plt.title('Experimental Receptive Fields: Layer '+str(layer))
         plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF_'+str(layer)+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
@@ -218,7 +218,7 @@ class Plot():
             plt.semilogx(bin_edges, num, 'o')
             plt.ylim(0,0.9)
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram Log X')        
+            plt.title('Inhibitory Strength Histogram Log X: Layer '+str(layer))        
             plt.xlabel("log(Inhibitory Connection Strength)")
             plt.ylabel("PDF log(connection strength)")
             self.pp.savefig(fig)
@@ -233,7 +233,7 @@ class Plot():
             fig = plt.figure()
             plt.semilogy(bin_edges, num, 'o')
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram Log Y')        
+            plt.title('Inhibitory Strength Histogram Log Y: Layer '+str(layer))        
             plt.xlabel("Inhibitory Connection Strength")
             plt.ylabel("log (PDF connection strength)")
             self.pp.savefig(fig)
@@ -248,7 +248,7 @@ class Plot():
             fig = plt.figure()
             plt.plot(bin_edges, num, 'o')
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram')        
+            plt.title('Inhibitory Strength Histogram: Layer '+str(layer))        
             plt.xlabel("Inhibitory Connection Strength")
             plt.ylabel("PDF connection strength")
             self.pp.savefig(fig)
@@ -275,7 +275,7 @@ class Plot():
             #plt.xlim(10**-3,10**1.5)
             plt.semilogx(W_sample, RF_sample, '.')
             #plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Connection Str vs RF Overlap')
+            plt.title('Inhibitory Connection Str vs RF Overlap: Layer '+str(layer))
             plt.xlabel("Log Inhibitory Connection Strength")
             #plt.ylim(-0.7,0.7)
             plt.ylabel("RF Overlap (Dot product)")
@@ -290,7 +290,7 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #lt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Rate Histogram')
+        plt.title('Rate Histogram: Layer '+str(layer))
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         self.pp.savefig(fig)
@@ -305,7 +305,7 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #plt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Low Contrast Rate Histogram')
+        plt.title('Low Contrast Rate Histogram: Layer '+str(layer))
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         self.pp.savefig(fig)
@@ -324,24 +324,24 @@ class Plot():
             plt.hist(corrcoef_flat, 50, normed= True)
             #plt.ylim(0,300)
             #plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Correlation PDF')
+            plt.title('Correlation PDF: Layer '+str(layer))
             plt.xlabel("Rate Correlation")
             plt.ylabel("PDF")
             self.pp.savefig(fig)
             plt.close(fig)
     
-    def Plot_Rate_vs_Time(self,layer):
+    def Plot_Rate_vs_Time(self,layer=0):
         spike_train = self.network.spike_train[layer]        
         rates = spike_train.mean(0).mean(0)
         fig = plt.figure()
         plt.plot(rates)
-        plt.title('Mean Firing Rates vs Time')
+        plt.title('Mean Firing Rates vs Time: Layer '+str(layer))
         plt.ylabel('Mean Firing Rates')
         plt.xlabel('Number of Iterations')
         self.pp.savefig(fig)
         plt.close(fig)
         
-    def Plot_Raster(self, layer):
+    def Plot_Raster(self, layer=0):
         spike_train = self.network.spike_train[layer]
         num_on = 0
         idx = 0
@@ -369,7 +369,7 @@ class Plot():
                 plt.vlines(neuron, i +.5, i +1.2,colors[i])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
             
-            plt.title('Raster Plot Layer '+str(layer),{'fontsize':'25'})
+            plt.title('Raster Plot Layer: Layer '+str(layer),{'fontsize':'25'})
             plt.xlabel('Time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
