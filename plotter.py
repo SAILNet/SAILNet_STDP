@@ -6,7 +6,7 @@ import numpy as np
 import network as nw
 from utils import tile_raster_images
 from activity import Activity
-from data import Static_Data, Time_Data
+from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 
 
@@ -85,7 +85,7 @@ class Plot():
         self.network.parameters.keep_spikes = orig_keep_spikes
             
 
-    def frame_spike_correlation(self, layer=0):i
+    def frame_spike_correlation(self, layer=0):
 
         #Calculate the average distance between the spikes occuring for different image presentations within a saccade when using time data
         small_bs = 250
