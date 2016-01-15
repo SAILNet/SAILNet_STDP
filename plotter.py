@@ -86,7 +86,6 @@ class Plot():
             
 
     def frame_spike_correlation(self, layer=0):
-
         #Calculate the average distance between the spikes occuring for different image presentations within a saccade when using time data
         small_bs = 250
         large_bs = 5000
@@ -104,7 +103,7 @@ class Plot():
                 avg_distances[i,index] = avg_diff_spikes
         avg_distances = np.mean(avg_distances,axis=1)
         plt.plot(avg_distances)
-        plt.title("Spike Distance vs. Pixel Distance")
+        plt.title("Spike Distance vs. Pixel Distance: Layer "+str(layer))
         plt.xlabel('Step Number')
         plt.ylabel('Spike Difference Norm') 
         self.pp.savefig()
@@ -129,7 +128,7 @@ class Plot():
                 overall_autocorrelation[i,index] = avg_autocorrelation
         overall_autocorrelation = np.mean(avg_distances,axis=1)
         plt.plot(overall_autocorrelation)
-        plt.title("Spike Distance vs. Pixel Distance")
+        plt.title("Spike Distance vs. Pixel Distance: Layer "+str(layer))
         plt.xlabel('Step Number')
         plt.ylabel('Spike Difference Norm') 
         self.pp.savefig()
@@ -157,12 +156,12 @@ class Plot():
                                  tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
-        plt.title('Receptive Fields' + filenum)
+        plt.title('Receptive Fields: Layer '+str(layer) + '_' + filenum)
         plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Receptive_Fields'+function+filenum+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
         
-    def Plot_EXP_RF(self, layer=0):
+    def plot_exper_rf(self, layer=0):
         Exp_RF = self.network.X.T.dot(self.network.Y[layer])
         
         spike_sum = np.sum(self.network.Y[layer],axis = 0,dtype='f')
@@ -182,7 +181,7 @@ class Plot():
                                  tile_shape=(im_rows, im_cols), tile_spacing=(1, 1),
                                  scale_rows_to_unit_interval=True, output_pixel_vals=True)
         fig = plt.figure()
-        plt.title('Experimental Receptive Fields Layer '+str(layer))
+        plt.title('Experimental Receptive Fields: Layer '+str(layer))
         plt.axis('off')
         plt.imsave(self.directory + '/Images/RFs/Exp_RF_'+str(layer)+'.png', img, cmap=plt.cm.Greys)
         plt.close(fig)
@@ -207,7 +206,7 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
     
-    def PlotInhibitHistLogX(self,layer=0):
+    def plot_inhib_hist_logx(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         W_flat = np.log10(W_flat)
@@ -219,13 +218,13 @@ class Plot():
             plt.semilogx(bin_edges, num, 'o')
             plt.ylim(0,0.9)
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram Log X')        
+            plt.title('Inhibitory Strength Histogram Log X: Layer '+str(layer))        
             plt.xlabel("log(Inhibitory Connection Strength)")
             plt.ylabel("PDF log(connection strength)")
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInhibitHistLogY(self,layer=0):
+    def plot_inhib_hist_logy(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         num, bin_edges = np.histogram(W_flat, bins=100, density=True)
@@ -234,13 +233,13 @@ class Plot():
             fig = plt.figure()
             plt.semilogy(bin_edges, num, 'o')
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram Log Y')        
+            plt.title('Inhibitory Strength Histogram Log Y: Layer '+str(layer))        
             plt.xlabel("Inhibitory Connection Strength")
             plt.ylabel("log (PDF connection strength)")
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInhibitHist(self,layer=0):
+    def plot_inhib_hist(self,layer=0):
         W_flat = np.ravel(self.network.W[layer]) #Flattens array
         W_flat = W_flat[W_flat > 0.]
         num, bin_edges = np.histogram(W_flat, bins=100, density=True)
@@ -249,13 +248,13 @@ class Plot():
             fig = plt.figure()
             plt.plot(bin_edges, num, 'o')
             plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Strength Histogram')        
+            plt.title('Inhibitory Strength Histogram: Layer '+str(layer))        
             plt.xlabel("Inhibitory Connection Strength")
             plt.ylabel("PDF connection strength")
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def PlotInh_vs_RF(self, layer=0):
+    def plot_inhib_vs_rf(self, layer=0):
         Q = self.network.Q[layer]
         W = self.network.W[layer]
         n_neurons = Q.shape[1]
@@ -276,14 +275,14 @@ class Plot():
             #plt.xlim(10**-3,10**1.5)
             plt.semilogx(W_sample, RF_sample, '.')
             #plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Inhibitory Connection Str vs RF Overlap')
+            plt.title('Inhibitory Connection Str vs RF Overlap: Layer '+str(layer))
             plt.xlabel("Log Inhibitory Connection Strength")
             #plt.ylim(-0.7,0.7)
             plt.ylabel("RF Overlap (Dot product)")
             self.pp.savefig(fig)
             plt.close(fig)
         
-    def Plot_Rate_Hist(self,layer=0):
+    def plot_rate_hist(self,layer=0):
         rates = np.mean(self.network.Y[layer],axis = 0)
         num, bin_edges = np.histogram(rates, bins = 50)
         bin_edges = bin_edges[1:]
@@ -291,13 +290,13 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #lt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Rate Histogram')
+        plt.title('Rate Histogram: Layer '+str(layer))
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         self.pp.savefig(fig)
         plt.close(fig)
      
-    def Plot_Rate_Hist_LC(self,layer=0):
+    def plot_rate_hist_LC(self,layer=0):
         fig = plt.figure()
         self.validation_data(1/3.)        
         rates = np.mean(self.network.Y[layer],axis = 0)
@@ -306,13 +305,13 @@ class Plot():
         plt.plot(bin_edges,num,'o')
         #plt.ylim(0,100)
         #plt.gcf().subplots_adjust(bottom=0.15)
-        plt.title('Low Contrast Rate Histogram')
+        plt.title('Low Contrast Rate Histogram: Layer '+str(layer))
         plt.xlabel("Mean Firing Rate")
         plt.ylabel("Number of Cells")
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def Plot_Rate_Corr(self, layer=0):
+    def plot_rate_corr(self, layer=0):
         Y = self.network.Y[layer]
         n_neurons = Y.shape[1]
         corrcoef = np.corrcoef(Y,rowvar = 0)
@@ -325,29 +324,29 @@ class Plot():
             plt.hist(corrcoef_flat, 50, normed= True)
             #plt.ylim(0,300)
             #plt.gcf().subplots_adjust(bottom=0.15)
-            plt.title('Correlation PDF')
+            plt.title('Correlation PDF: Layer '+str(layer))
             plt.xlabel("Rate Correlation")
             plt.ylabel("PDF")
             self.pp.savefig(fig)
             plt.close(fig)
     
-    def Plot_Rate_vs_Time(self,layer):
+    def plot_rate_vs_time(self, layer=0):
         spike_train = self.network.spike_train[layer]        
         rates = spike_train.mean(0).mean(0)
         fig = plt.figure()
         plt.plot(rates)
-        plt.title('Mean Firing Rates vs Time')
+        plt.title('Mean Firing Rates vs Time: Layer '+str(layer))
         plt.ylabel('Mean Firing Rates')
         plt.xlabel('Number of Iterations')
         self.pp.savefig(fig)
         plt.close(fig)
         
-    def Plot_Raster(self, layer):
+    def plot_raster(self, layer=0):
         spike_train = self.network.spike_train[layer]
         num_on = 0
         idx = 0
         
-        for ii in xrange(spike_train.shape[0]):
+        for ii in range(spike_train.shape[0]):
             this_on = np.count_nonzero(spike_train[ii].sum(axis=1))
             if this_on > num_on:
                 idx = ii
@@ -365,12 +364,12 @@ class Plot():
 
             fig = plt.figure()
             colors = np.array(matplotlib.colors.cnames.keys())[[0,41,42,53,70,118,89,97,102,83]]
-            for i,neuron in enumerate(spikes_subset):
+            for ii, neuron in enumerate(spikes_subset):
                 neuron = np.nonzero(neuron)[0]
-                plt.vlines(neuron, i +.5, i +1.2,colors[i])            
+                plt.vlines(neuron, ii +.5, ii +1.2, colors[ii])            
             plt.ylim(.5,len(spikes_subset)+0.5)         
             
-            plt.title('Raster Plot Layer '+str(layer),{'fontsize':'25'})
+            plt.title('Raster Plot Layer: Layer '+str(layer),{'fontsize':'25'})
             plt.xlabel('Time')
             plt.ylabel('Neuron')
             self.pp.savefig(fig)
@@ -386,7 +385,7 @@ class Plot():
             latest_spike = np.append(latest_spike,max(C[I]))
         return latest_spike
 
-    def Layer_2_connection_strengths_to_Layer_1(self):
+    def plot_L1_group_rfs(self):
         nL1 = 10
 	nL2 = 15
         N = self.network.parameters.N
@@ -408,7 +407,6 @@ class Plot():
             rf = rf-rf.min()
             rf = rf/rf.max()
 	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
-            print ii_2, np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2])
 
 	fig=plt.figure()
 	side = int(np.sqrt(N))
@@ -443,7 +441,6 @@ class Plot():
             rf = rf-rf.min()
             rf = rf/rf.max()
             L2C[ii] = np.power(np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2]), .25)*rf
-            print ii_2, np.log(abs(Q2[n, sort_idxs[ii_2]])/min_con_shown[ii_2])
 
         fig=plt.figure()
         side = int(np.sqrt(N))
@@ -460,9 +457,30 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
+    def plot_L0_L1_ff_weights(self):
+        Q1, Q2 = self.network.Q
+        n=10
+        L0,L1=Q2.shape
+        z=np.zeros_like(Q2)
+        for ii in range(L1):
+            a=Q2[:,ii]
+            z[:,ii]=np.sort(a)[::-1]
+        M=z/np.amax(z,axis=0,keepdims=True)
+        mean=np.mean(M,axis=1)[:n]
+        std=np.std(M,axis=1)[:n]
+
+        fig=plt.figure()
+        plt.errorbar(range(n),mean,yerr=std)
+        plt.title('Layer 2 Layer 1 Weights')
+        plt.xlabel('neurons')
+        plt.ylabel('normalized weights')
+        self.pp.savefig(fig)
+        plt.close(fig)
+
+
         
     def PlotAll(self):
-        #self.validation_data()
+        self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
             self.Plot_RF()
             for layer in range(self.network.n_layers):
@@ -471,19 +489,21 @@ class Plot():
                 for channel in self.monitor.training_mean_std:
                     self.plot_training_mean_std(layer, channel)
 
-                self.PlotInhibitHistLogX(layer) 
-                self.PlotInhibitHistLogY(layer)
-                self.PlotInhibitHist(layer)
-                self.PlotInh_vs_RF(layer)
-                self.Plot_EXP_RF(layer)
-                self.Plot_Rate_Hist(layer)
-                self.Plot_Rate_Corr(layer)
-                self.Plot_Raster(layer)
-                self.Plot_Rate_vs_Time(layer)
-                self.frame_spike_correlation(layer)
-                self.Plot_Rate_Hist_LC(layer)
+                self.plot_inhib_hist_logx(layer) 
+                self.plot_inhib_hist_logy(layer)
+                self.plot_inhib_hist(layer)
+                self.plot_inhib_vs_rf(layer)
+                self.plot_exper_rf(layer)
+                self.plot_rate_hist(layer)
+                self.plot_rate_corr(layer)
+                self.plot_raster(layer)
+                self.plot_rate_vs_time(layer)
+                #self.frame_spike_correlation(layer)
+                self.plot_rate_hist_LC(layer)
             if self.network.n_layers > 1:
-                self.Layer_2_connection_strengths_to_Layer_1()
+                self.plot_L1_group_rfs()
+		self.plot_L0_L1_ff_weights()
+
 
 if __name__ == "__main__":
     directory = sys.argv[1]

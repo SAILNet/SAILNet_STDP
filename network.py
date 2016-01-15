@@ -23,7 +23,7 @@ class Network():
     def __init__(self, parameters):
         
         self.parameters = parameters
-        time_data = parameters.time_data
+        time_data = parameters.time_data or parameters.movie_data
         keep_spikes = parameters.keep_spikes
         rng = np.random.RandomState(1246)
         self.current_trial = 0
@@ -81,7 +81,7 @@ class Network():
                                          parameters.num_iterations))
 
     def initialize_time(self):
-        if self.parameters.time_data:
+        if self.parameters.time_data or self.parameters.movie_data:
             for layer in range(self.n_layers):
                 Ys_tm1 = self.Ys_tm1[layer]
                 spike_train_tm1 = self.spike_train_tm1[layer]

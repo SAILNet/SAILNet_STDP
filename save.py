@@ -10,7 +10,7 @@ from learning_rule import Learning_Rule
 from parameters import Parameters
 from network import Network 
 from activity import Activity
-from data import Static_Data, Time_Data
+from data import Static_Data, Time_Data, Movie_Data
 from monitor import Monitor
 
 def make_folder(params):
@@ -93,6 +93,9 @@ def get_args():
     parser.add_argument('--neurons', default=None,type=int)
     parser.add_argument('--OC1', default=None,type=int)
     parser.add_argument('--OC2', default=None,type=int)
+    parser.add_argument('--alpha', default=None, type=float)
+    parser.add_argument('--gamma', default=None, type=float)
+    parser.add_argument('--beta', default=None, type=float)
     parser.add_argument('-p', default=None, type=float)
     parser.add_argument('--n_layers', default=None, type=int)
     
@@ -108,6 +111,10 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
         params = network_params
     else:
         params = file_params
+    params.alpha = cmd_line_args.alpha or params.alpha
+    params.beta = cmd_line_args.beta or params.beta
+    params.gamma = cmd_line_args.gamma or params.gamma
+    params.p = cmd_line_args.p or params.p
     params.OC1 = cmd_line_args.OC1 or params.OC1
     params.OC2 = cmd_line_args.OC2 or params.OC2
     params.M = (params.N*params.OC1, params.N*params.OC2)
@@ -176,6 +183,7 @@ def load_model():
                          parameters.batch_size,
                          parameters.N,
                          parameters.num_frames,
+                         image_name='m',
                          **kwargs)
     else:
         data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
