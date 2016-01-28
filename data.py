@@ -70,7 +70,7 @@ class Time_Data(Data):
                 self.ims = self.rng.randint(0, self.num_images, self.batch_size)
             self.locs_x = self.rng.randint(self.BUFF, self.imsize_x-self.BUFF-sz,size=(self.batch_size, 1))
             self.locs_y = self.rng.randint(self.BUFF, self.imsize_y-self.BUFF-sz,size=(self.batch_size, 1))
-            self.locs = np.concatenate(self.locs_x,self.locs_y,axis=1)
+            self.locs = np.concatenate((self.locs_x,self.locs_y),axis=1)
             
             # One of 9 directions
             self.dirs = self.rng.randint(-1, 2, size=(self.batch_size, 2))
