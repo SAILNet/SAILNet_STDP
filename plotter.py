@@ -10,7 +10,6 @@ from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import fftpack
 import pyfits
-import numpy as np
 import pylab as py
 import radialProfile
 
@@ -24,11 +23,15 @@ class Plot():
             os.makedirs(self.directory+'/Images/RFs')
         self.rng = np.random.RandomState(seed)
             
-    def load_network(self):
-        self.fileName = os.path.join(self.directory, 'data.pkl')
-        with open(self.fileName,'rb') as f:
-            self.network, self.monitor, _ = cPickle.load(f)
-        self.parameters = self.network.parameters
+    def load_network(self, network=None, monitor=None):
+        if network == None:
+            self.fileName = os.path.join(self.directory, 'data.pkl')
+            with open(self.fileName,'rb') as f:
+                self.network, self.monitor, _ = cPickle.load(f)
+            self.parameters = self.network.parameters
+        else:
+            self.network, self.monitor = network, monitor
+            self.parameters = self.network.parameters
             
     def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
         parameters = self.network.parameters        
@@ -482,12 +485,15 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def image_power_spectrum(self,data_type):
-        self.make_large_X(data_type)
-        avg_image = np.mean(self.network.X,axis=0)
-      
-        image = self.network.X
+    def image_power_spectrum(self,data_type): 
+        #Data type options are movie_data,static_data or time_data
         
+        self.make_large_X(data_type)
+        image = np.mean(self.network.X,axis=0)
+        width = np.sqrt(len(image))
+
+        image = np.reshape(image,(width,width))
+
         # Take the fourier transform of the image.
         F1 = fftpack.fft2(image)
          
@@ -504,22 +510,24 @@ class Plot():
         # Now plot up both
         py.figure(1)
         py.clf()
-        py.imshow(np.log10(image),cmap=py.cm.Greys)
-             
+        py.imshow(np.log10(image),cmap=py.cm.Greys,interpolation='nearest')
+        py.savefig(os.path.join(self.directory,'OG_image.png'))
+
         py.figure(2)
         py.clf()
-        py.imshow( np.log10( psf2D ))
-              
+        py.imshow( np.log10( psd2D ),interpolation = 'nearest')
+        py.savefig(os.path.join(self.directory,'2D_Power_Spectrum.png'))
+                
         py.figure(3)
         py.clf()
-        py.semilogy( psf1D )
+        py.semilogy( psd1D )
         py.xlabel('Spatial Frequency')
         py.ylabel('Power Spectrum')
                
-        py.show()
+        py.savefig(os.path.join(self.directory,'1D_Power_Spectrum.png'))
 
         
-    def make_large_X(self, data_type, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
+    def make_large_X(self, data_type, contrast=1., small_batch_size = 100,large_batch_size = 100):
         parameters = self.network.parameters        
         parameters.batch_size = small_batch_size
                                                   
@@ -528,11 +536,6 @@ class Plot():
         
         if data_type == 'movie_data':
             data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/q10_duck8_down8.h5'),
-            1000,
-            parameters.batch_size,
-            parameters.N,
-            parameters.num_frames,
-            start=35)     
             1000,
             parameters.batch_size,
             parameters.N,
@@ -551,10 +554,14 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             start=35)    
-            
+        
+        self.network.to_gpu()
         self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
         
         for ii in range(batch_size/small_bs):
+
+            self.network.parameters.time_data = True  #Hack to clear Initialize Time function
+            
             data.make_X(self.network) 
             if contrast != 1.:
                 self.network.X.set_value(self.network.X.get_value() *
@@ -562,11 +569,12 @@ class Plot():
             
             self.big_X[ii*small_bs:(ii+1)*small_bs,:] = self.network.X.get_value()
         
+        self.network.to_cpu()
         self.network.X = self.big_X
 
     def PlotAll(self):
         self.validation_data()
-        with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
+        with PdfPages(self.directory+'/Images/plots'+str(self.network.current_trial)+'.pdf') as self.pp:
             self.Plot_RF()
             for layer in range(self.network.n_layers):
                 for channel in self.monitor.training_values:
@@ -595,3 +603,4 @@ if __name__ == "__main__":
     plotter = Plot(directory)
     plotter.load_network()
     plotter.PlotAll()
+    #plotter.image_power_spectrum("movie_data")

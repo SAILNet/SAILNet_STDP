@@ -43,10 +43,11 @@ class Learning_Rule(Abs_Learning_Rule):
         decay_w = parameters.decay_w
         batch_size = parameters.batch_size
         p = parameters.p
+        movie_data = parameters.movie_data
         time_data = parameters.time_data
         num_iterations = parameters.num_iterations
         rng = theano.tensor.shared_randomstreams.RandomStreams()
-        if time_data:
+        if time_data or movie_data:
             X_tm1 = network.X_tm1
 
         updates = OrderedDict()
@@ -69,7 +70,7 @@ class Learning_Rule(Abs_Learning_Rule):
             else:
                 time_learning = False
 
-            if time_data and time_learning:
+            if (time_data or movie_data) and time_learning:
                 spike_train = network.spike_train[layer_num]
                 spike_train_tm1 = network.spike_train_tm1[layer_num]
                 time_overlap = rng.random_integers(low=0, high=num_iterations)
@@ -111,7 +112,7 @@ class Learning_Rule(Abs_Learning_Rule):
             
             #Setting input of next layer to spikes of current one
             X = Y
-            if time_data:
+            if time_data or movie_data:
                 X = network.Y[layer_num]
                 X_tm1 = network.spike_train_tm1[layer_num].sum(axis=2)
         

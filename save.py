@@ -48,7 +48,10 @@ def dump_parameters(path, parameters):
  
 def make_pkl(directory, network, monitor, data_rng):
     temp_file = os.path.join(directory, 'data_temp.pkl')
-    final_file = os.path.join(directory, 'data.pkl')
+    if network.continue_learning() == True:
+        final_file = os.path.join(directory, 'data_' + str(network.current_trial) + '.pkl')
+    else:
+        final_file = os.path.join(directory, 'data.pkl')
     with open(temp_file, 'wb') as f:
         cPickle.dump((network, monitor, data_rng), f)
     shutil.move(temp_file, final_file)
@@ -100,6 +103,7 @@ def get_args():
     parser.add_argument('--n_layers', default=None, type=int)
     
     parser.add_argument('-c', '--comments', default='None')
+    parser.add_argument('-l', '--plot_interval', default=None,type=int)
 
     return parser.parse_args()
 
@@ -132,6 +136,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.static_learning1 = cmd_line_args.static_learning1
     params.decay_w = cmd_line_args.decay_w
     params.firing_decay = cmd_line_args.firing_decay
+    params.plot_interval = cmd_line_args.plot_interval
 
     if cmd_line_args.keep_spikes is None:
         params.update_keep_spikes()
@@ -178,12 +183,12 @@ def load_model():
                          parameters.num_frames,
                          **kwargs)
     elif parameters.movie_data and not(parameters.static_data_control):
-        data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/q10_duck8_down8.h5'),
+        data = Movie_Data(os.path.join('data/ducks/whitened_ducks.h5'),
                          parameters.num_images,
                          parameters.batch_size,
                          parameters.N,
                          parameters.num_frames,
-                         image_name='m',
+                         image_name='images',
                          **kwargs)
     else:
         data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
