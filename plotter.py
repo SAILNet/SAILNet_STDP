@@ -6,8 +6,13 @@ import numpy as np
 import network as nw
 from utils import tile_raster_images
 from activity import Activity
-from data import Static_Data, Time_Data
+from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
+from scipy import fftpack
+import pyfits
+import numpy as np
+import pylab as py
+import radialProfile
 
 
 class Plot():
@@ -478,8 +483,88 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
+    def image_power_spectrum(self,data_type):
+        self.make_large_X(data_type)
+        avg_image = np.mean(self.network.X,axis=0)
+      
+        image = self.network.X
+        
+        # Take the fourier transform of the image.
+        F1 = fftpack.fft2(image)
+         
+        # Now shift the quadrants around so that low spatial frequencies are in
+        # the center of the 2D fourier transformed image.
+        F2 = fftpack.fftshift(F1)
+        
+        # Calculate a 2D power spectrum
+        psd2D = np.abs(F2)**2
+         
+        # Calculate the azimuthally averaged 1D power spectrum
+        psd1D = radialProfile.azimuthalAverage(psd2D)
+            
+        # Now plot up both
+        py.figure(1)
+        py.clf()
+        py.imshow(np.log10(image),cmap=py.cm.Greys)
+             
+        py.figure(2)
+        py.clf()
+        py.imshow( np.log10( psf2D ))
+              
+        py.figure(3)
+        py.clf()
+        py.semilogy( psf1D )
+        py.xlabel('Spatial Frequency')
+        py.ylabel('Power Spectrum')
+               
+        py.show()
 
         
+    def make_large_X(self, data_type, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
+        parameters = self.network.parameters        
+        parameters.batch_size = small_batch_size
+                                                  
+        small_bs = self.network.parameters.batch_size        
+        batch_size = large_batch_size
+        
+        if data_type == 'movie_data':
+            data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/q10_duck8_down8.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            parameters.num_frames,
+            start=35)     
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            parameters.num_frames,
+            start=35)     
+        elif data_type == 'time_data':
+            data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            parameters.num_frames,
+            start=35)     
+        else:
+            data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+            1000,
+            parameters.batch_size,
+            parameters.N,
+            start=35)    
+            
+        self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
+        
+        for ii in range(batch_size/small_bs):
+            data.make_X(self.network) 
+            if contrast != 1.:
+                self.network.X.set_value(self.network.X.get_value() *
+                                         np.array(contrast, dtype='float32'))
+            
+            self.big_X[ii*small_bs:(ii+1)*small_bs,:] = self.network.X.get_value()
+        
+        self.network.X = self.big_X
+
     def PlotAll(self):
         self.validation_data()
         with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
