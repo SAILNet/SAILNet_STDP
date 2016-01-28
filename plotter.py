@@ -367,7 +367,8 @@ class Plot():
             for ii, neuron in enumerate(spikes_subset):
                 neuron = np.nonzero(neuron)[0]
                 plt.vlines(neuron, ii +.5, ii +1.2, colors[ii])            
-            plt.ylim(.5,len(spikes_subset)+0.5)         
+            plt.ylim(.5,len(spikes_subset)+0.5)
+            plt.xlim(-1.0, 50)         
             
             plt.title('Raster Plot Layer: Layer '+str(layer),{'fontsize':'25'})
             plt.xlabel('Time')
