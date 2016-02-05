@@ -33,6 +33,7 @@ class Parameters():
         self.reduce_learning_rate = np.array(10**(-1./decay_time)).astype('float32')
         self.norm_infer = config.getboolean("Parameters", "norm_infer")
         self.time_data = config.getboolean("Parameters", "time_data")
+        self.movie_data = config.getboolean("Parameters", "movie_data")
 
 
         self.N = config.getint("NeuronParameters",'N')
@@ -49,7 +50,7 @@ class Parameters():
         self.update_keep_spikes()
 
     def update_keep_spikes(self):
-        if (self.dW_rule in spike_rules) or self.time_data:
+        if (self.dW_rule in spike_rules) or self.time_data or self.movie_data:
             self.keep_spikes = True
         else:
             self.keep_spikes = False

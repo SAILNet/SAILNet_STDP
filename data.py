@@ -6,7 +6,7 @@ Created on Mon May 18 02:28:21 2015
 """
 import numpy as np
 import  h5py
-
+import matplotlib.pyplot as plt
 
 class Data(object):
     def __init__(self, filename, num_images, batch_size, dim, start=0, seed_or_rng=20150602,image_name = 'images'):
@@ -104,6 +104,7 @@ class Movie_Data(Data):
         self.ims = None
         self.locs = None
         self.dirs = None
+        self.flag = 0
 
     def make_X(self, network):
         X = np.empty((self.batch_size, self.dim))
@@ -116,13 +117,26 @@ class Movie_Data(Data):
                 assert self.locs is None
             # Choose random locations and directions
             if self.num_images >= self.batch_size:
-                self.ims = self.rng.permutation(self.num_images)[:self.batch_size]
+                self.ims = self.rng.permutation(self.num_images-self.num_frames)[:self.batch_size]
             else:
                 self.ims = self.rng.randint(0, self.num_images, self.batch_size)
             self.locs_x = self.rng.randint(self.BUFF, self.imsize_x-self.BUFF-sz,size=(self.batch_size, 1))
             self.locs_y = self.rng.randint(self.BUFF, self.imsize_y-self.BUFF-sz,size=(self.batch_size, 1))
             self.locs = np.concatenate((self.locs_x,self.locs_y),axis=1)
-            
+        else: #Move one step forward in time (1 image forward)
+            self.ims += 1
+
+        if self.flag == 0: #Save two images
+            ex = self.images[30]
+            ex2 = self.images[31]
+
+            plt.imshow(ex,cmap='gray')
+            plt.savefig('d30.png')
+
+            plt.imshow(ex2,cmap='gray')
+            plt.savefig('d31.png')
+
+
         for ii, (im, xy) in enumerate(zip(self.ims, self.locs)):
             r, c = xy
             X[ii] = self.images[im, r:r+sz, c:c+sz].ravel()
@@ -130,6 +144,15 @@ class Movie_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
+        
+        Y = X[0].reshape((sz,sz))
+        
+        if self.flag == 0: #Saving movie sequence example
+            plt.imshow(Y,cmap='gray')
+            plt.savefig('duck'+str(self.current_frame)+'.png')
+            if self.current_frame == 9:
+                self.flag = 1
+
 	assert not np.any(np.isnan(X))
         if self.current_frame != 0:
             network.X_tm1.set_value(network.X.get_value())

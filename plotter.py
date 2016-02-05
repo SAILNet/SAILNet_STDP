@@ -9,6 +9,7 @@ from activity import Activity
 from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import fftpack
+from copy import deepcopy
 import pyfits
 import pylab as py
 import radialProfile
@@ -27,11 +28,10 @@ class Plot():
         if network == None:
             self.fileName = os.path.join(self.directory, 'data.pkl')
             with open(self.fileName,'rb') as f:
-                self.network, self.monitor, _ = cPickle.load(f)
-            self.parameters = self.network.parameters
-        else:
-            self.network, self.monitor = network, monitor
-            self.parameters = self.network.parameters
+                network, monitor, _ = cPickle.load(f)
+        self.network, self.monitor = deepcopy((network, monitor))
+        self.parameters = self.network.parameters
+
             
     def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
         parameters = self.network.parameters        
@@ -142,7 +142,7 @@ class Plot():
         self.pp.savefig()
         plt.close()
 
-    def Plot_RF(self, network_Q=None, layer=0, filenum=''):
+    def plot_rf(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:
             Q = network_Q[layer].get_value()
             filenum = str(filenum)
@@ -576,7 +576,7 @@ class Plot():
     def PlotAll(self):
         self.validation_data()
         with PdfPages(self.directory+'/Images/plots'+str(self.network.current_trial)+'.pdf') as self.pp:
-            self.Plot_RF()
+            self.plot_rf()
             for layer in range(self.network.n_layers):
                 for channel in self.monitor.training_values:
                     self.plot_training_values(layer, channel)

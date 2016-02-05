@@ -43,8 +43,8 @@ class Learning_Rule(Abs_Learning_Rule):
         decay_w = parameters.decay_w
         batch_size = parameters.batch_size
         p = parameters.p
-        movie_data = parameters.movie_data
         time_data = parameters.time_data
+        movie_data = parameters.movie_data
         num_iterations = parameters.num_iterations
         rng = theano.tensor.shared_randomstreams.RandomStreams()
         if time_data or movie_data:

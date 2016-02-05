@@ -12,6 +12,7 @@ from network import Network
 from activity import Activity
 from data import Static_Data, Time_Data, Movie_Data
 from monitor import Monitor
+from copy import deepcopy
 
 def make_folder(params):
     saveAttempt = 0
@@ -47,6 +48,9 @@ def dump_parameters(path, parameters):
         f.write(str(parameters.__dict__))
  
 def make_pkl(directory, network, monitor, data_rng):
+    network, monitor = deepcopy((network,monitor))
+    network.to_cpu()
+    monitor.cleanup()
     temp_file = os.path.join(directory, 'data_temp.pkl')
     if network.continue_learning() == True:
         final_file = os.path.join(directory, 'data_' + str(network.current_trial) + '.pkl')
@@ -128,7 +132,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
     params.num_frames = cmd_line_args.num_frames or params.num_frames
-    params.movie_data = cmd_line_args.movie_data
+    params.movie_data = cmd_line_args.movie_data or params.movie_data
     params.time_data = cmd_line_args.time_data or params.time_data
     params.norm_infer = cmd_line_args.norm_infer or params.norm_infer
     params.static_data_control = cmd_line_args.static_data_control

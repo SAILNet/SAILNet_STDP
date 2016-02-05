@@ -11,6 +11,7 @@ begin_decay: 10000
 decay_time: 10000
 norm_infer: False
 time_data: False
+movie_data: False
 num_frames: 10
 
 [NeuronParameters]
