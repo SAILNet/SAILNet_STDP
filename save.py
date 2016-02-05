@@ -187,7 +187,7 @@ def load_model():
                          parameters.num_frames,
                          **kwargs)
     elif parameters.movie_data and not(parameters.static_data_control):
-        data = Movie_Data(os.path.join('data/ducks/whitened_ducks.h5'),
+        data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                          parameters.num_images,
                          parameters.batch_size,
                          parameters.N,
