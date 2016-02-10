@@ -4,7 +4,8 @@ Created on Tue Aug 11 16:31:40 2015
 
 @author: bernal
 """
-import argparse, cPickle, os, shutil
+import pickle as cPickle
+import argparse, os, shutil
 from plotter import Plot
 from learning_rule import Learning_Rule
 from parameters import Parameters
@@ -158,6 +159,7 @@ def load_model():
         with open(os.path.join(prev,'data.pkl'),'rb') as f:
             network, _, data_rng = cPickle.load(f)
         kwargs['seed_or_rng'] = data_rng
+        print('right before to_gpu')
         network.to_gpu()
         network.current_trial = 0
         parameters = final_parameters(file_params,

@@ -39,8 +39,8 @@ class Static_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
-	assert not np.any(np.isnan(X))
-	network.X.set_value(X.astype('float32'))
+        assert not np.any(np.isnan(X))
+        network.X.set_value(X.astype('float32'))
 
 class Time_Data(Data):
     def __init__(self, filename, num_images, batch_size, dim, num_frames,
@@ -85,7 +85,7 @@ class Time_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
-	assert not np.any(np.isnan(X))
+        assert not np.any(np.isnan(X))
         if self.current_frame != 0:
             network.X_tm1.set_value(network.X.get_value())
         else:
@@ -153,7 +153,7 @@ class Movie_Data(Data):
             if self.current_frame == 9:
                 self.flag = 1
 
-	assert not np.any(np.isnan(X))
+        assert not np.any(np.isnan(X))
         if self.current_frame != 0:
             network.X_tm1.set_value(network.X.get_value())
         else:

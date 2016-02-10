@@ -1,4 +1,5 @@
-import cPickle, sys, os
+import pickle as cPickle
+import sys, os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -100,7 +101,6 @@ class Plot():
         M = self.network.parameters.M[layer]
         self.validation_data(1., small_bs, large_bs)
         Y = self.network.Y[layer]
-        print Y.shape
         organized_spikes = Y.reshape((large_bs/(small_bs*20),20,small_bs,M))
         avg_distances = np.zeros((20, len(organized_spikes)))
         for index, saccade in enumerate(organized_spikes):
@@ -396,44 +396,44 @@ class Plot():
 
     def plot_L1_group_rfs(self):
         nL1 = 10
-	nL2 = 15
+        nL2 = 15
         N = self.network.parameters.N
-	Q1, Q2 = self.network.Q
-	indxs = np.zeros((nL2, nL1))
+        Q1, Q2 = self.network.Q
+        indxs = np.zeros((nL2, nL1))
         min_con_shown = np.inf*np.ones(nL2)
-	for n in range(nL2):
-	    v = Q2[:, n].copy()
-	    for c in range(nL1):
-        	idx = np.argmax(v)
+        for n in range(nL2):
+            v = Q2[:, n].copy()
+            for c in range(nL1):
+                idx = np.argmax(v)
                 if min_con_shown[n] > v[idx]:
                     min_con_shown[n] = v[idx]
-	        indxs[n, c] = idx
-	        v[idx] = 0
-	L2C = np.zeros((nL1*nL2, N))
-	for ii, n in enumerate(indxs.ravel()):
+                indxs[n, c] = idx
+                v[idx] = 0
+        L2C = np.zeros((nL1*nL2, N))
+        for ii, n in enumerate(indxs.ravel()):
             ii_2 = int(ii/nL1)
             rf = Q1[:, n]/(Q1[:, n]**2).sum()
             rf = rf-rf.min()
             rf = rf/rf.max()
-	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
+            L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
 
-	fig=plt.figure()
-	side = int(np.sqrt(N))
-	img = tile_raster_images(L2C, img_shape = (side,side),
+        fig=plt.figure()
+        side = int(np.sqrt(N))
+        img = tile_raster_images(L2C, img_shape = (side,side),
                                  tile_shape = (nL2, nL1), tile_spacing=(4, 1),
                                  scale_rows_to_unit_interval=False,
                                  output_pixel_vals=False)
-	plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-	#plt.title('Layer 2 Connection Strengths to Layer 1')
-	plt.xlabel('Layer 1 Receptive Fields')
-	plt.ylabel('Layer 2 Neurons')
+        plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
+        #plt.title('Layer 2 Connection Strengths to Layer 1')
+        plt.xlabel('Layer 1 Receptive Fields')
+        plt.ylabel('Layer 2 Neurons')
         plt.xticks([])
         plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
-	Y2 = self.network.Y[1]
-	sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        Y2 = self.network.Y[1]
+        sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
         min_con_shown = np.inf*np.ones(nL2)
         for n, idx in enumerate(sort_idxs):
             v = Q2[:, idx].copy()
@@ -460,7 +460,7 @@ class Plot():
         plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
         #plt.title('Sort Layer 2 Connection Strengths to Layer 1')
         plt.xlabel('Layer 1 Receptive Fields')
-	plt.ylabel('Sorted Layer 2 Neurons')
+        plt.ylabel('Sorted Layer 2 Neurons')
         plt.xticks([])
         plt.yticks([])
         self.pp.savefig(fig)
@@ -596,7 +596,7 @@ class Plot():
                 self.plot_rate_hist_LC(layer)
             if self.network.n_layers > 1:
                 self.plot_L1_group_rfs()
-		self.plot_L0_L1_ff_weights()
+                self.plot_L0_L1_ff_weights()
 
 
 if __name__ == "__main__":

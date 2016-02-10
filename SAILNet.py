@@ -1,5 +1,4 @@
 import save
-
 activity,data,directory,learn,monitor,network,parameters,plotter = save.load_model()
 
 while network.continue_learning():
