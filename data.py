@@ -23,6 +23,29 @@ class Data(object):
         self.num_images, imsize_x, imsize_y = self.images.shape
         self.imsize_x = imsize_x
         self.imsize_y = imsize_y
+        self.current_frame = 0
+        self.flag = 0
+
+    def save_example(self,X,data_type):
+
+        if self.flag == 0: 
+            sz = np.around(np.sqrt(self.dim)).astype(np.int)
+            Y = X[0].reshape((sz,sz))
+            ex = self.images[30]
+            ex2 = self.images[31]
+
+            plt.imshow(ex,cmap='gray')
+            plt.savefig('image30.png')
+
+            plt.imshow(ex2,cmap='gray')
+            plt.savefig('image31.png')
+
+            plt.imshow(Y,cmap='gray')
+            plt.savefig(data_type+str(self.current_frame)+'.png')
+
+            if self.current_frame == 9:
+                self.flag = 1
+        
 
 class Static_Data(Data):
     def make_X(self, network):
@@ -39,8 +62,11 @@ class Static_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
+
+        self.save_example(X,'static')
         assert not np.any(np.isnan(X))
         network.X.set_value(X.astype('float32'))
+        self.current_frame += 1
 
 class Time_Data(Data):
     def __init__(self, filename, num_images, batch_size, dim, num_frames,
@@ -48,7 +74,6 @@ class Time_Data(Data):
         super(Time_Data,self).__init__(filename, num_images, batch_size,
                                        dim, start, seed_or_rng)
         self.num_frames = num_frames
-        self.current_frame = 0
         self.BUFF += num_frames
         self.ims = None
         self.locs = None
@@ -85,7 +110,10 @@ class Time_Data(Data):
         X = X-X.mean(axis=1, keepdims=True)
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
+
+        self.save_example(X,'time')
         assert not np.any(np.isnan(X))
+        
         if self.current_frame != 0:
             network.X_tm1.set_value(network.X.get_value())
         else:
@@ -99,12 +127,11 @@ class Movie_Data(Data):
         super(Movie_Data,self).__init__(filename, num_images, batch_size,
                                        dim, start, seed_or_rng,image_name)
         self.num_frames = num_frames
-        self.current_frame = 0
         self.BUFF = 10
         self.ims = None
         self.locs = None
         self.dirs = None
-        self.flag = 0
+
 
     def make_X(self, network):
         X = np.empty((self.batch_size, self.dim))
@@ -126,15 +153,6 @@ class Movie_Data(Data):
         else: #Move one step forward in time (1 image forward)
             self.ims += 1
 
-        if self.flag == 0: #Save two images
-            ex = self.images[30]
-            ex2 = self.images[31]
-
-            plt.imshow(ex,cmap='gray')
-            plt.savefig('d30.png')
-
-            plt.imshow(ex2,cmap='gray')
-            plt.savefig('d31.png')
 
 
         for ii, (im, xy) in enumerate(zip(self.ims, self.locs)):
@@ -145,14 +163,7 @@ class Movie_Data(Data):
         #X = X/np.sqrt((X*X).sum(axis=1, keepdims=True))
         X = X/X.std(axis=1, keepdims=True)
         
-        Y = X[0].reshape((sz,sz))
-        
-        if self.flag == 0: #Saving movie sequence example
-            plt.imshow(Y,cmap='gray')
-            plt.savefig('duck'+str(self.current_frame)+'.png')
-            if self.current_frame == 9:
-                self.flag = 1
-
+        self.save_example(X,'movie')
         assert not np.any(np.isnan(X))
         if self.current_frame != 0:
             network.X_tm1.set_value(network.X.get_value())
