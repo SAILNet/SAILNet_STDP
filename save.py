@@ -180,7 +180,7 @@ def load_model():
     monitor = Monitor(network)
     activity = Activity(network)
     if parameters.time_data and not(parameters.static_data_control):
-        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                          parameters.num_images,
                          parameters.batch_size,
                          parameters.N,
@@ -195,7 +195,7 @@ def load_model():
                          image_name='images',
                          **kwargs)
     else:
-        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                            parameters.num_images,
                            parameters.batch_size,
                            parameters.N,
