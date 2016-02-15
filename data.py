@@ -35,10 +35,10 @@ class Data(object):
             ex2 = self.images[31]
 
             plt.imshow(ex,cmap='gray')
-            plt.savefig('image30.png')
+            plt.savefig(data_type+'image30.png')
 
             plt.imshow(ex2,cmap='gray')
-            plt.savefig('image31.png')
+            plt.savefig(data_type+'image31.png')
 
             plt.imshow(Y,cmap='gray')
             plt.savefig(data_type+str(self.current_frame)+'.png')
