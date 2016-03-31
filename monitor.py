@@ -43,9 +43,14 @@ class Monitor(object):
             X_bar = X_norm.mean()
             X_std = X_norm.std()
             outputs.extend([X_bar, X_std])
-
-            SNR_Norm = T.mean(T.var(X,axis=0))/T.mean(T.var(X-X_rec*X_norm/X_rec_norm,axis=0))
-            SNR = T.mean(T.var(X,axis=0))/T.mean(T.var(X-X_rec_norm,axis=0))
+           
+            X_rec_norm=T.switch(T.eq(X_rec_norm,0.), 1e-4, X_rec_norm)
+            A=T.mean(T.var(X-X_rec*X_norm/X_rec_norm,axis=0))
+            A=T.switch(T.eq(A,0.), 1e-4, A)
+            SNR_Norm = T.mean(T.var(X,axis=0))/A
+            B=T.mean(T.var(X-X_rec_norm,axis=0))
+            B=T.switch(T.eq(B,0.), 1e-4, B)
+            SNR = T.mean(T.var(X,axis=0))/B
             outputs.extend([SNR, SNR_Norm])
             
             Q_norm = T.sqrt(T.sum(T.sqr(Q), axis=0))

@@ -9,10 +9,10 @@ from activity import Activity
 from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import fftpack
-import pyfits
+#import pyfits
 import numpy as np
 import pylab as py
-import radialProfile
+#import radialProfile
 
 
 class Plot():
@@ -56,7 +56,7 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             parameters.num_frames,
-            start=35)     
+            start=35)
         else:
             data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
             1000,
@@ -529,11 +529,6 @@ class Plot():
         
         if data_type == 'movie_data':
             data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/q10_duck8_down8.h5'),
-            1000,
-            parameters.batch_size,
-            parameters.N,
-            parameters.num_frames,
-            start=35)     
             1000,
             parameters.batch_size,
             parameters.N,
