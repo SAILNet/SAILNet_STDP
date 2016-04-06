@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import array
+from scipy import misc
 
 # Olshausen 2013 subset of van Hateren dataset
 olshausen_subset = ['imk00264.iml',
@@ -39,32 +40,44 @@ olshausen_subset = ['imk00264.iml',
                     'imk04172.iml',
                     'imk04207.iml']
 
-class VanHateren:
-    def __init__(self, image_dir, use_olshausen=False):
+class Image_Loader:
+    def __init__(self, image_dir, use_olshausen=False, data_type='iml'):
+        self.data_type = data_type
         if use_olshausen:
             self.im_files = [os.path.join(image_dir, ols_file) for ols_file in olshausen_subset]
         else:
             import glob
-            self.im_files = glob.glob(os.path.join(image_dir, '*.iml'))
+            self.im_files = sorted(glob.glob(os.path.join(image_dir, '*.' + data_type)))
         print len(self.im_files)
         print image_dir
 
-    def load_images(self, n_images, rng=None):
+    def load_images(self, n_images, image_size=1024, rng=None):
+        num_files = len(self.im_files)
+        if n_images >= num_files:
+            n_images = num_files 
+        print(n_images)
         if rng is None:
             im_indicies = np.arange(n_images)
         else:
             im_indicies = rng.permutation(len(self.im_files))[:n_images]
 
-        imgset = np.zeros((n_images, 1024, 1024), dtype='float32')
+        imgset = np.zeros((n_images, image_size, image_size), dtype='float32')
+        
         for i,index in enumerate(im_indicies):
-            with open(self.im_files[index], 'rb') as handle:
-                s = handle.read()
-            arr = array.array('H', s)
-            arr.byteswap()
-            img = np.array(arr, dtype='uint16').reshape(1024, 1536)
-
+            if self.data_type == 'iml':
+                with open(self.im_files[index], 'rb') as handle:
+                    s = handle.read()
+                rows, cols = s.shape
+                max_size = max(rows,cols)
+                arr = array.array('H', s)
+                arr.byteswap()
+                img = np.array(arr, dtype='uint16').reshape(min(rows,cols), max_size)
+            
+            if self.data_type == 'png':
+                img = misc.imread(self.im_files[index], flatten = True)
+                max_size = max(img.shape)
             # Olshausen 2013 extracts central 1024x1024 patch
-            img = img[:, (1536-1024)/2:(1536+1024)/2]
+            img = img[:, (max_size-image_size)/2:(max_size+image_size)/2]
             img = np.log(img.astype('float32')+0.1)
             # Remove image mean
             img -= img.mean()

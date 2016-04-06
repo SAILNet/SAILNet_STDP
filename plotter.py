@@ -1,4 +1,5 @@
-import cPickle, sys, os
+import pickle as cPickle
+import sys, os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -9,8 +10,9 @@ from activity import Activity
 from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import fftpack
-#import pyfits
-import numpy as np
+from copy import deepcopy
+import pyfits
+
 import pylab as py
 #import radialProfile
 
@@ -24,11 +26,14 @@ class Plot():
             os.makedirs(self.directory+'/Images/RFs')
         self.rng = np.random.RandomState(seed)
             
-    def load_network(self):
-        self.fileName = os.path.join(self.directory, 'data.pkl')
-        with open(self.fileName,'rb') as f:
-            self.network, self.monitor, _ = cPickle.load(f)
+    def load_network(self, network=None, monitor=None):
+        if network == None:
+            self.fileName = os.path.join(self.directory, 'data.pkl')
+            with open(self.fileName,'rb') as f:
+                network, monitor, _ = cPickle.load(f)
+        self.network, self.monitor = deepcopy((network, monitor))
         self.parameters = self.network.parameters
+
             
     def validation_data(self, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
         parameters = self.network.parameters        
@@ -97,7 +102,6 @@ class Plot():
         M = self.network.parameters.M[layer]
         self.validation_data(1., small_bs, large_bs)
         Y = self.network.Y[layer]
-        print Y.shape
         organized_spikes = Y.reshape((large_bs/(small_bs*20),20,small_bs,M))
         avg_distances = np.zeros((20, len(organized_spikes)))
         for index, saccade in enumerate(organized_spikes):
@@ -139,7 +143,7 @@ class Plot():
         self.pp.savefig()
         plt.close()
 
-    def Plot_RF(self, network_Q=None, layer=0, filenum=''):
+    def plot_rf(self, network_Q=None, layer=0, filenum=''):
         if network_Q != None:
             Q = network_Q[layer].get_value()
             filenum = str(filenum)
@@ -393,44 +397,44 @@ class Plot():
 
     def plot_L1_group_rfs(self):
         nL1 = 10
-	nL2 = 15
+        nL2 = 15
         N = self.network.parameters.N
-	Q1, Q2 = self.network.Q
-	indxs = np.zeros((nL2, nL1))
+        Q1, Q2 = self.network.Q
+        indxs = np.zeros((nL2, nL1))
         min_con_shown = np.inf*np.ones(nL2)
-	for n in range(nL2):
-	    v = Q2[:, n].copy()
-	    for c in range(nL1):
-        	idx = np.argmax(v)
+        for n in range(nL2):
+            v = Q2[:, n].copy()
+            for c in range(nL1):
+                idx = np.argmax(v)
                 if min_con_shown[n] > v[idx]:
                     min_con_shown[n] = v[idx]
-	        indxs[n, c] = idx
-	        v[idx] = 0
-	L2C = np.zeros((nL1*nL2, N))
-	for ii, n in enumerate(indxs.ravel()):
+                indxs[n, c] = idx
+                v[idx] = 0
+        L2C = np.zeros((nL1*nL2, N))
+        for ii, n in enumerate(indxs.ravel()):
             ii_2 = int(ii/nL1)
             rf = Q1[:, n]/(Q1[:, n]**2).sum()
             rf = rf-rf.min()
             rf = rf/rf.max()
-	    L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
+            L2C[ii] = np.power(np.log(abs(Q2[n, ii_2])/min_con_shown[ii_2]), .25)*rf
 
-	fig=plt.figure()
-	side = int(np.sqrt(N))
-	img = tile_raster_images(L2C, img_shape = (side,side),
+        fig=plt.figure()
+        side = int(np.sqrt(N))
+        img = tile_raster_images(L2C, img_shape = (side,side),
                                  tile_shape = (nL2, nL1), tile_spacing=(4, 1),
                                  scale_rows_to_unit_interval=False,
                                  output_pixel_vals=False)
-	plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
-	#plt.title('Layer 2 Connection Strengths to Layer 1')
-	plt.xlabel('Layer 1 Receptive Fields')
-	plt.ylabel('Layer 2 Neurons')
+        plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
+        #plt.title('Layer 2 Connection Strengths to Layer 1')
+        plt.xlabel('Layer 1 Receptive Fields')
+        plt.ylabel('Layer 2 Neurons')
         plt.xticks([])
         plt.yticks([])
         self.pp.savefig(fig)
         plt.close(fig)
 
-	Y2 = self.network.Y[1]
-	sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
+        Y2 = self.network.Y[1]
+        sort_idxs = np.argsort(Y2.sum(axis=0))[::-1][:nL2]
         min_con_shown = np.inf*np.ones(nL2)
         for n, idx in enumerate(sort_idxs):
             v = Q2[:, idx].copy()
@@ -457,7 +461,7 @@ class Plot():
         plt.imshow(img,cmap=plt.cm.Greys, interpolation='nearest')
         #plt.title('Sort Layer 2 Connection Strengths to Layer 1')
         plt.xlabel('Layer 1 Receptive Fields')
-	plt.ylabel('Sorted Layer 2 Neurons')
+        plt.ylabel('Sorted Layer 2 Neurons')
         plt.xticks([])
         plt.yticks([])
         self.pp.savefig(fig)
@@ -483,12 +487,15 @@ class Plot():
         self.pp.savefig(fig)
         plt.close(fig)
 
-    def image_power_spectrum(self,data_type):
-        self.make_large_X(data_type)
-        avg_image = np.mean(self.network.X,axis=0)
-      
-        image = self.network.X
+    def image_power_spectrum(self,data_type): 
+        #Data type options are movie_data,static_data or time_data
         
+        self.make_large_X(data_type)
+        image = np.mean(self.network.X,axis=0)
+        width = np.sqrt(len(image))
+
+        image = np.reshape(image,(width,width))
+
         # Take the fourier transform of the image.
         F1 = fftpack.fft2(image)
          
@@ -505,22 +512,24 @@ class Plot():
         # Now plot up both
         py.figure(1)
         py.clf()
-        py.imshow(np.log10(image),cmap=py.cm.Greys)
-             
+        py.imshow(np.log10(image),cmap=py.cm.Greys,interpolation='nearest')
+        py.savefig(os.path.join(self.directory,'OG_image.png'))
+
         py.figure(2)
         py.clf()
-        py.imshow( np.log10( psf2D ))
-              
+        py.imshow( np.log10( psd2D ),interpolation = 'nearest')
+        py.savefig(os.path.join(self.directory,'2D_Power_Spectrum.png'))
+                
         py.figure(3)
         py.clf()
-        py.semilogy( psf1D )
+        py.semilogy( psd1D )
         py.xlabel('Spatial Frequency')
         py.ylabel('Power Spectrum')
                
-        py.show()
+        py.savefig(os.path.join(self.directory,'1D_Power_Spectrum.png'))
 
         
-    def make_large_X(self, data_type, contrast=1., small_batch_size = 1000,large_batch_size = 50000):
+    def make_large_X(self, data_type, contrast=1., small_batch_size = 100,large_batch_size = 100):
         parameters = self.network.parameters        
         parameters.batch_size = small_batch_size
                                                   
@@ -547,10 +556,14 @@ class Plot():
             parameters.batch_size,
             parameters.N,
             start=35)    
-            
+        
+        self.network.to_gpu()
         self.big_X = np.zeros((batch_size, parameters.N), dtype='float32')
         
         for ii in range(batch_size/small_bs):
+
+            self.network.parameters.time_data = True  #Hack to clear Initialize Time function
+            
             data.make_X(self.network) 
             if contrast != 1.:
                 self.network.X.set_value(self.network.X.get_value() *
@@ -558,12 +571,13 @@ class Plot():
             
             self.big_X[ii*small_bs:(ii+1)*small_bs,:] = self.network.X.get_value()
         
+        self.network.to_cpu()
         self.network.X = self.big_X
 
     def PlotAll(self):
         self.validation_data()
-        with PdfPages(self.directory+'/Images/plots.pdf') as self.pp:
-            self.Plot_RF()
+        with PdfPages(self.directory+'/Images/plots'+str(self.network.current_trial)+'.pdf') as self.pp:
+            self.plot_rf()
             for layer in range(self.network.n_layers):
                 for channel in self.monitor.training_values:
                     self.plot_training_values(layer, channel)
@@ -583,7 +597,7 @@ class Plot():
                 self.plot_rate_hist_LC(layer)
             if self.network.n_layers > 1:
                 self.plot_L1_group_rfs()
-		self.plot_L0_L1_ff_weights()
+                self.plot_L0_L1_ff_weights()
 
 
 if __name__ == "__main__":
@@ -591,3 +605,4 @@ if __name__ == "__main__":
     plotter = Plot(directory)
     plotter.load_network()
     plotter.PlotAll()
+    #plotter.image_power_spectrum("movie_data")

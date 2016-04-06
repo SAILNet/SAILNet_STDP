@@ -4,13 +4,14 @@ function: None
 
 [Parameters]
 batch_size: 100
-num_images: 35
+num_images: 3000
 num_trials: 200
 num_iterations: 50
 begin_decay: 10000
 decay_time: 10000
 norm_infer: False
 time_data: False
+movie_data: False
 num_frames: 10
 
 [NeuronParameters]

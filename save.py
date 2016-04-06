@@ -4,7 +4,8 @@ Created on Tue Aug 11 16:31:40 2015
 
 @author: bernal
 """
-import argparse, cPickle, os, shutil
+import pickle as cPickle
+import argparse, os, shutil
 from plotter import Plot
 from learning_rule import Learning_Rule
 from parameters import Parameters
@@ -12,6 +13,7 @@ from network import Network
 from activity import Activity
 from data import Static_Data, Time_Data, Movie_Data
 from monitor import Monitor
+from copy import deepcopy
 
 def make_folder(params):
     saveAttempt = 0
@@ -47,8 +49,14 @@ def dump_parameters(path, parameters):
         f.write(str(parameters.__dict__))
  
 def make_pkl(directory, network, monitor, data_rng):
+    network, monitor = deepcopy((network,monitor))
+    network.to_cpu()
+    monitor.cleanup()
     temp_file = os.path.join(directory, 'data_temp.pkl')
-    final_file = os.path.join(directory, 'data.pkl')
+    if network.continue_learning() == True:
+        final_file = os.path.join(directory, 'data_' + str(network.current_trial) + '.pkl')
+    else:
+        final_file = os.path.join(directory, 'data.pkl')
     with open(temp_file, 'wb') as f:
         cPickle.dump((network, monitor, data_rng), f)
     shutil.move(temp_file, final_file)
@@ -100,6 +108,7 @@ def get_args():
     parser.add_argument('--n_layers', default=None, type=int)
     
     parser.add_argument('-c', '--comments', default='None')
+    parser.add_argument('-l', '--plot_interval', default=None,type=int)
 
     return parser.parse_args()
 
@@ -124,7 +133,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.dW_rule = cmd_line_args.dW_rule or params.dW_rule
     params.function = cmd_line_args.function or params.function
     params.num_frames = cmd_line_args.num_frames or params.num_frames
-    params.movie_data = cmd_line_args.movie_data
+    params.movie_data = cmd_line_args.movie_data or params.movie_data
     params.time_data = cmd_line_args.time_data or params.time_data
     params.norm_infer = cmd_line_args.norm_infer or params.norm_infer
     params.static_data_control = cmd_line_args.static_data_control
@@ -132,6 +141,7 @@ def final_parameters(file_params, cmd_line_args=None, network_params=None):
     params.static_learning1 = cmd_line_args.static_learning1
     params.decay_w = cmd_line_args.decay_w
     params.firing_decay = cmd_line_args.firing_decay
+    params.plot_interval = cmd_line_args.plot_interval
 
     if cmd_line_args.keep_spikes is None:
         params.update_keep_spikes()
@@ -149,6 +159,7 @@ def load_model():
         with open(os.path.join(prev,'data.pkl'),'rb') as f:
             network, _, data_rng = cPickle.load(f)
         kwargs['seed_or_rng'] = data_rng
+        print('right before to_gpu')
         network.to_gpu()
         network.current_trial = 0
         parameters = final_parameters(file_params,
@@ -171,22 +182,22 @@ def load_model():
     monitor = Monitor(network)
     activity = Activity(network)
     if parameters.time_data and not(parameters.static_data_control):
-        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        data = Time_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                          parameters.num_images,
                          parameters.batch_size,
                          parameters.N,
                          parameters.num_frames,
                          **kwargs)
     elif parameters.movie_data and not(parameters.static_data_control):
-        data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/q10_duck8_down8.h5'),
+        data = Movie_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                          parameters.num_images,
                          parameters.batch_size,
                          parameters.N,
                          parameters.num_frames,
-                         image_name='m',
+                         image_name='images',
                          **kwargs)
     else:
-        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'vanhateren/whitened_images.h5'),
+        data = Static_Data(os.path.join(os.environ['DATA_PATH'],'ducks/whitened_ducks.h5'),
                            parameters.num_images,
                            parameters.batch_size,
                            parameters.N,
