@@ -11,10 +11,8 @@ from data import Static_Data, Time_Data, Movie_Data
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy import fftpack
 from copy import deepcopy
-import pyfits
 
 import pylab as py
-#import radialProfile
 
 
 class Plot():
